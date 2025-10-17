@@ -76,7 +76,7 @@ export const SelectionMenu: React.FC<SelectionMenuProps> = ({
   const actions = [
     {
       icon: Sparkles,
-      label: "AI Assistant",
+      label: "Ask AI",
       onClick: onAskLexa,
     },
     onSummarize && {

@@ -5,7 +5,14 @@ import {
   editorInstance,
   editorUIState,
 } from "@repo/shadcn-ui/state/editor";
-import { MessageSquare, Send, Sparkles, X } from "lucide-react";
+import {
+  File,
+  MessageSquare,
+  Scale,
+  Send,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { nanoid } from "nanoid";
 import { computed } from "nanostores";
 import {
@@ -291,33 +298,24 @@ export function EditorAIChatPanel({
   return (
     <div
       className={cn(
-        "fixed top-0 right-0 h-full w-80 bg-background shadow-lg transition-transform duration-300 ease-in-out z-50 flex flex-col",
-        isOpen ? "translate-x-0" : "translate-x-full",
+        "fixed top-0 right-0 h-full w-80 bg-background border-l transition-transform duration-300 ease-in-out z-50 flex flex-col",
+        isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2 hidden">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center">
-            <img
-              src="/assets/ai-button-bg.png"
-              className="flex-1 group-hover:scale-110"
-              loading="lazy"
-              alt="AI Assistant"
-            />
-            <Sparkles className="h-4 w-4 text-white absolute" />
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Sparkles className="h-4 w-4 text-primary" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold">Ask Lexa</h3>
-            <p className="text-xs text-muted-foreground">Ready to help!</p>
-          </div>
+          <h3 className="text-sm font-medium text-foreground">AI Assistant</h3>
         </div>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleCloseAIPanel}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 rounded-full hover:bg-accent"
             aria-label="Close AI Assistant"
           >
             <X className="h-4 w-4" />
@@ -335,22 +333,41 @@ export function EditorAIChatPanel({
             aria-label="Chat conversation"
           >
             {messages.length === 0 ? (
-              <div className="text-center py-12 px-4 text-muted-foreground">
-                <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-6 h-6" />
+              <div className="min-h-[60vh] flex items-center justify-center">
+              <div className="flex flex-col items-center gap-y-6">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-primary" />
                 </div>
-                <h4 className="font-medium text-sm text-foreground mb-2">
-                  Ready to help!
-                </h4>
-                <p className="text-sm leading-relaxed">
-                  Ask me anything about your document. I can help with:
-                </p>
-                <ul className="text-xs mt-3 space-y-1 text-left max-w-48 mx-auto">
-                  <li>• Writing and editing</li>
-                  <li>• Grammar and style</li>
-                  <li>• Document structure</li>
-                  <li>• Content suggestions</li>
-                </ul>
+
+                {/* Suggested Prompts */}
+                <div className="grid grid-cols-1 gap-2 w-full max-w-2xl">
+                  {[
+                    {
+                      icon: File,
+                      prompt: "Summarize this document",
+                    },
+                    {
+                      icon: MessageSquare,
+                      prompt: "Improve writing style",
+                    },
+                  ].map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() =>
+                        aiChatActions.setInputValue(suggestion.prompt)
+                      }
+                      className="p-3 text-left rounded-lg hover:bg-accent transition-all duration-200 group border border-transparent hover:border-border"
+                    >
+                      <div className="flex items-center gap-3">
+                        <suggestion.icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        <p className="text-sm text-foreground font-medium group-hover:text-primary transition-colors">
+                          {suggestion.prompt}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
               </div>
             ) : (
               <>
@@ -366,19 +383,19 @@ export function EditorAIChatPanel({
         </ScrollArea>
       </div>
 
-      <Separator />
+      <Separator className="mx-4" />
 
       {/* Input Area */}
-      <div className="px-4 py-4 bg-muted/10">
+      <div className="px-4 py-4 border-t">
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="relative">
             <Textarea
               ref={textareaRef}
               value={inputValue}
               onChange={(e) => aiChatActions.setInputValue(e.target.value)}
-              placeholder="Ask about your document..."
+              placeholder="Ask about this document, request edits, or get help..."
               disabled={isTyping || isStreaming}
-              className="min-h-[60px] max-h-32 resize-none pr-12 text-sm focus:ring-2 focus:ring-primary/20 border-border/50"
+              className="min-h-[60px] max-h-32 resize-none pr-12 text-sm border border-input bg-background rounded-md py-3 px-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -391,10 +408,10 @@ export function EditorAIChatPanel({
               type="submit"
               size="sm"
               disabled={!inputValue.trim() || isTyping || isStreaming}
-              className="absolute right-2 bottom-2 h-8 w-8 p-0 shadow-sm"
+              className="absolute right-3 bottom-3 h-8 w-8 p-0 rounded-full bg-primary hover:bg-primary/90"
               aria-label="Send message"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4 text-primary-foreground" />
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center">

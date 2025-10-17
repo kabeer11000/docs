@@ -20,8 +20,8 @@ export function AIFab({ hasUnreadMessages = false, className }: AIFabProps) {
     <div
       onClick={() => editorActions.setAIPanelOpen(true)}
       className={cn(
-        "fixed bottom-6 right-6 h-14 w-14 cursor-pointer z-10 group",
-        "transition-all duration-300 ease-in-out",
+        "fixed bottom-6 right-6 h-12 w-12 cursor-pointer z-10 group",
+        "transition-all duration-300 ease-in-out shadow-sm",
         isOpen && "opacity-0 scale-75 pointer-events-none",
         className,
       )}
@@ -29,51 +29,27 @@ export function AIFab({ hasUnreadMessages = false, className }: AIFabProps) {
       <div
         className={cn(
           "relative h-full w-full overflow-hidden",
-          "rounded-xl transition-all duration-300 ease-in-out",
-          "shadow-lg hover:shadow-xl",
-          "group-hover:rounded-full group-hover:scale-110",
-          "flex items-center justify-center",
+          "rounded-full transition-all duration-300 ease-in-out",
+          "bg-primary group-hover:bg-primary/90 hover:shadow-md",
+          "flex items-center justify-center border border-primary/20",
         )}
       >
-        <img
-          src="/assets/ai-button-bg.png"
-          className={cn(
-            "absolute inset-0 h-full w-full object-cover",
-            "transition-transform duration-300 ease-in-out",
-            "group-hover:scale-105",
-          )}
-          loading="lazy"
-          alt="AI Background"
-        />
-
         <div className="relative z-10 flex items-center justify-center">
-          {isOpen ? (
-            <X
+          <Sparkles
+            className={cn(
+              "h-5 w-5 text-primary-foreground",
+              "transition-all duration-300 ease-in-out",
+              "group-hover:scale-110 group-hover:rotate-12",
+            )}
+          />
+          {hasUnreadMessages && (
+            <div
               className={cn(
-                "h-6 w-6 text-white",
-                "transition-all duration-300 ease-in-out",
-                "group-hover:scale-110 group-hover:rotate-90",
+                "absolute -top-1 -right-1 w-3 h-3",
+                "bg-destructive rounded-full border border-background",
+                "animate-pulse transition-all duration-300",
               )}
             />
-          ) : (
-            <>
-              <Sparkles
-                className={cn(
-                  "h-6 w-6 text-white",
-                  "transition-all duration-300 ease-in-out",
-                  "group-hover:scale-110 group-hover:rotate-12",
-                )}
-              />
-              {hasUnreadMessages && (
-                <div
-                  className={cn(
-                    "absolute -top-1 -right-1 w-3 h-3",
-                    "bg-red-500 rounded-full border-2 border-white",
-                    "animate-pulse transition-all duration-300",
-                  )}
-                />
-              )}
-            </>
           )}
         </div>
       </div>
