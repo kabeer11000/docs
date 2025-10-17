@@ -1,0 +1,47 @@
+---
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  actions?: Array<{
+    href: string;
+    label: string;
+    type: "primary" | "secondary";
+  }>;
+}
+
+const {
+  title = "Transform your legal practice with Lexa",
+  subtitle = "Streamline contracts, automate workflows, and collaborate seamlessly.",
+  actions = [
+    { href: "/home", label: "Start Free Trial", type: "primary" },
+    { href: "#", label: "Schedule Demo", type: "secondary" },
+  ],
+} = Astro.props;
+---
+
+<section class="px-6 py-20 max-w-6xl mx-auto">
+  <article class="flex flex-col justify-center gap-9 self-stretch rounded-xl bg-blue-50 p-6 lg:flex-row lg:justify-between lg:p-10">
+    <div class="flex flex-col gap-2">
+      <h4 class="text-3xl font-medium text-neutral-900 lg:text-4xl">
+        {title}
+      </h4>
+      <p class="text-lg text-neutral-700 lg:text-xl">
+        {subtitle}
+      </p>
+    </div>
+    <div class="grid grid-cols-2 items-center gap-2 md:flex lg:flex-col">
+      {actions.map(({ href, label, type }) => (
+        <a
+          href={href}
+          class={`px-6 py-3 font-medium rounded-lg transition-colors text-center ${
+            type === "primary" 
+              ? "bg-teal-600 text-white hover:bg-teal-700" 
+              : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50 bg-white"
+          }`}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+  </article>
+</section>

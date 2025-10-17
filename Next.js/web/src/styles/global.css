@@ -1,0 +1,465 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "tailwindcss/utilities";
+@import "./voice.css";
+
+/* Reference directive for Tailwind v4 - makes utilities available in CSS */
+@reference;
+
+* {
+  /* outline: red solid 1px; */
+}
+
+@keyframes scroll-infinite {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-infinite {
+  animation: scroll-infinite 30s linear infinite;
+}
+
+.animate-scroll-infinite:hover {
+  animation-play-state: paused;
+}
+
+/* Define theme tokens for shadcn/ui */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Map design tokens to CSS variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-signer: var(--signer);
+  --color-signer-foreground: var(--signer-foreground);
+}
+
+/* Color Palette */
+:root {
+  --radius: 0rem;
+  /* 0.625rem; */
+
+  /* Neutral 200 as background (light neutralish) */
+  --background: oklch(0.98 0.002 50);
+  /* Very light neutral background */
+  --foreground: oklch(0.1 0.005 48);
+  /* Very dark neutral/black text */
+
+  /* Cards & Popovers */
+  --card: oklch(1 0 0);
+  /* Pure white cards */
+  --card-foreground: oklch(0.1 0.005 48);
+  /* Dark text on cards */
+
+  /* Popovers (dropdowns, tooltips) */
+  --popover: oklch(1 0 0);
+  /* white */
+  --popover-foreground: oklch(0.15 0.005 48);
+
+  /* Primary (used for buttons, links, active states) */
+  --primary: oklch(47.16% 0.073 211.70);
+  /* Muted Teal-Green */
+  --primary-foreground: oklch(0.95 0.005 160);
+  /* Light green-50 */
+
+  /* Secondary (subtle actions, toggles) */
+  --secondary: oklch(0.92 0.008 160);
+  /* Light neutral-green */ 
+  --secondary-foreground: oklch(0.1 0.01 160);
+  /* Dark green text */
+
+  /* Muted (backgrounds, subtle borders) */
+  --muted: oklch(0.95 0.002 50);
+  /* Very light neutral for muted backgrounds */
+  --muted-foreground: oklch(0.4 0.01 52);
+  /* Darker neutral for muted text */
+
+  /* Accent (your main brand color - muted green) */
+  --accent: oklch(0.85 0.02 155);
+  /* Softer green, calm */
+  --accent-foreground: oklch(0.18 0.01 155);
+
+  /* Destructive (errors, delete) */
+  --destructive: oklch(0.6 0.18 25);
+  /* Warm red */
+  --destructive-foreground: oklch(0.95 0.01 25);
+
+  /* Borders & Inputs */
+  --border: oklch(0.85 0.003 49);
+  /* Darker border for better visibility */
+  --input: oklch(0.98 0.002 49);
+  /* Light input background */
+  --ring: oklch(0.4 0.03 160);
+  /* Greenish focus ring */
+
+  /* Sidebar */
+  --sidebar: var(--background);
+  /* Slightly lighter than background */
+  /* oklch(0.97 0.002 51);  */
+  --sidebar-foreground: var(--foreground);
+  /* oklch(0.2 0.005 48); */
+
+  /* Signer theme color */
+  --signer: #1b6673;
+  --signer-foreground: #ffffff;
+  --sidebar-primary: oklch(0.3 0.04 160);
+  --sidebar-primary-foreground: oklch(0.95 0.005 160);
+  --sidebar-accent: oklch(0.85 0.02 155);
+  --sidebar-accent-foreground: oklch(0.18 0.01 155);
+  --sidebar-border: oklch(0.88 0.003 49);
+  --sidebar-ring: oklch(0.4 0.03 160);
+
+  /* Charts (optional) */
+  --chart-1: oklch(0.6 0.12 165);
+  --chart-2: oklch(0.65 0.1 145);
+  --chart-3: oklch(0.55 0.08 180);
+  --chart-4: oklch(0.7 0.1 130);
+  --chart-5: oklch(0.5 0.06 170);
+}
+
+/* Base Layer */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* .tiptap-collaboration-caret__caret {
+  @apply caret-blink
+} */
+
+/* TipTap Editor Table Styles */
+.ProseMirror {
+  outline: none;
+}
+
+.ProseMirror table {
+  @apply border-collapse border-border border-2 my-4 w-full bg-card;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  @apply border border-border px-3 py-2 text-left bg-card text-card-foreground min-w-[100px] relative;
+}
+
+.ProseMirror table th {
+  @apply bg-muted font-semibold text-muted-foreground;
+}
+
+.ProseMirror table .selectedCell {
+  @apply bg-primary/10 border-primary;
+}
+
+.ProseMirror table .column-resize-handle {
+  @apply absolute right-[-2px] top-0 bottom-0 w-1 bg-primary/20 hover:bg-primary/40 cursor-col-resize;
+}
+
+.ProseMirror table .tableWrapper {
+  @apply overflow-x-auto;
+}
+
+.ProseMirror table .resize-cursor {
+  @apply cursor-ew-resize;
+}
+
+/* Better table cell selection */
+.ProseMirror table .selectedCell:after {
+  content: '';
+  @apply absolute inset-0 pointer-events-none bg-primary/10 border border-primary/50;
+}
+
+/* Enhanced List Styling */
+.ProseMirror ul,
+.ProseMirror ol {
+  @apply pl-6 my-2;
+}
+
+.ProseMirror ul li {
+  @apply list-disc;
+}
+
+.ProseMirror ol li {
+  @apply list-decimal;
+}
+
+.ProseMirror li {
+  @apply my-1;
+}
+
+.tiptap, .ProseMirror:focus, .ProseMirror-focused {
+  outline: none;
+  border: none;
+}
+
+.ProseMirror li p {
+  @apply m-0;
+}
+
+/* Nested list indentation */
+.ProseMirror ul ul,
+.ProseMirror ol ol,
+.ProseMirror ul ol,
+.ProseMirror ol ul {
+  @apply mt-1 mb-1;
+}
+
+/* Blockquote styling */
+.ProseMirror blockquote {
+  @apply border-l-4 border-primary/20 pl-4 my-4 text-muted-foreground bg-muted/20 py-2 rounded-r-md;
+}
+
+/* Better focus outline */
+.ProseMirror:focus, .ProseMirror-focused {
+  @apply outline-none;
+}
+
+/* Heading Styles */
+.ProseMirror h1 {
+  @apply text-3xl font-bold mt-6 mb-4 text-foreground;
+  line-height: 1.2;
+}
+
+.ProseMirror h2 {
+  @apply text-2xl font-semibold mt-5 mb-3 text-foreground;
+  line-height: 1.3;
+}
+
+.ProseMirror h3 {
+  @apply text-xl font-medium mt-4 mb-2 text-foreground;
+  line-height: 1.4;
+}
+
+/* Title and Subtitle styles for typography selector */
+.ProseMirror h1.title {
+  @apply text-4xl font-bold text-center mt-8 mb-6;
+}
+
+.ProseMirror h2.subtitle {
+  @apply text-lg font-medium text-muted-foreground text-center mt-2 mb-6;
+}
+
+/* Paragraph spacing */
+.ProseMirror p {
+  @apply my-2 leading-relaxed;
+}
+
+.ProseMirror p:first-child {
+  @apply mt-0;
+}
+
+.ProseMirror p:last-child {
+  @apply mb-0;
+}
+
+.ProseMirror p a {
+  @apply text-primary underline cursor-pointer
+}
+
+.d-block {
+  display: block;
+}
+
+.shape-shifter {
+  @apply transition-all duration-300 rounded-none;
+}
+
+.shape-shifter:hover {
+  @apply rounded-full transition-all duration-300;
+}
+
+/* Completely hidden scrollbar - never visible */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+  /* Safari and Chrome */
+  width: 0;
+  height: 0;
+}
+
+/* Hide all scrollbars globally */
+* {
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  /* Safari and Chrome */
+  width: 0;
+  height: 0;
+}
+
+/* Toolbar scrollbar - always visible */
+.toolbar-scroll [data-radix-scroll-area-scrollbar] {
+  opacity: 1;
+  visibility: visible;
+  display: flex;
+}
+
+.toolbar-scroll [data-radix-scroll-area-scrollbar][data-state="hidden"] {
+  opacity: 1;
+  visibility: visible;
+  display: flex;
+}
+
+.toolbar-scroll [data-radix-scroll-area-scrollbar][data-orientation="horizontal"] {
+  opacity: 1;
+  visibility: visible;
+  display: flex;
+}
+
+/* Satisfying summary animations */
+@keyframes summary-success {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes gradient-pulse {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes glow-fade {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.8), 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(59, 130, 246, 0.6), 0 0 24px rgba(59, 130, 246, 0.4), 0 0 36px rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.1);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 4px rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.02);
+  }
+}
+
+.summary-success {
+  animation: summary-success 0.3s ease-out;
+}
+
+.summary-ready {
+  /* background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4, #3b82f6) !important; */
+  background-size: 400% 400%;
+  animation: gradient-pulse 2s ease-in-out infinite;
+  border: none;
+  /* border-radius: 50% !important; */
+}
+
+/* Comment Highlighting Styles */
+.comment-highlight {
+  @apply bg-yellow-100 border-b-2 border-yellow-400 cursor-pointer transition-colors;
+}
+
+.comment-highlight:hover {
+  @apply bg-yellow-200 border-yellow-500;
+}
+
+.comment-highlighted {
+  @apply bg-blue-100 border-blue-500;
+}
+
+.comment-highlight.comment-resolved {
+  @apply bg-green-50 border-green-300;
+}
+
+/* Flag underlines - Grammarly style */
+.red-flag-underline {
+  border-bottom: 2px solid rgb(239 68 68);
+  cursor: pointer;
+  position: relative;
+}
+
+.red-flag-underline:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.green-flag-underline {
+  border-bottom: 2px solid rgb(34 197 94);
+  cursor: pointer;
+  position: relative;
+}
+
+.green-flag-underline:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+/* Comment marker in margin */
+.comment-marker {
+  @apply absolute right-0 top-0 w-1 h-full bg-yellow-400;
+}
+
+.comment-marker.active {
+  @apply bg-blue-500;
+}

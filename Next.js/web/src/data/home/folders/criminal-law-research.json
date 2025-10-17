@@ -1,0 +1,278 @@
+{
+  "folder": {
+    "name": "Criminal Law Research",
+    "tags": ["criminal", "penal-code", "precedents"],
+    "category": "legal",
+    "id": "folder-2",
+    "parentId": null,
+    "meta": {
+      "fileCount": 64,
+      "color": "hsl(346.8 77.2% 49.8%)",
+      "icon": "gavel"
+    },
+    "permissions": {
+      "owner": "user-a",
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true,
+      "sharedWith": [
+        {
+          "id": "criminal-dept",
+          "access": "editor"
+        }
+      ]
+    },
+    "timestamp": {
+      "createdAt": "2023-12-01T10:00:00Z",
+      "updatedAt": "2024-08-18T19:20:00Z"
+    }
+  },
+  "subfolders": [
+    {
+      "name": "Death Penalty Cases",
+      "tags": ["death-penalty", "capital-punishment", "appeals"],
+      "category": "legal",
+      "id": "folder-2-1",
+      "parentId": "folder-2",
+      "meta": {
+        "fileCount": 23,
+        "color": "hsl(0 84% 60%)",
+        "icon": "alert-triangle"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "senior-counsel",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-06-01T08:00:00Z",
+        "updatedAt": "2024-08-15T20:30:00Z"
+      }
+    },
+    {
+      "name": "Terrorism Cases",
+      "tags": ["terrorism", "anti-terrorism", "national-security"],
+      "category": "legal",
+      "id": "folder-2-2",
+      "parentId": "folder-2",
+      "meta": {
+        "fileCount": 18,
+        "color": "hsl(350 89% 60%)",
+        "icon": "shield"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "terrorism-unit",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-01-01T12:00:00Z",
+        "updatedAt": "2024-07-25T18:45:00Z"
+      }
+    },
+    {
+      "name": "Drug Offenses",
+      "tags": ["narcotics", "drug-trafficking", "possession"],
+      "category": "legal",
+      "id": "folder-2-3",
+      "parentId": "folder-2",
+      "meta": {
+        "fileCount": 23,
+        "color": "hsl(280 100% 70%)",
+        "icon": "ban"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "narcotics-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-02-15T14:00:00Z",
+        "updatedAt": "2024-08-10T16:30:00Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "name": "Mehram-Ali-v-Federation-Analysis.pdf",
+      "tags": ["death-penalty", "islamic-law", "qisas"],
+      "id": "file-2-1",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "senior-counsel",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-2",
+      "timestamp": {
+        "createdAt": "2024-07-15T18:30:00Z",
+        "updatedAt": "2024-08-10T14:20:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 3570688,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/DC2626/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Criminal-Procedure-Code-Commentary.docx",
+      "tags": ["procedure", "criminal-code", "commentary"],
+      "id": "file-2-2",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "criminal-dept",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-2",
+      "timestamp": {
+        "createdAt": "2024-06-20T14:15:00Z",
+        "updatedAt": "2024-08-05T10:30:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 7340032,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/2563EB/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    },
+    {
+      "name": "Anti-Terrorism-Act-2023-Amendments.pdf",
+      "tags": ["terrorism", "amendments", "national-security"],
+      "id": "file-2-3",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "terrorism-unit",
+            "access": "editor"
+          },
+          {
+            "id": "security-counsel",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-2",
+      "timestamp": {
+        "createdAt": "2024-05-25T16:45:00Z",
+        "updatedAt": "2024-08-12T09:15:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 4194304,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/DC2626/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Blasphemy-Law-Cases-Comparative-Study.pdf",
+      "tags": ["blasphemy", "religious-minorities", "comparative-law"],
+      "id": "file-2-4",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "criminal-dept",
+            "access": "editor"
+          },
+          {
+            "id": "human-rights-unit",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-2",
+      "timestamp": {
+        "createdAt": "2024-04-10T11:20:00Z",
+        "updatedAt": "2024-07-28T15:45:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 8912896,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/7C2D12/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    }
+  ]
+}

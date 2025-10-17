@@ -1,0 +1,17 @@
+{
+  "loaded": false,
+  "collections": [
+    {
+      "id": "1",
+      "title": "Recent Documents",
+      "description": "Recently accessed files",
+      "items": []
+    },
+    {
+      "id": "2",
+      "title": "Favorites",
+      "description": "Your favorite files and folders",
+      "items": []
+    }
+  ]
+}

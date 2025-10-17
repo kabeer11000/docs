@@ -1,0 +1,48 @@
+---
+const _isDev = import.meta.env.DEVELOPMENT;
+---
+
+<!-- Always expose the control function -->
+<script is:inline define:vars={{ IS_DEV: isDev, RE_CHANNEL: import.meta.env.RE_CHANNEL }}>
+    window.__enableLexDebug = function (enabled) {
+        if (enabled) {
+            localStorage.setItem("LEX_DEBUG", "true");
+            // Inject script if not already present
+            if (!document.getElementById("kabeers-stats-js")) {
+                const script = document.createElement("script");
+                script.src = "/__dev/stats.js";
+                script.id = "kabeers-stats-js";
+                document.head.appendChild(script);
+            }
+        } else {
+            localStorage.removeItem("LEX_DEBUG");
+            const script = document.getElementById("kabeers-stats-js");
+            if (script) script.remove();
+        }
+        console.log(`LEX Debug mode ${enabled ? "enabled" : "disabled"}.`);
+    };
+
+    // On page load, check if we should enable debug mode
+    (function () {
+        if (IS_DEV || localStorage.getItem("LEX_DEBUG") === "true") {
+            if (!document.getElementById("kabeers-stats-js")) {
+                const script = document.createElement("script");
+                script.src = "/__dev/stats.js";
+                script.id = "kabeers-stats-js";
+                document.head.appendChild(script);
+            }
+        }
+    })();
+</script>
+
+<!-- Also include in dev during SSR for faster loading -->{
+    isDev && (
+        <lex-debug-mode-dynamic-content>
+            <!-- paste this BEFORE any scripts -->
+<script
+  crossorigin="anonymous" is:inline 
+  src="/__dev/stats.js"
+></script>
+        </lex-debug-mode-dynamic-content>
+    )
+}

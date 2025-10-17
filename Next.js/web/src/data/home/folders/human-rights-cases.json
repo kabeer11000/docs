@@ -1,0 +1,282 @@
+{
+  "folder": {
+    "name": "Human Rights Cases",
+    "tags": ["human-rights", "civil-liberties", "advocacy"],
+    "category": "legal",
+    "id": "folder-5",
+    "parentId": null,
+    "meta": {
+      "fileCount": 43,
+      "color": "hsl(262.1 83.3% 57.8%)",
+      "icon": "users"
+    },
+    "permissions": {
+      "owner": "user-a",
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true,
+      "sharedWith": [
+        {
+          "id": "rights-team",
+          "access": "editor"
+        }
+      ]
+    },
+    "timestamp": {
+      "createdAt": "2024-03-12T14:00:00Z",
+      "updatedAt": "2024-08-20T16:45:00Z"
+    }
+  },
+  "subfolders": [
+    {
+      "name": "Missing Persons Cases",
+      "tags": ["missing-persons", "enforced-disappearance", "suo-motu"],
+      "category": "legal",
+      "id": "folder-5-1",
+      "parentId": "folder-5",
+      "meta": {
+        "fileCount": 15,
+        "color": "hsl(0 84% 60%)",
+        "icon": "search"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "missing-persons-unit",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-03-15T10:00:00Z",
+        "updatedAt": "2024-08-18T14:30:00Z"
+      }
+    },
+    {
+      "name": "Women Rights",
+      "tags": ["women-rights", "gender-equality", "constitutional"],
+      "category": "legal",
+      "id": "folder-5-2",
+      "parentId": "folder-5",
+      "meta": {
+        "fileCount": 12,
+        "color": "hsl(310 83% 60%)",
+        "icon": "heart"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "womens-rights-unit",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-03-20T11:30:00Z",
+        "updatedAt": "2024-08-15T17:20:00Z"
+      }
+    },
+    {
+      "name": "Religious Minorities Protection",
+      "tags": ["religious-minorities", "blasphemy", "protection"],
+      "category": "legal",
+      "id": "folder-5-3",
+      "parentId": "folder-5",
+      "meta": {
+        "fileCount": 16,
+        "color": "hsl(45 93% 60%)",
+        "icon": "shield"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "minorities-unit",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-04-01T09:15:00Z",
+        "updatedAt": "2024-08-20T13:45:00Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "name": "Suo-Motu-Missing-Persons-Case-Comprehensive-Report.pdf",
+      "tags": ["missing-persons", "suo-motu", "comprehensive-report"],
+      "id": "file-5-1",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "rights-team",
+            "access": "editor"
+          },
+          {
+            "id": "supreme-court-unit",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-5",
+      "timestamp": {
+        "createdAt": "2024-03-15T09:30:00Z",
+        "updatedAt": "2024-08-18T11:15:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 19267584,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/7C3AED/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Benazir-Bhutto-Women-PM-Eligibility-Case.pdf",
+      "tags": ["benazir-bhutto", "women-rights", "prime-minister"],
+      "id": "file-5-2",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "womens-rights-unit",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-5",
+      "timestamp": {
+        "createdAt": "2024-03-25T14:20:00Z",
+        "updatedAt": "2024-07-10T16:45:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 4404019,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/DB2777/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Darshan-Masih-Blasphemy-Law-Analysis.pdf",
+      "tags": ["darshan-masih", "blasphemy-law", "religious-minorities"],
+      "id": "file-5-3",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "minorities-unit",
+            "access": "editor"
+          },
+          {
+            "id": "interfaith-dialogue",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-5",
+      "timestamp": {
+        "createdAt": "2024-04-08T10:15:00Z",
+        "updatedAt": "2024-08-12T15:30:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 3883008,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/F59E0B/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Human-Rights-Violations-Annual-Report-2024.pdf",
+      "tags": ["annual-report", "violations", "statistics"],
+      "id": "file-5-4",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "international-ngos",
+            "access": "viewer"
+          },
+          {
+            "id": "un-rapporteurs",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-5",
+      "timestamp": {
+        "createdAt": "2024-07-01T08:00:00Z",
+        "updatedAt": "2024-08-20T16:45:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 15728640,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/10B981/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    }
+  ]
+}

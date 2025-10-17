@@ -1,0 +1,151 @@
+---
+export interface Props {
+  subtitle?: string;
+  companies?: Array<{
+    id: string;
+    name: string;
+    logo: string;
+    url?: string;
+  }>;
+}
+
+const {
+  subtitle = "Join 4,000+ companies already growing",
+  companies = [
+    {
+      id: "1",
+      name: "Google Cloud",
+      logo: "/company-logos/google-cloud-3-transparent.webp",
+    },
+    {
+      id: "2",
+      name: "Microsoft",
+      logo: "/company-logos/microsoft-8-transparent.webp",
+    },
+    {
+      id: "3",
+      name: "Bahria University",
+      logo: "/company-logos/bahria-university-flat-transparent.webp",
+    },
+    {
+      id: "4",
+      name: "University of Central Punjab",
+      logo: "/company-logos/university-central-punjab-transparent.webp",
+    },
+    {
+      id: "5",
+      name: "Sindh Bar Council",
+      logo: "/company-logos/sindh-bar-council-transparent.webp",
+    },
+    {
+      id: "6",
+      name: "Karachi Bar",
+      logo: "/company-logos/karachi-bar-transparent.webp",
+    },
+    {
+      id: "7",
+      name: "Law Student Council",
+      logo: "/company-logos/law-student-council-transparent.webp",
+    },
+    {
+      id: "8",
+      name: "MITE",
+      logo: "/company-logos/logo-mite-resized.webp",
+    },
+  ],
+} = Astro.props;
+
+const _tripleCompanies = companies.concat(companies, companies);
+---
+
+<section class="w-full px-4 py-12 sm:px-6 sm:py-16" style="background-color: #FAF8F7;">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-center text-sm sm:text-base tracking-tight text-neutral-500 opacity-75 mb-8 px-4">
+      {subtitle}
+    </h2>
+    
+    <div class="relative overflow-hidden">
+      <div class="absolute left-0 top-0 h-full w-12 sm:w-20 z-10 pointer-events-none" style="background: linear-gradient(to right, #FAF8F7, transparent);"></div>
+      <div class="absolute right-0 top-0 h-full w-12 sm:w-20 z-10 pointer-events-none" style="background: linear-gradient(to left, #FAF8F7, transparent);"></div>
+      
+      <div id="companies-container" class="flex items-center gap-4 sm:gap-8 py-4" style="transform: translateZ(0); will-change: transform;">
+        {tripleCompanies.map((company, index) => (
+          <figure key={`${company.id}-${index}`} class="flex h-16 sm:h-20 lg:h-28 items-center justify-center px-4 py-2 sm:px-6 sm:py-3 lg:px-12 lg:py-6 opacity-60 sm:hover:opacity-100 transition-opacity mx-2 sm:mx-4 flex-shrink-0">
+            <img
+              alt={company.name}
+              class="max-w-20 sm:max-w-28 lg:max-w-40 max-h-12 sm:max-h-16 lg:max-h-24 w-auto h-auto object-contain sm:neutralscale sm:hover:neutralscale-0 transition-all"
+              src={company.logo}
+              loading="lazy"
+            />
+          </figure>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { animate } from 'motion';
+
+  const container = document.getElementById('companies-container');
+  
+  if (container) {
+    let animation: ReturnType<typeof animate> | null = null;
+    
+    // Force hardware acceleration for iOS
+    container.style.transform = 'translateZ(0)';
+    container.style.willChange = 'transform';
+    container.style.backfaceVisibility = 'hidden';
+    container.style.webkitBackfaceVisibility = 'hidden';
+    
+    const startAnimation = () => {
+      if (container) {
+        const containerWidth = container.scrollWidth;
+        const singleSetWidth = containerWidth / 3;
+        // Slower animation for better iOS performance
+        const duration = Math.max(20, singleSetWidth / 40);
+        
+        animation = animate(
+          container,
+          { x: [0, -singleSetWidth] },
+          { 
+            duration: duration, 
+            easing: "linear",
+            repeat: Infinity
+          }
+        );
+      }
+    };
+
+    const initializeAnimation = () => {
+      // Longer delay for iOS to finish rendering
+      setTimeout(() => {
+        startAnimation();
+      }, 300);
+    };
+
+    initializeAnimation();
+
+    container.addEventListener('mouseenter', () => {
+      if (animation) {
+        animation.pause();
+      }
+    });
+
+    container.addEventListener('mouseleave', () => {
+      if (animation) {
+        animation.play();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (animation) {
+        animation.cancel();
+      }
+      // Debounce resize for better performance
+      setTimeout(() => {
+        initializeAnimation();
+      }, 250);
+    });
+  }
+</script>

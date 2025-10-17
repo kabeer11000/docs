@@ -1,0 +1,120 @@
+---
+export interface Props {
+  heading?: {
+    title: string;
+    subtitle?: string;
+    align?: "left" | "center" | "right";
+  };
+  questions?: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+}
+
+const {
+  heading = {
+    title: "Frequently Asked Questions",
+    subtitle: "Everything you need to know about Lexa",
+    align: "center",
+  },
+  questions = [
+    {
+      id: "1",
+      question: "Is Lexa legally compliant?",
+      answer:
+        "Yes, Lexa is built with legal compliance in mind. We follow GDPR, SOC2, and other data protection standards to ensure your documents are secure and legally binding.",
+    },
+    {
+      id: "2",
+      question: "Can multiple people edit documents simultaneously?",
+      answer:
+        "Absolutely! Lexa supports real-time collaboration with live cursors, comments, and change tracking, just like Google Docs but built specifically for legal documents.",
+    },
+    {
+      id: "3",
+      question: "How do e-signatures work?",
+      answer:
+        "Our e-signature feature allows you to send documents for signature, track signing progress, and maintain complete audit trails. All signatures are legally binding and compliant with electronic signature laws.",
+    },
+  ],
+} = Astro.props;
+
+const _alignmentClasses = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+---
+
+<section class="px-6 py-20 max-w-4xl mx-auto">
+  <!-- Heading -->
+  <div class={`mb-16 ${alignmentClasses[heading.align || 'center']}`}>
+    <h2 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">
+      {heading.title}
+    </h2>
+    {heading.subtitle && (
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+        {heading.subtitle}
+      </p>
+    )}
+  </div>
+  
+  <!-- Accordion FAQ -->
+  <div class="!mx-auto flex w-full !max-w-screen-md gap-8 lg:gap-14">
+    <div class="accordion-container flex w-full flex-col items-stretch gap-2 lg:gap-8">
+      {questions.map((item) => (
+        <div key={item.id} class="accordion-item flex flex-col">
+          <button
+            class="accordion-trigger flex w-full items-start gap-3 rounded-md py-2 text-lg font-medium leading-relaxed tracking-tighter text-left focus:outline-none focus:ring-2 focus:ring-neutral-500"
+            data-question-id={item.id}
+          >
+            <svg class="accordion-icon my-1.5 size-4 shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            <span class="text-start text-neutral-900">{item.question}</span>
+          </button>
+          <div class="accordion-content overflow-hidden pl-7 leading-relaxed tracking-tight text-neutral-600 max-h-0 transition-all duration-300 ease-in-out">
+            <div class="py-2">{item.answer}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const triggers = document.querySelectorAll('.accordion-trigger');
+    
+    triggers.forEach(trigger => {
+      trigger.addEventListener('click', function() {
+        const item = this.closest('.accordion-item');
+        const content = item.querySelector('.accordion-content');
+        const icon = this.querySelector('.accordion-icon');
+        const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+        
+        // Close all other items
+        triggers.forEach(otherTrigger => {
+          if (otherTrigger !== trigger) {
+            const otherItem = otherTrigger.closest('.accordion-item');
+            const otherContent = otherItem.querySelector('.accordion-content');
+            const otherIcon = otherTrigger.querySelector('.accordion-icon');
+            
+            otherContent.style.maxHeight = '0px';
+            otherIcon.style.transform = 'rotate(0deg)';
+          }
+        });
+        
+        // Toggle current item
+        if (isOpen) {
+          content.style.maxHeight = '0px';
+          icon.style.transform = 'rotate(0deg)';
+        } else {
+          content.style.maxHeight = content.scrollHeight + 'px';
+          icon.style.transform = 'rotate(45deg)';
+        }
+      });
+    });
+  });
+</script>

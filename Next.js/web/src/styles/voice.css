@@ -1,0 +1,43 @@
+/* Voice Dialog Styles - Clean white Lexa theme */
+.voice-dialog-overlay {
+  background: transparent;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  backdrop-filter: none;
+}
+
+.voice-dialog-content {
+  background: white;
+  border-radius: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  box-shadow: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: none;
+  z-index: 51;
+  overflow: hidden;
+}
+
+/* Hide audio element */
+audio[data-livekit-audio] {
+  display: none;
+}
+
+/* Pulse animation for status indicator */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}

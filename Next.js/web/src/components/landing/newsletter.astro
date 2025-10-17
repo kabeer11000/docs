@@ -1,0 +1,218 @@
+---
+export interface Props {
+  title?: string;
+  description?: string;
+  placeholder?: string;
+  buttonText?: string;
+}
+
+const {
+  title = "Request a Demo",
+  description = "Get a personalized demo of Lexa and see how it can transform your legal workflow.",
+  placeholder = "Enter your email address",
+  buttonText = "Request Demo",
+} = Astro.props;
+---
+
+<section id="newsletter" class="px-6 py-20 max-w-6xl mx-auto">
+  <article 
+    class="newsletter-container relative flex flex-col items-center justify-center gap-9 self-stretch overflow-hidden rounded-xl border border-neutral-200 bg-white p-8"
+    data-animate
+  >
+    <!-- Animated lines -->
+    <div class="line absolute left-0 top-10 h-px w-full bg-gradient-to-r from-neutral-400/40 to-transparent" data-line="1"></div>
+    <div class="line absolute left-0 bottom-[120px] h-px w-full bg-gradient-to-r from-neutral-400/40 to-transparent" data-line="2"></div>
+    <div class="line absolute left-0 bottom-16 h-px w-full bg-gradient-to-r from-neutral-400/40 to-transparent" data-line="3"></div>
+    
+    <!-- Background blur -->
+    <div class="absolute left-0 top-0 z-10 h-full w-full bg-white blur-3xl filter"></div>
+    
+    <!-- Content -->
+    <div class="newsletter-content relative z-20 flex flex-col items-center gap-2 text-center" data-animate-content>
+      <h4 class="text-center text-3xl font-medium tracking-tighter text-neutral-900 sm:max-w-full sm:px-0 md:text-4xl">
+        {title}
+      </h4>
+      <p class="text-lg text-neutral-600 md:text-xl max-w-2xl">
+        {description}
+      </p>
+    </div>
+    
+    <!-- Form -->
+    <form class="newsletter-form relative z-20 flex flex-col sm:flex-row gap-3 w-full max-w-md" data-animate-form>
+      <input
+        type="email"
+        name="email"
+        placeholder={placeholder}
+        required
+        class="newsletter-input flex-1 px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 hover:border-teal-300 hover:shadow-sm"
+      />
+      <button
+        type="submit"
+        class="newsletter-button px-6 py-3 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-all duration-200 whitespace-nowrap transform hover:scale-105 active:scale-95"
+      >
+        {buttonText}
+      </button>
+    </form>
+    
+    <p class="newsletter-disclaimer relative z-20 text-sm text-neutral-500 text-center" data-animate-disclaimer>
+      No spam. We'll only send you updates about Lexa.
+    </p>
+  </article>
+</section>
+
+<script>
+  // Check if Motion One is available, otherwise use fallback
+  let animate, inView;
+  try {
+    const motionModule = await import('motion');
+    animate = motionModule.animate;
+    inView = motionModule.inView;
+  } catch (error) {
+    console.log('Motion One not available, using fallback');
+    animate = null;
+    inView = null;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Form submission handler
+    const forms = document.querySelectorAll('.newsletter-form');
+    forms.forEach(form => {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
+        const email = emailInput?.value;
+        
+        if (email) {
+          // Simple email validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (emailRegex.test(email)) {
+            alert('Thank you for subscribing! (This is a demo - no actual subscription was created)');
+            form.reset();
+          } else {
+            alert('Please enter a valid email address.');
+          }
+        }
+      });
+    });
+
+    // Motion animations
+    const container = document.querySelector('.newsletter-container');
+    const content = document.querySelector('[data-animate-content]');
+    const form = document.querySelector('[data-animate-form]');
+    const disclaimer = document.querySelector('[data-animate-disclaimer]');
+    const lines = document.querySelectorAll('.line');
+    const button = document.querySelector('.newsletter-button');
+    const input = document.querySelector('.newsletter-input');
+
+    if (container) {
+      if (animate && inView) {
+        // Set initial states only if Motion One is available
+        container.style.opacity = '0';
+        container.style.transform = 'translateY(50px)';
+        if (content) {
+          content.style.opacity = '0';
+          content.style.transform = 'translateY(30px)';
+        }
+        if (form) {
+          form.style.opacity = '0';
+          form.style.transform = 'translateY(30px)';
+        }
+        if (disclaimer) {
+          disclaimer.style.opacity = '0';
+        }
+
+        // Container entrance animation - slides up from below when scrolled into view
+        inView(container, ({ target }) => {
+          animate(target, 
+            { opacity: 1, transform: 'translateY(0px)' }, 
+            { duration: 0.6, easing: 'ease-out' }
+          );
+          
+          // Content staggered animation - text content animates in with delay
+          if (content) {
+            animate(content, 
+              { opacity: 1, transform: 'translateY(0px)' }, 
+              { duration: 0.5, delay: 0.2 }
+            );
+          }
+          
+          // Form animation - form slides up after content
+          if (form) {
+            animate(form, 
+              { opacity: 1, transform: 'translateY(0px)' }, 
+              { duration: 0.5, delay: 0.4 }
+            );
+          }
+          
+          // Disclaimer text - fades in last
+          if (disclaimer) {
+            animate(disclaimer, 
+              { opacity: 1 }, 
+              { duration: 0.5, delay: 0.6 }
+            );
+          }
+        }, { margin: '-100px' });
+
+        // Animated lines - using Motion instead of CSS animations, with proper delays
+        lines.forEach((line, index) => {
+          const delays = [0.5, 1.2, 2.1];
+          animate(
+            line,
+            { transform: ['translateX(-100%)', 'translateX(100%)'] },
+            { duration: 3, repeat: Infinity, easing: 'linear', delay: delays[index] }
+          );
+        });
+
+        // Button hover/tap effects - scale animations on interaction
+        if (button) {
+          button.addEventListener('mouseenter', () => {
+            animate(button, { transform: 'scale(1.05)' }, { duration: 0.2 });
+          });
+          button.addEventListener('mouseleave', () => {
+            animate(button, { transform: 'scale(1)' }, { duration: 0.2 });
+          });
+          button.addEventListener('mousedown', () => {
+            animate(button, { transform: 'scale(0.95)' }, { duration: 0.1 });
+          });
+          button.addEventListener('mouseup', () => {
+            animate(button, { transform: 'scale(1.05)' }, { duration: 0.1 });
+          });
+        }
+
+        // Input hover enhancement - enhanced border color transition
+        if (input) {
+          input.addEventListener('mouseenter', () => {
+            animate(input, { borderColor: '#5eead4' }, { duration: 0.2 });
+          });
+          input.addEventListener('mouseleave', () => {
+            if (!input.matches(':focus')) {
+              animate(input, { borderColor: '#d1d5db' }, { duration: 0.2 });
+            }
+          });
+          input.addEventListener('focus', () => {
+            animate(input, { borderColor: '#14b8a6', boxShadow: '0 0 0 3px rgba(20, 184, 166, 0.1)' }, { duration: 0.2 });
+          });
+          input.addEventListener('blur', () => {
+            animate(input, { borderColor: '#d1d5db', boxShadow: '0 0 0 0px transparent' }, { duration: 0.2 });
+          });
+        }
+      } else {
+        // Fallback: ensure content is visible if Motion One isn't available
+        console.log('Motion One not available, showing content without animations');
+        container.style.opacity = '1';
+        container.style.transform = 'translateY(0px)';
+        if (content) {
+          content.style.opacity = '1';
+          content.style.transform = 'translateY(0px)';
+        }
+        if (form) {
+          form.style.opacity = '1';
+          form.style.transform = 'translateY(0px)';
+        }
+        if (disclaimer) {
+          disclaimer.style.opacity = '1';
+        }
+      }
+    }
+  });
+</script>

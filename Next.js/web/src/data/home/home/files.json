@@ -1,0 +1,196 @@
+[
+  {
+    "name": "Federation-v-Tamizuddin-Khan-Brief.pdf",
+    "tags": ["constitutional", "landmark", "case-brief"],
+    "id": "file-1",
+    "owner": "user-a",
+    "sharing": {
+      "isShared": true,
+      "sharedWith": [
+        {
+          "id": "legal-team",
+          "access": "editor"
+        }
+      ]
+    },
+    "location": "folder-1",
+    "timestamp": {
+      "createdAt": "2024-07-25T10:00:00Z",
+      "updatedAt": "2024-08-01T15:30:00Z"
+    },
+    "permissions": {
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true
+    },
+    "size": 3854792,
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100/DC2626/FFFFFF?text=PDF",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/pdf",
+        "extension": "pdf"
+      }
+    }
+  },
+  {
+    "name": "Pakistan-Penal-Code-Analysis.docx",
+    "tags": ["criminal", "penal-code", "analysis"],
+    "id": "file-2",
+    "owner": "user-a",
+    "sharing": {
+      "isShared": true,
+      "sharedWith": [
+        {
+          "id": "criminal-dept",
+          "access": "viewer"
+        }
+      ]
+    },
+    "location": "folder-2",
+    "timestamp": {
+      "createdAt": "2023-10-31T18:20:00Z",
+      "updatedAt": "2024-08-15T14:20:00Z"
+    },
+    "permissions": {
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true
+    },
+    "size": 5242880,
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100/2563EB/FFFFFF?text=DOC",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "extension": "docx"
+      }
+    }
+  },
+  {
+    "name": "Client-A-Contract-Agreement.pdf",
+    "tags": ["contract", "client-a", "confidential"],
+    "id": "file-3",
+    "owner": "senior-partner",
+    "sharing": {
+      "isShared": true,
+      "sharedWith": [
+        {
+          "id": "case-manager-a",
+          "access": "editor"
+        },
+        {
+          "id": "associate-counsel",
+          "access": "viewer"
+        }
+      ]
+    },
+    "location": "folder-3",
+    "timestamp": {
+      "createdAt": "2024-08-01T15:30:00Z",
+      "updatedAt": "2024-08-15T16:45:00Z"
+    },
+    "permissions": {
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true
+    },
+    "size": 2097152,
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100/059669/FFFFFF?text=PDF",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/pdf",
+        "extension": "pdf"
+      }
+    }
+  },
+  {
+    "name": "Standard-Power-of-Attorney-Template.docx",
+    "tags": ["template", "power-of-attorney", "standard-form"],
+    "id": "file-4",
+    "owner": "user-a",
+    "sharing": {
+      "isShared": true,
+      "sharedWith": [
+        {
+          "id": "all-staff",
+          "access": "viewer"
+        }
+      ]
+    },
+    "location": "folder-4",
+    "timestamp": {
+      "createdAt": "2024-01-10T11:45:00Z",
+      "updatedAt": "2024-07-22T14:30:00Z"
+    },
+    "permissions": {
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true
+    },
+    "size": 524288,
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100/EAB308/FFFFFF?text=DOC",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "extension": "docx"
+      }
+    }
+  },
+  {
+    "name": "Missing-Persons-Case-Research.pdf",
+    "tags": ["human-rights", "missing-persons", "research"],
+    "id": "file-5",
+    "owner": "user-a",
+    "sharing": {
+      "isShared": true,
+      "sharedWith": [
+        {
+          "id": "rights-team",
+          "access": "editor"
+        }
+      ]
+    },
+    "location": "folder-5",
+    "timestamp": {
+      "createdAt": "2024-03-15T09:30:00Z",
+      "updatedAt": "2024-08-18T11:15:00Z"
+    },
+    "permissions": {
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true
+    },
+    "size": 18874368,
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100/7C3AED/FFFFFF?text=PDF",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/pdf",
+        "extension": "pdf"
+      }
+    }
+  }
+]

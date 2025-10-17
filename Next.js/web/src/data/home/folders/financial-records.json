@@ -1,0 +1,141 @@
+{
+  "folder": {
+    "name": "Financial Records",
+    "tags": ["personal", "finance", "tax"],
+    "category": "finance",
+    "id": "folder-4",
+    "parentId": null,
+    "meta": {
+      "fileCount": 15,
+      "color": "hsl(346.8 77.2% 49.8%)",
+      "icon": "dollar-sign"
+    },
+    "permissions": {
+      "owner": "user-a",
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true,
+      "sharedWith": []
+    },
+    "timestamp": {
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-08-15T11:45:00Z"
+    }
+  },
+  "subfolders": [
+    {
+      "name": "2024 Tax Documents",
+      "tags": ["tax", "2024", "receipts"],
+      "category": "finance",
+      "id": "folder-4-1",
+      "parentId": "folder-4",
+      "meta": {
+        "fileCount": 8,
+        "color": "hsl(346.8 77.2% 49.8%)",
+        "icon": "receipt"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": []
+      },
+      "timestamp": {
+        "createdAt": "2024-01-15T10:00:00Z",
+        "updatedAt": "2024-08-01T16:30:00Z"
+      }
+    },
+    {
+      "name": "Investment Portfolio",
+      "tags": ["investment", "portfolio", "stocks"],
+      "category": "finance",
+      "id": "folder-4-2",
+      "parentId": "folder-4",
+      "meta": {
+        "fileCount": 7,
+        "color": "hsl(120 60% 40%)",
+        "icon": "trending-up"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": []
+      },
+      "timestamp": {
+        "createdAt": "2024-02-01T09:00:00Z",
+        "updatedAt": "2024-08-10T15:20:00Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "name": "Tax-Receipts-2023.pdf",
+      "tags": ["finance", "tax", "document"],
+      "id": "file-4",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": false,
+        "sharedWith": []
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-01-10T11:45:00Z",
+        "updatedAt": "2024-01-10T11:45:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 3145728,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/F44336/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Bank-Statement-July.pdf",
+      "tags": ["bank", "statement", "july"],
+      "id": "file-4-2",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": false,
+        "sharedWith": []
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-08-01T09:30:00Z",
+        "updatedAt": "2024-08-01T09:30:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 1048576,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/2196F3/FFFFFF?text=BANK",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    }
+  ]
+}

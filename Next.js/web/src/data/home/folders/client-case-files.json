@@ -1,0 +1,328 @@
+{
+  "folder": {
+    "name": "Client Case Files",
+    "tags": ["clients", "active-cases", "confidential"],
+    "category": "legal",
+    "id": "folder-3",
+    "parentId": null,
+    "meta": {
+      "fileCount": 156,
+      "color": "hsl(222.2 47.4% 11.2%)",
+      "icon": "briefcase"
+    },
+    "permissions": {
+      "owner": "senior-partner",
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true,
+      "sharedWith": [
+        {
+          "id": "case-managers",
+          "access": "editor"
+        },
+        {
+          "id": "junior-associates",
+          "access": "viewer"
+        }
+      ]
+    },
+    "timestamp": {
+      "createdAt": "2024-02-10T09:30:00Z",
+      "updatedAt": "2024-08-18T17:15:00Z"
+    }
+  },
+  "subfolders": [
+    {
+      "name": "Corporate Clients",
+      "tags": ["corporate", "business-law", "commercial"],
+      "category": "legal",
+      "id": "folder-3-1",
+      "parentId": "folder-3",
+      "meta": {
+        "fileCount": 45,
+        "color": "hsl(210 100% 60%)",
+        "icon": "building"
+      },
+      "permissions": {
+        "owner": "senior-partner",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "corporate-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-02-15T10:00:00Z",
+        "updatedAt": "2024-08-15T14:20:00Z"
+      }
+    },
+    {
+      "name": "Individual Clients",
+      "tags": ["individual", "personal-cases", "family-law"],
+      "category": "legal",
+      "id": "folder-3-2",
+      "parentId": "folder-3",
+      "meta": {
+        "fileCount": 78,
+        "color": "hsl(150 100% 60%)",
+        "icon": "user"
+      },
+      "permissions": {
+        "owner": "senior-partner",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "family-law-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-03-01T11:30:00Z",
+        "updatedAt": "2024-08-18T16:45:00Z"
+      }
+    },
+    {
+      "name": "Pro Bono Cases",
+      "tags": ["pro-bono", "public-interest", "social-justice"],
+      "category": "legal",
+      "id": "folder-3-3",
+      "parentId": "folder-3",
+      "meta": {
+        "fileCount": 33,
+        "color": "hsl(45 100% 60%)",
+        "icon": "heart"
+      },
+      "permissions": {
+        "owner": "senior-partner",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "pro-bono-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-04-10T09:00:00Z",
+        "updatedAt": "2024-08-12T13:30:00Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "name": "ABC-Corporation-M&A-Due-Diligence.pdf",
+      "tags": ["merger", "acquisition", "due-diligence", "abc-corp"],
+      "id": "file-3-1",
+      "owner": "senior-partner",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "corporate-team",
+            "access": "editor"
+          },
+          {
+            "id": "external-counsel",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-3",
+      "timestamp": {
+        "createdAt": "2024-06-15T10:30:00Z",
+        "updatedAt": "2024-08-10T15:20:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 15728640,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/059669/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Family-Divorce-Settlement-Agreement.docx",
+      "tags": ["divorce", "settlement", "family-law", "confidential"],
+      "id": "file-3-2",
+      "owner": "senior-partner",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "family-law-attorney",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-3",
+      "timestamp": {
+        "createdAt": "2024-07-08T14:15:00Z",
+        "updatedAt": "2024-08-18T11:45:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 2097152,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/2563EB/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    },
+    {
+      "name": "Real-Estate-Property-Dispute-Case-File.pdf",
+      "tags": ["real-estate", "property-dispute", "litigation"],
+      "id": "file-3-3",
+      "owner": "senior-partner",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "property-law-team",
+            "access": "editor"
+          },
+          {
+            "id": "investigator",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-3",
+      "timestamp": {
+        "createdAt": "2024-05-20T09:45:00Z",
+        "updatedAt": "2024-08-15T16:30:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 8388608,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/DC2626/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Environmental-Law-Compliance-Report.pdf",
+      "tags": ["environmental", "compliance", "regulatory", "pro-bono"],
+      "id": "file-3-4",
+      "owner": "senior-partner",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "environmental-law-unit",
+            "access": "editor"
+          },
+          {
+            "id": "ngo-partners",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-3",
+      "timestamp": {
+        "createdAt": "2024-04-25T13:20:00Z",
+        "updatedAt": "2024-08-12T10:15:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 12582912,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/059669/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Immigration-Asylum-Case-Documentation.pdf",
+      "tags": ["immigration", "asylum", "refugee-law", "pro-bono"],
+      "id": "file-3-5",
+      "owner": "senior-partner",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "immigration-team",
+            "access": "editor"
+          },
+          {
+            "id": "human-rights-organizations",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-3",
+      "timestamp": {
+        "createdAt": "2024-03-18T16:00:00Z",
+        "updatedAt": "2024-08-20T14:25:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 7340032,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/F59E0B/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+---
+export interface Props {
+  logo?: {
+    src: string;
+    alt: string;
+  };
+  navigation?: Array<{
+    title: string;
+    url: string;
+  }>;
+  showCTA?: boolean;
+}
+
+const {
+  logo = {
+    src: "/logo-black.svg",
+    alt: "Lexa",
+  },
+  navigation = [
+    { title: "Features", url: "#" },
+    { title: "Pricing", url: "#pricing" },
+    { title: "About", url: "#" },
+    { title: "Contact", url: "#newsletter" },
+  ],
+  showCTA = true,
+} = Astro.props;
+---
+
+<header class="sticky left-0 top-0 z-[110] flex w-full flex-col border-b border-neutral-200 bg-white">
+  <div class="flex h-12 bg-white">
+    <div class="flex justify-between items-center w-full px-4 md:grid md:grid-cols-[1fr_max-content_1fr] md:place-items-center">
+      <!-- Logo -->
+      <a href="/home" class="flex items-center md:justify-self-start pr-2">
+        <img 
+          src={logo.src} 
+          alt={logo.alt} 
+          class="h-6 w-auto sm:h-8" 
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+        />
+        <span class="hidden text-lg sm:text-xl font-bold text-neutral-900">{logo.alt}</span>
+      </a>
+      
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center space-x-8">
+        {navigation.map((item) => (
+          <a 
+            href={item.url}
+            class="text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+          >
+            {item.title}
+          </a>
+        ))}
+      </nav>
+      
+      <!-- CTA and Mobile Menu -->
+      <div class="flex items-center gap-3 md:justify-self-end">
+        {showCTA && (
+          <>
+            <a 
+              href="/auth/login"
+              class="hidden sm:inline-flex px-4 py-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+            >
+              Log In
+            </a>
+            <a 
+              href="/auth/login"
+              class="hidden sm:inline-flex px-4 py-2 bg-neutral-800 text-white text-sm font-medium rounded-lg hover:bg-neutral-900 transition-colors"
+            >
+              Get Started Today
+            </a>
+          </>
+        )}
+        
+        <!-- Mobile Menu Button -->
+        <button 
+          class="md:hidden p-2 text-neutral-700 hover:text-neutral-900 ml-2"
+          id="mobile-menu-button"
+          aria-label="Toggle menu"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Mobile Navigation -->
+  <div class="hidden md:hidden bg-white border-t border-neutral-200" id="mobile-menu">
+    <div class="container mx-auto px-6 py-4 space-y-3">
+      {navigation.map((item) => (
+        <a 
+          href={item.url}
+          class="block text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+        >
+          {item.title}
+        </a>
+      ))}
+      {showCTA && (
+        <>
+          <a 
+            href="/auth/login"
+            class="block w-full px-4 py-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors text-center mt-4 border border-neutral-300 rounded-lg"
+          >
+            Log In
+          </a>
+          <a 
+            href="/auth/login"
+            class="block w-full px-4 py-2 bg-neutral-800 text-white text-sm font-medium rounded-lg hover:bg-neutral-900 transition-colors text-center mt-2"
+          >
+            Get Started Today
+          </a>
+        </>
+      )}
+    </div>
+  </div>
+</header>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const button = document.getElementById('mobile-menu-button');
+    const menu = document.getElementById('mobile-menu');
+    
+    if (button && menu) {
+      button.addEventListener('click', function() {
+        menu.classList.toggle('hidden');
+      });
+    }
+  });
+</script>
+
+<style>
+  :root {
+    --header-height: 4rem;
+  }
+</style>

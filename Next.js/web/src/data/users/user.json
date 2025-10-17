@@ -1,0 +1,37 @@
+{
+  "id": "user-a",
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+  "role": "Admin",
+  "subscription": {
+    "plan": "Pro",
+    "status": "active",
+    "expires": "2024-12-31T23:59:59Z"
+  },
+  "preferences": {
+    "theme": "light",
+    "language": "en",
+    "notifications": {
+      "email": true,
+      "push": true,
+      "desktop": false
+    },
+    "privacy": {
+      "profileVisible": true,
+      "activityVisible": false
+    }
+  },
+  "stats": {
+    "filesCreated": 127,
+    "foldersCreated": 23,
+    "storageUsed": 5368709120,
+    "storageLimit": 107374182400,
+    "lastLogin": "2024-08-20T15:30:00Z"
+  },
+  "organization": {
+    "name": "Lexa Legal Services",
+    "role": "Owner",
+    "members": 15
+  }
+}

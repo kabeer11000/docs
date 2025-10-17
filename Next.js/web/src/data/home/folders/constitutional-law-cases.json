@@ -1,0 +1,278 @@
+{
+  "folder": {
+    "name": "Constitutional Law Cases",
+    "tags": ["constitutional", "supreme-court", "landmark-cases"],
+    "category": "legal",
+    "id": "folder-1",
+    "parentId": null,
+    "meta": {
+      "fileCount": 28,
+      "color": "hsl(142.1 76.2% 36.3%)",
+      "icon": "scale"
+    },
+    "permissions": {
+      "owner": "user-a",
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true,
+      "sharedWith": [
+        {
+          "id": "legal-team",
+          "access": "editor"
+        },
+        {
+          "id": "associates",
+          "access": "viewer"
+        }
+      ]
+    },
+    "timestamp": {
+      "createdAt": "2024-01-15T09:00:00Z",
+      "updatedAt": "2024-08-15T14:30:00Z"
+    }
+  },
+  "subfolders": [
+    {
+      "name": "Doctrine of Necessity Cases",
+      "tags": ["necessity", "constitutional-crisis", "emergency"],
+      "category": "legal",
+      "id": "folder-1-1",
+      "parentId": "folder-1",
+      "meta": {
+        "fileCount": 8,
+        "color": "hsl(0 84% 60%)",
+        "icon": "alert-triangle"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "constitutional-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-02-01T10:00:00Z",
+        "updatedAt": "2024-07-15T16:30:00Z"
+      }
+    },
+    {
+      "name": "Fundamental Rights",
+      "tags": [
+        "fundamental-rights",
+        "civil-liberties",
+        "constitutional-protection"
+      ],
+      "category": "legal",
+      "id": "folder-1-2",
+      "parentId": "folder-1",
+      "meta": {
+        "fileCount": 12,
+        "color": "hsl(210 100% 60%)",
+        "icon": "shield-check"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "rights-advocates",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-01-20T14:00:00Z",
+        "updatedAt": "2024-08-10T11:45:00Z"
+      }
+    },
+    {
+      "name": "Presidential Powers",
+      "tags": ["presidential", "executive-power", "article-58"],
+      "category": "legal",
+      "id": "folder-1-3",
+      "parentId": "folder-1",
+      "meta": {
+        "fileCount": 8,
+        "color": "hsl(280 100% 70%)",
+        "icon": "crown"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "constitutional-scholars",
+            "access": "viewer"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-03-05T09:30:00Z",
+        "updatedAt": "2024-08-08T13:20:00Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "name": "Federation-of-Pakistan-v-Molvi-Tamizuddin-Khan-Full-Judgment.pdf",
+      "tags": ["tamizuddin-khan", "constituent-assembly", "dissolution"],
+      "id": "file-1-1",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "legal-team",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-1",
+      "timestamp": {
+        "createdAt": "2024-01-16T10:30:00Z",
+        "updatedAt": "2024-01-16T10:30:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 3932160,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/059669/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "State-v-Dosso-Revolutionary-Legality-Analysis.pdf",
+      "tags": ["dosso", "revolutionary-legality", "martial-law"],
+      "id": "file-1-2",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "constitutional-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-1",
+      "timestamp": {
+        "createdAt": "2024-02-10T14:20:00Z",
+        "updatedAt": "2024-07-22T16:15:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 2457600,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/DC2626/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Asma-Jilani-v-Government-Constitutional-Supremacy.pdf",
+      "tags": ["asma-jilani", "constitutional-supremacy", "fundamental-rights"],
+      "id": "file-1-3",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "rights-advocates",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-1",
+      "timestamp": {
+        "createdAt": "2024-03-01T11:45:00Z",
+        "updatedAt": "2024-08-05T09:30:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 3407872,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/2563EB/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    },
+    {
+      "name": "Lawyers-Movement-Case-Judicial-Independence.pdf",
+      "tags": ["lawyers-movement", "judicial-independence", "chief-justice"],
+      "id": "file-1-4",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "judicial-reform-unit",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-1",
+      "timestamp": {
+        "createdAt": "2024-04-12T15:20:00Z",
+        "updatedAt": "2024-08-18T12:10:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 12709888,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/7C2D12/FFFFFF?text=PDF",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/pdf",
+          "extension": "pdf"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+---
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  customerSatisfactionText?: string;
+  actions?: Array<{
+    href: string;
+    label: string;
+    type: "primary" | "secondary";
+  }>;
+}
+
+const {
+  title = "Draft, Share and Store your contracts in Any language",
+  subtitle = "Create, translate, sign, and manage contracts autonomously — powered by AI intelligence designed for SMEs and small law firms.",
+  customerSatisfactionText = "Trusted by 1000's of legal professionals and SMEs across Asia and the Middle East.",
+  actions = [
+    { href: "#newsletter", label: "Request Demo", type: "primary" },
+    { href: "/auth/login", label: "Get Started for Free", type: "secondary" },
+  ],
+} = Astro.props;
+---
+
+<section class="relative min-h-fit overflow-visible py-2 md:py-6 bg-white">
+  <!-- Decorative grid background - hidden on mobile -->
+  <div class="absolute left-0 top-0 z-0 hidden md:grid h-full w-full grid-cols-[clamp(28px,10vw,120px)_auto_clamp(28px,10vw,120px)] border-b border-neutral-200">
+    <div class="col-span-1 flex h-full items-center justify-center" />
+    <div class="col-span-1 flex h-full items-center justify-center border-x border-neutral-200" />
+    <div class="col-span-1 flex h-full items-center justify-center" />
+  </div>
+  <!-- Mobile border bottom -->
+  <div class="absolute bottom-0 left-0 w-full border-b border-neutral-200 md:hidden" />
+  
+  <!-- Background blur effects - Full coverage with teal/cyan tint -->
+  <!-- Main content area blur -->
+  <div class="pointer-events-none absolute inset-0 z-0">
+    <figure class="absolute top-0 left-1/2 w-full h-full -translate-x-1/2 rounded-full bg-teal-500/20 blur-[100px] sm:blur-[150px]" />
+  </div>
+  
+  <!-- Accent blurs for visual depth -->
+  <figure class="pointer-events-none absolute left-[5%] top-[20%] z-10 aspect-square w-[40vw] sm:w-[300px] rounded-full bg-cyan-400/30 blur-[60px] sm:blur-[100px]" />
+  <figure class="pointer-events-none absolute right-[5%] bottom-[20%] z-10 aspect-square w-[35vw] sm:w-[250px] rounded-full bg-teal-400/25 blur-[50px] sm:blur-[80px]" />
+  
+  <!-- Button area specific blur -->
+  <figure class="pointer-events-none absolute left-1/2 bottom-0 z-10 w-[80vw] h-[200px] -translate-x-1/2 rounded-full bg-teal-600/15 blur-[80px] sm:blur-[120px]" />
+  
+  <div class="relative z-10 flex flex-col md:divide-y md:divide-neutral-200 pt-[35px]">
+    <!-- Why Lexa heading -->
+    <div class="flex flex-col items-center justify-center pb-6 px-4">
+      <span class="inline-block px-3 py-1 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-full mb-4">
+        Legal Innovation
+      </span>
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-center">
+        <GradientText 
+          text="Why Lexa" 
+          gradient="linear-gradient(90deg, #064e3b 0%, #0c4a6e 30%, #0891b2 50%, #0c4a6e 70%, #064e3b 100%)"
+          client:load 
+        />
+      </h2>
+    </div>
+    
+    <!-- Customer satisfaction banner -->
+    <div class="flex flex-col items-center justify-end px-4">
+      <div class="flex flex-col items-center gap-3 md:!border md:!border-b-0 md:border-neutral-200 px-6 py-4 bg-white sm:flex-row sm:gap-4 sm:py-3 rounded-lg md:rounded-t-lg shadow-sm">
+        <div class="flex -space-x-1 flex-shrink-0">
+          <img 
+            src="/avatars/avatar-1.png" 
+            alt="Customer avatar - Ezra" 
+            class="inline-block h-9 w-9 rounded-full ring-2 ring-white object-cover sm:h-8 sm:w-8" 
+          />
+          <img 
+            src="/avatars/avatar-2.png" 
+            alt="Customer avatar - Donald" 
+            class="inline-block h-9 w-9 rounded-full ring-2 ring-white object-cover sm:h-8 sm:w-8" 
+          />
+          <img 
+            src="/avatars/avatar-3.png" 
+            alt="Customer avatar - Karim" 
+            class="inline-block h-9 w-9 rounded-full ring-2 ring-white object-cover sm:h-8 sm:w-8" 
+          />
+        </div>
+        <p class="text-sm text-center tracking-tight text-neutral-600 max-w-[320px] leading-relaxed sm:text-sm sm:text-left sm:max-w-none sm:leading-tight">
+          {customerSatisfactionText}
+        </p>
+      </div>
+    </div>
+    
+    <!-- Main content -->
+    <div class="px-4">
+      <div class="mx-auto flex min-h-[288px] max-w-6xl shrink-0 flex-col items-center justify-center gap-6 px-2 py-6 sm:px-6 sm:py-8">
+        <h1 class="!max-w-5xl text-pretty text-center text-[clamp(28px,5.5vw,56px)] font-medium leading-tight tracking-[-1.2px] text-neutral-900 md:leading-none md:tracking-[-1.8px] px-4">
+          Draft, Share and Store your contracts in 
+          <span 
+            id="cycling-text"
+            class="inline-block whitespace-nowrap"
+            style="
+              min-width: clamp(100px, 12vw, 180px);
+              text-align: center;
+              font-feature-settings: 'kern' 1, 'liga' 1;
+              text-rendering: optimizeLegibility;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: neutralscale;
+              padding-top: 0.1em;
+              padding-bottom: 0.1em;
+              opacity: 1;
+            "
+          >
+            English
+          </span>
+        </h1>
+        <h2 class="text-base max-w-2xl text-pretty text-center text-neutral-600 md:text-lg mt-2 px-4 leading-relaxed">
+          {subtitle}
+        </h2>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex items-start justify-center px-4">
+      <div class="flex w-full max-w-md flex-col items-center justify-start gap-0">
+        {actions.map(({ href, label, type }) => (
+          <a
+            href={href}
+            class={`
+              !h-12 sm:!h-14 flex w-full flex-col items-center justify-center rounded-none !text-sm sm:!text-base transition-colors duration-150 font-medium
+              ${type === "primary" 
+                ? "bg-teal-600 text-white hover:bg-teal-700" 
+                : "!border-x !border-y-0 border-neutral-200 !bg-transparent backdrop-blur-xl hover:!bg-black/5"
+              }
+            `}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { animate } from 'motion';
+  import { $cyclingTextState, cyclingTextActions, languages } from '@/state/cycling-text';
+
+  const cyclingTextElement = document.getElementById('cycling-text');
+  
+  if (cyclingTextElement) {
+    let currentAnimation = null;
+    let lastIndex = 0;
+    
+    // Subscribe to state changes
+    const unsubscribe = $cyclingTextState.subscribe((state) => {
+      // Only animate if the index actually changed
+      if (state.currentIndex === lastIndex) {
+        return;
+      }
+      
+      lastIndex = state.currentIndex;
+      const currentLanguage = languages[state.currentIndex];
+      
+      if (currentAnimation) {
+        currentAnimation.cancel();
+      }
+      
+      // Animate out, change text, then animate in
+      currentAnimation = animate(
+        cyclingTextElement,
+        { opacity: 0, scale: 0.9 },
+        {
+          duration: 0.2,
+          easing: [0.23, 1, 0.32, 1]
+        }
+      );
+      
+      // Change text and animate back in
+      setTimeout(() => {
+        cyclingTextElement.textContent = currentLanguage.native;
+        
+        currentAnimation = animate(
+          cyclingTextElement,
+          { opacity: 1, scale: 1 },
+          {
+            duration: 0.4,
+            easing: [0.23, 1, 0.32, 1]
+          }
+        );
+      }, 200);
+    });
+    
+    // Start cycling immediately
+    cyclingTextActions.startCycling(2800);
+    
+    // Cleanup function for when page unloads
+    window.addEventListener('beforeunload', () => {
+      cyclingTextActions.stopCycling();
+      unsubscribe();
+      if (currentAnimation) {
+        currentAnimation.cancel();
+      }
+    });
+  }
+</script>
+
+<style>
+  :root {
+    --header-height: 0px;
+  }
+</style>

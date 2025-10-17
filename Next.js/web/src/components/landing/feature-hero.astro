@@ -1,0 +1,212 @@
+---
+export interface Props {
+  layout?: "image-bottom" | "image-right" | "full-image" | "gradient";
+  heading?: {
+    title: string;
+    subtitle?: string;
+    align?: "left" | "center" | "right";
+  };
+  image?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+  };
+  actions?: Array<{
+    href: string;
+    label: string;
+    type: "primary" | "secondary";
+  }>;
+  logoSrc?: string;
+  logoAlt?: string;
+}
+
+const {
+  layout = "image-right",
+  heading = {
+    title: "Agile Project Planning",
+    subtitle:
+      "Drive project success with agile project management capabilities",
+    align: "center",
+  },
+  image = {
+    src: "/favicon.svg",
+    alt: "Feature preview",
+    width: 400,
+    height: 300,
+  },
+  actions = [
+    { href: "/home", label: "Get Started", type: "primary" },
+    { href: "#", label: "Learn More", type: "secondary" },
+  ],
+  logoSrc = "/logo-black.svg",
+  logoAlt = "ACME Logo",
+} = Astro.props;
+
+const _alignmentClasses = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+---
+
+{layout === "image-bottom" && (
+  <section class="px-6 py-20 max-w-6xl mx-auto">
+    <div class="flex flex-col gap-6">
+      <div class={alignmentClasses[heading.align || 'center']}>
+        <h4 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">{heading.title}</h4>
+        {heading.subtitle && (
+          <p class="text-lg text-neutral-600 max-w-2xl mx-auto">{heading.subtitle}</p>
+        )}
+      </div>
+      {actions.length > 0 && (
+        <div class="flex gap-3 justify-center">
+          {actions.map(({ href, label, type }) => (
+            <a
+              href={href}
+              class={`px-6 py-3 font-medium rounded-lg transition-colors ${
+                type === "primary" 
+                  ? "bg-teal-600 text-white hover:bg-teal-700" 
+                  : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+              }`}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+    <img
+      src={image.src}
+      alt={image.alt}
+      width={image.width}
+      height={image.height}
+      class="block rounded-lg border border-neutral-200 mt-12"
+      loading="lazy"
+    />
+  </section>
+)}
+
+{layout === "image-right" && (
+  <section class="px-6 py-20 max-w-6xl mx-auto">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
+      <div class="flex flex-1 flex-col gap-6 lg:pr-16">
+        <div class="text-left">
+          <h4 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">{heading.title}</h4>
+          {heading.subtitle && (
+            <p class="text-lg text-neutral-600">{heading.subtitle}</p>
+          )}
+        </div>
+        {actions.length > 0 && (
+          <div class="flex gap-3 justify-start">
+            {actions.map(({ href, label, type }) => (
+              <a
+                href={href}
+                class={`px-6 py-3 font-medium rounded-lg transition-colors ${
+                  type === "primary" 
+                    ? "bg-teal-600 text-white hover:bg-teal-700" 
+                    : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                }`}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+      <img
+        src={image.src}
+        alt={image.alt}
+        width={image.width}
+        height={image.height}
+        class="block rounded-lg border border-neutral-200 flex-1 lg:w-1/2"
+        loading="lazy"
+      />
+    </div>
+  </section>
+)}
+
+{layout === "full-image" && (
+  <>
+    <img
+      src={image.src}
+      alt={image.alt}
+      width={image.width}
+      height={image.height}
+      class="block rounded-lg border border-neutral-200 max-h-[720px] w-full border-y border-t-0 object-cover rounded-none"
+      loading="lazy"
+    />
+    <section class="px-6 py-20 max-w-6xl mx-auto">
+      <div class="flex items-center justify-between self-stretch">
+        <div class="text-left">
+          <h4 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">{heading.title}</h4>
+          {heading.subtitle && (
+            <p class="text-lg text-neutral-600">{heading.subtitle}</p>
+          )}
+        </div>
+        {actions.length > 0 && (
+          <div class="flex gap-3 justify-start">
+            {actions.map(({ href, label, type }) => (
+              <a
+                href={href}
+                class={`px-6 py-3 font-medium rounded-lg transition-colors ${
+                  type === "primary" 
+                    ? "bg-teal-600 text-white hover:bg-teal-700" 
+                    : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                }`}
+              >
+                {label}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  </>
+)}
+
+{layout === "gradient" && (
+  <section class="relative px-6 py-20 max-w-6xl mx-auto">
+    <div class="relative z-10 flex flex-col items-center gap-8">
+      {logoSrc && (
+        <img
+          src={logoSrc}
+          alt={logoAlt}
+          class="size-20"
+          loading="lazy"
+        />
+      )}
+      <div class={alignmentClasses[heading.align || 'center']}>
+        <h4 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">{heading.title}</h4>
+        {heading.subtitle && (
+          <p class="text-lg text-neutral-600 max-w-2xl mx-auto">{heading.subtitle}</p>
+        )}
+      </div>
+      {actions.length > 0 && (
+        <div class="flex gap-3 justify-center">
+          {actions.map(({ href, label, type }) => (
+            <a
+              href={href}
+              class={`px-6 py-3 font-medium rounded-lg transition-colors ${
+                type === "primary" 
+                  ? "bg-teal-600 text-white hover:bg-teal-700" 
+                  : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+              }`}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+    <!-- Gradient background -->
+    <div class="gradient-bg absolute -top-1/2 left-1/2 z-0 h-[400px] w-[60vw] -translate-x-1/2 scale-150 rounded-[50%]"></div>
+  </section>
+)}
+
+<style>
+  .gradient-bg {
+    background: radial-gradient(closest-side, rgba(59, 130, 246, 0.4) 0%, transparent 100%);
+    z-index: 1;
+  }
+</style>

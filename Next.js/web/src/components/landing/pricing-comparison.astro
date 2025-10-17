@@ -1,0 +1,282 @@
+---
+export interface Props {
+  heading?: {
+    title: string;
+    subtitle?: string;
+  };
+  plans?: Array<{
+    id: string;
+    title: string;
+    price: string;
+    isMostPopular?: boolean;
+  }>;
+  categories?: Array<{
+    id: string;
+    title: string;
+    features: Array<{
+      id: string;
+      title: string;
+      tooltip?: string;
+      values: Array<{
+        planId: string;
+        value: boolean | string;
+      }>;
+    }>;
+  }>;
+}
+
+const {
+  heading = {
+    title: "Compare all plans",
+    subtitle: "Choose the perfect plan for your legal practice",
+  },
+  plans = [
+    { id: "free", title: "Free", price: "$0", isMostPopular: false },
+    { id: "pro", title: "Professional", price: "$19", isMostPopular: true },
+    {
+      id: "enterprise",
+      title: "Enterprise",
+      price: "Custom",
+      isMostPopular: false,
+    },
+  ],
+  categories = [
+    {
+      id: "core",
+      title: "Core Features",
+      features: [
+        {
+          id: "documents",
+          title: "Documents per month",
+          values: [
+            { planId: "free", value: "3" },
+            { planId: "pro", value: "Unlimited" },
+            { planId: "enterprise", value: "Unlimited" },
+          ],
+        },
+        {
+          id: "collaboration",
+          title: "Real-time collaboration",
+          values: [
+            { planId: "free", value: true },
+            { planId: "pro", value: true },
+            { planId: "enterprise", value: true },
+          ],
+        },
+        {
+          id: "signatures",
+          title: "E-signatures",
+          values: [
+            { planId: "free", value: false },
+            { planId: "pro", value: true },
+            { planId: "enterprise", value: true },
+          ],
+        },
+      ],
+    },
+    {
+      id: "advanced",
+      title: "Advanced Features",
+      features: [
+        {
+          id: "templates",
+          title: "Custom templates",
+          values: [
+            { planId: "free", value: false },
+            { planId: "pro", value: true },
+            { planId: "enterprise", value: true },
+          ],
+        },
+        {
+          id: "api",
+          title: "API access",
+          values: [
+            { planId: "free", value: false },
+            { planId: "pro", value: false },
+            { planId: "enterprise", value: true },
+          ],
+        },
+        {
+          id: "support",
+          title: "Support level",
+          values: [
+            { planId: "free", value: "Community" },
+            { planId: "pro", value: "Priority" },
+            { planId: "enterprise", value: "Dedicated" },
+          ],
+        },
+      ],
+    },
+  ],
+} = Astro.props;
+---
+
+<section class="px-6 py-20 max-w-7xl mx-auto" id="pricing">
+  <!-- Heading -->
+  <div class="text-center mb-16">
+    <h2 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">
+      {heading.title}
+    </h2>
+    {heading.subtitle && (
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+        {heading.subtitle}
+      </p>
+    )}
+  </div>
+  
+  <!-- Desktop Pricing Table -->
+  <div class="hidden lg:block overflow-x-auto">
+    <table class="w-full table-fixed">
+      <thead class="sticky top-0 bg-white">
+        <tr>
+          <th class="w-auto"></th>
+          {plans.map((plan) => (
+            <th key={plan.id} class="w-[1fr] pb-2 pt-6">
+              <div class="flex flex-col items-center gap-3 font-normal">
+                <div class="flex flex-col items-center gap-0.5">
+                  <p class="text-base text-neutral-600">
+                    {plan.title}
+                  </p>
+                  <p class="text-lg font-medium text-neutral-900">{plan.price}</p>
+                </div>
+                <a
+                  href="/sign-up"
+                  class={`px-4 py-2 font-medium rounded-lg transition-colors text-sm ${
+                    plan.isMostPopular 
+                      ? "bg-teal-600 text-white hover:bg-teal-700" 
+                      : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                  }`}
+                >
+                  Get started
+                </a>
+              </div>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {categories.map((category, categoryIndex) => (
+          <>
+            <tr key={`${category.id}-header`}>
+              <th class="w-auto">
+                <div class={`min-h-16 px-3 text-base flex items-center gap-1.5 font-normal text-start justify-start text-neutral-900 px-3 pb-2 ${categoryIndex === 0 ? 'pt-4' : 'pt-10'}`}>
+                  <p class="text-lg font-medium">{category.title}</p>
+                </div>
+              </th>
+              {plans.map((plan) => (
+                <th key={`${category.id}-${plan.id}-spacer`} class="w-[1fr]"></th>
+              ))}
+            </tr>
+            {category.features.map((feature) => (
+              <tr key={feature.id} class="border-b border-neutral-200">
+                <th class="w-auto">
+                  <div class="min-h-16 px-3 text-base flex items-center gap-1.5 font-normal text-start justify-start text-neutral-900">
+                    <p>{feature.title}</p>
+                    {feature.tooltip && (
+                      <div class="group relative">
+                        <svg class="w-4 h-4 text-neutral-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-neutral-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                          {feature.tooltip}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </th>
+                {plans.map((plan) => {
+                  const value = feature.values.find(v => v.planId === plan.id);
+                  return (
+                    <td key={`${feature.id}-${plan.id}`} class="w-[1fr]">
+                      <div class="min-h-16 px-3 text-base flex items-center gap-1.5 font-normal text-center justify-center text-neutral-600">
+                        {value ? (
+                          typeof value.value === 'boolean' ? (
+                            value.value ? (
+                              <span class="flex items-center justify-center rounded-full bg-green-100 p-1.5">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                              </span>
+                            ) : (
+                              <span class="text-xl text-neutral-300">—</span>
+                            )
+                          ) : (
+                            <p>{value.value}</p>
+                          )
+                        ) : (
+                          <span class="text-xl text-neutral-300">—</span>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Mobile Pricing -->
+  <div class="lg:hidden space-y-6">
+    {plans.map((plan) => (
+      <div key={plan.id} class={`border rounded-lg p-6 ${plan.isMostPopular ? 'border-neutral-900 shadow-lg' : 'border-neutral-200'}`}>
+        <div class="text-center mb-6">
+          {plan.isMostPopular && (
+            <span class="inline-block px-3 py-1 text-sm font-medium text-neutral-900 bg-yellow-100 rounded-full mb-2">
+              Most Popular
+            </span>
+          )}
+          <h3 class="text-xl font-medium text-neutral-900">{plan.title}</h3>
+          <p class="text-2xl font-bold text-neutral-900 mt-2">{plan.price}</p>
+          <a
+            href="/sign-up"
+            class={`mt-4 w-full inline-block px-4 py-2 font-medium rounded-lg transition-colors text-center ${
+              plan.isMostPopular 
+                ? "bg-teal-600 text-white hover:bg-teal-700" 
+                : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            }`}
+          >
+            Get started
+          </a>
+        </div>
+        
+        <div class="space-y-4">
+          {categories.map((category) => (
+            <div key={category.id}>
+              <h4 class="font-medium text-neutral-900 mb-2">{category.title}</h4>
+              <ul class="space-y-2">
+                {category.features.map((feature) => {
+                  const value = feature.values.find(v => v.planId === plan.id);
+                  return (
+                    <li key={feature.id} class="flex items-center justify-between text-sm">
+                      <span class="text-neutral-600">{feature.title}</span>
+                      <span>
+                        {value ? (
+                          typeof value.value === 'boolean' ? (
+                            value.value ? (
+                              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                              </svg>
+                            ) : (
+                              <span class="text-neutral-300">—</span>
+                            )
+                          ) : (
+                            <span class="text-neutral-900 font-medium">{value.value}</span>
+                          )
+                        ) : (
+                          <span class="text-neutral-300">—</span>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</section>

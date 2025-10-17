@@ -1,0 +1,101 @@
+---
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  actions?: Array<{
+    href: string;
+    label: string;
+    type: "primary" | "secondary";
+  }>;
+}
+
+const {
+  title = "Enhance your legal workflow with Lexa",
+  subtitle = "Streamline contracts, automate compliance, and collaborate seamlessly",
+  actions = [
+    { href: "/auth/login", label: "Get Started Free", type: "primary" },
+    { href: "#newsletter", label: "Request Demo", type: "secondary" },
+  ],
+} = Astro.props;
+---
+
+<section class="px-6 py-20 max-w-6xl mx-auto">
+  <article class="relative flex flex-col items-center justify-center gap-9 self-stretch overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100 p-6">
+    <!-- Animated lines -->
+    <div class="line absolute left-0 top-10 h-px w-full bg-gradient-to-r from-neutral-400/40 to-transparent"></div>
+    <div class="line absolute bottom-[72px] left-0 h-px w-full bg-gradient-to-r from-neutral-400/40 to-transparent"></div>
+    <div class="line absolute bottom-7 left-0 h-px w-full bg-gradient-to-r from-neutral-400/40 to-transparent"></div>
+    
+    <!-- Background blur -->
+    <div class="absolute left-0 top-0 z-10 h-full w-full bg-neutral-100 blur-3xl filter"></div>
+    
+    <!-- Content -->
+    <div class="relative z-20 flex flex-col items-start gap-2 text-left">
+      <h4 class="text-left text-3xl font-medium tracking-tighter text-neutral-900 sm:max-w-full sm:px-0 md:text-4xl">
+        {title}
+      </h4>
+      <p class="text-lg text-neutral-600 md:text-xl">
+        {subtitle}
+      </p>
+    </div>
+    
+    <!-- Actions -->
+    <div class="relative z-10 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+      {actions.map(({ href, label, type }) => (
+        <a
+          href={href}
+          class={`w-full sm:w-auto px-6 py-3 font-medium rounded-lg transition-colors text-center ${
+            type === "primary" 
+              ? "bg-teal-600 text-white hover:bg-teal-700" 
+              : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+          }`}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+  </article>
+</section>
+
+<style>
+  @keyframes lineAnimation {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .line {
+    animation: lineAnimation 3s linear infinite;
+    transform-origin: right;
+    height: 1px;
+    transform: translateX(-100%);
+  }
+
+  .line::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 1px;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+  }
+
+  .line:nth-child(1) {
+    animation-delay: 0.5s;
+  }
+
+  .line:nth-child(2) {
+    animation-delay: 1.2s;
+  }
+
+  .line:nth-child(3) {
+    animation-delay: 2.1s;
+  }
+</style>

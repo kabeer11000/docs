@@ -1,0 +1,86 @@
+[
+  {
+    "id": "1",
+    "title": "Power of Attorney",
+    "description": "General power of attorney template for legal representation",
+    "category": "Legal Documents",
+    "tags": ["Power of Attorney", "Legal Representation", "Authorization"]
+  },
+  {
+    "id": "2",
+    "title": "Employment Contract",
+    "description": "Standard employment contract compliant with Pakistani labor law",
+    "category": "Employment Law",
+    "tags": ["Employment", "Labor Law", "Contract"]
+  },
+  {
+    "id": "3",
+    "title": "Non-Disclosure Agreement",
+    "description": "Confidentiality agreement for sensitive legal matters",
+    "category": "Confidentiality",
+    "tags": ["NDA", "Confidentiality", "Legal"]
+  },
+  {
+    "id": "4",
+    "title": "Civil Suit Petition",
+    "description": "Template for filing civil litigation in district courts",
+    "category": "Civil Litigation",
+    "tags": ["Civil Suit", "Litigation", "Court Filing"]
+  },
+  {
+    "id": "5",
+    "title": "Criminal Bail Application",
+    "description": "Standard bail application for criminal cases",
+    "category": "Criminal Law",
+    "tags": ["Bail", "Criminal", "Application"]
+  },
+  {
+    "id": "6",
+    "title": "Property Sale Deed",
+    "description": "Property transfer deed template following land registration requirements",
+    "category": "Property Law",
+    "tags": ["Property", "Sale Deed", "Transfer"]
+  },
+  {
+    "id": "7",
+    "title": "Divorce Petition",
+    "description": "Petition for dissolution of marriage under family law",
+    "category": "Family Law",
+    "tags": ["Divorce", "Family Law", "Marriage"]
+  },
+  {
+    "id": "8",
+    "title": "Writ Petition (Constitutional)",
+    "description": "Constitutional petition template for fundamental rights violations",
+    "category": "Constitutional Law",
+    "tags": ["Writ Petition", "Constitutional", "Fundamental Rights"]
+  },
+  {
+    "id": "9",
+    "title": "Legal Notice",
+    "description": "Formal legal notice template for pre-litigation communication",
+    "category": "Legal Documents",
+    "tags": ["Legal Notice", "Pre-Litigation", "Formal"]
+  },
+  {
+    "id": "10",
+    "title": "Affidavit",
+    "description": "General affidavit template for sworn statements",
+    "category": "Legal Documents",
+    "tags": ["Affidavit", "Sworn Statement", "Legal"]
+  },
+  {
+    "id": "11",
+    "title": "Appeal Brief",
+    "description": "Appellate court brief template for higher court appeals",
+    "category": "Appellate Practice",
+    "tags": ["Appeal", "Brief", "Appellate Court"]
+  },
+  {
+    "id": "12",
+    "title": "Company Registration",
+    "description": "Corporate registration documents for SECP filing",
+    "category": "Corporate Law",
+    "tags": ["Company", "Registration", "Corporate"]
+  }
+]

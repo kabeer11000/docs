@@ -1,0 +1,77 @@
+[
+  {
+    "id": "notif-1",
+    "type": "legal_case",
+    "title": "Case document updated",
+    "message": "New evidence added to civil litigation case #CL-2024-0156",
+    "timestamp": "2024-08-20T14:30:00Z",
+    "read": false,
+    "actionUrl": "/case/CL-2024-0156",
+    "avatar": null,
+    "metadata": {
+      "caseId": "CL-2024-0156",
+      "documentType": "evidence",
+      "addedBy": "Ahmad Ali"
+    }
+  },
+  {
+    "id": "notif-2",
+    "type": "legal_research",
+    "title": "New legal precedent found",
+    "message": "Lexa AI found 3 relevant Supreme Court cases for your contract dispute query",
+    "timestamp": "2024-08-20T12:15:00Z",
+    "read": false,
+    "actionUrl": "/research/contract-dispute",
+    "avatar": null,
+    "metadata": {
+      "queryType": "contract dispute",
+      "precedentsFound": 3,
+      "court": "Supreme Court"
+    }
+  },
+  {
+    "id": "notif-3",
+    "type": "deadline_reminder",
+    "title": "Court filing deadline approaching",
+    "message": "Motion for summary judgment due in 3 days for case #CR-2024-0089",
+    "timestamp": "2024-08-20T10:00:00Z",
+    "read": true,
+    "actionUrl": "/case/CR-2024-0089",
+    "avatar": null,
+    "metadata": {
+      "caseId": "CR-2024-0089",
+      "deadlineType": "motion filing",
+      "daysRemaining": 3
+    }
+  },
+  {
+    "id": "notif-4",
+    "type": "legal_consultation",
+    "title": "Client consultation scheduled",
+    "message": "Family law consultation with Ayesha Ahmed scheduled for tomorrow at 2:00 PM",
+    "timestamp": "2024-08-19T16:45:00Z",
+    "read": true,
+    "actionUrl": "/consultation/ayesha-ahmed",
+    "avatar": "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face",
+    "metadata": {
+      "clientName": "Ayesha Ahmed",
+      "consultationType": "family law",
+      "scheduledTime": "2024-08-21T14:00:00Z"
+    }
+  },
+  {
+    "id": "notif-5",
+    "type": "lexa_update",
+    "title": "Lexa AI system update",
+    "message": "New Pakistan Legal Code database updated with latest amendments",
+    "timestamp": "2024-08-18T09:00:00Z",
+    "read": true,
+    "actionUrl": null,
+    "avatar": null,
+    "metadata": {
+      "updateType": "database",
+      "affectedArea": "Pakistan Legal Code",
+      "version": "2024.8.1"
+    }
+  }
+]

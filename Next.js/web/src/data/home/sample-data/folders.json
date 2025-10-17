@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Project Documents",
+    "tags": ["work", "project-2024", "important"],
+    "category": "work",
+    "id": "folder-1",
+    "meta": {
+      "fileCount": 12,
+      "color": "hsl(142.1 76.2% 36.3%)",
+      "icon": "folder"
+    }
+  },
+  {
+    "name": "Holiday Photos",
+    "tags": ["personal", "vacation", "memories"],
+    "category": "personal",
+    "id": "folder-2",
+    "meta": {
+      "fileCount": 85,
+      "color": "hsl(210 40% 96.1%)",
+      "icon": "camera"
+    }
+  },
+  {
+    "name": "Design Assets",
+    "tags": ["work", "design", "ui/ux"],
+    "category": "design",
+    "id": "folder-3",
+    "meta": {
+      "fileCount": 42,
+      "color": "hsl(222.2 47.4% 11.2%)",
+      "icon": "image"
+    }
+  },
+  {
+    "name": "Financial Records",
+    "tags": ["personal", "finance", "tax"],
+    "category": "finance",
+    "id": "folder-4",
+    "meta": {
+      "fileCount": 15,
+      "color": "hsl(346.8 77.2% 49.8%)",
+      "icon": "dollar-sign"
+    }
+  }
+]

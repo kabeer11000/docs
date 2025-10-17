@@ -1,0 +1,120 @@
+---
+export interface Props {
+  heading?: {
+    title: string;
+    subtitle?: string;
+    align?: "left" | "center" | "right";
+  };
+  image?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+  };
+  features?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    iconPath: string;
+  }>;
+}
+
+const {
+  heading = {
+    title: "Seamless Collaboration, Enhanced Productivity",
+    subtitle:
+      "Empower your team with integrated tools for file sharing, task management, and real-time collaboration, ensuring smooth project workflows from start to finish.",
+    align: "center",
+  },
+  image = {
+    src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1216 600'%3E%3Crect width='1216' height='600' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%236b7280' font-family='Arial, sans-serif' font-size='24'%3ELexa Legal Platform%3C/text%3E%3C/svg%3E",
+    alt: "Lexa Legal Platform",
+    width: 1216,
+    height: 600,
+  },
+  features = [
+    {
+      id: "1",
+      title: "Real-time Messaging",
+      description:
+        "Instantly communicate and collaborate with team members, keeping everyone aligned and informed.",
+      iconPath:
+        "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+    },
+    {
+      id: "2",
+      title: "File Sharing",
+      description:
+        "Share documents, images, and files effortlessly within your team, ensuring easy access to important resources.",
+      iconPath:
+        "M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10",
+    },
+    {
+      id: "3",
+      title: "Task Management",
+      description:
+        "Organize tasks, assign responsibilities, and track progress in one centralized platform, promoting accountability and efficiency.",
+      iconPath: "M13 10V3L4 14h7v7l9-11h-7z",
+    },
+  ],
+} = Astro.props;
+
+const _alignmentClasses = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+---
+
+<section class="py-16 md:py-20 flex flex-col items-center gap-8 relative max-w-6xl mx-auto px-6">
+  <!-- Heading (order-1 on desktop) -->
+  <div class="text-center">
+    <h2 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">
+      {heading.title}
+    </h2>
+    {heading.subtitle && (
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+        {heading.subtitle}
+      </p>
+    )}
+  </div>
+  
+  <!-- Features Grid (order-2 on desktop) -->
+  <div class="flex w-full flex-col items-start gap-4 md:order-2 md:grid md:grid-cols-3 md:gap-8">
+    {features.map(({ id, title, description, iconPath }) => (
+      <article key={id} class="flex flex-col gap-4">
+        <figure class="flex size-9 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 p-2">
+          <svg
+            class="h-[18px] w-[18px] text-neutral-700"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d={iconPath}
+            />
+          </svg>
+        </figure>
+        <div class="flex flex-col items-start gap-1">
+          <h5 class="text-lg font-medium text-neutral-900">{title}</h5>
+          <p class="text-neutral-600">
+            {description}
+          </p>
+        </div>
+      </article>
+    ))}
+  </div>
+  
+  <!-- Large Feature Image (order-3 on desktop) -->
+  <img
+    src="/media/document-collaboration-cropped.webp"
+    alt="A group of people with speech bubbles above them showing collaboration features"
+    width="1400"
+    height="800"
+    class="block rounded-xl border border-neutral-200 md:order-3 md:w-full"
+    loading="lazy"
+  />
+</section>

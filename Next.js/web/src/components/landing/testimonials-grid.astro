@@ -1,0 +1,211 @@
+---
+
+export interface Props {
+  heading?: {
+    title: string;
+    subtitle?: string;
+    align?: "left" | "center" | "right";
+  };
+  testimonials?: Array<{
+    id: string;
+    name: string;
+    role: string;
+    company?: string;
+    quote: string;
+    avatar?: string;
+    rating?: number;
+  }>;
+  columns?: 2 | 3 | 4;
+}
+
+const {
+  heading = {
+    title: "What our clients say",
+    subtitle: "",
+    align: "center",
+  },
+  testimonials = [
+    {
+      id: "1",
+      name: "Arslana Nawaz",
+      role: "Adv. High Court",
+      company: "PinPoint",
+      quote:
+        "Lexa has been a game-changer for my legal practice. Its AI-powered insights and extensive database of judgments have saved me countless hours of research, allowing me to focus more on client needs. Highly recommend!",
+      avatar: "/avatars/avatar-1.png",
+      rating: 5,
+    },
+    {
+      id: "2",
+      name: "Adeel Nawaz",
+      role: "Law Student",
+      company: "Hues",
+      quote:
+        "As a law student, Lexa's MCQ platform has been invaluable in preparing for exams. It's like having a personal tutor guiding me through the complexities of legal principles. A must-have for anyone serious about their legal studies.",
+      avatar: "/avatars/avatar-2.png",
+      rating: 5,
+    },
+    {
+      id: "3",
+      name: "Zara Ahmed",
+      role: "Legal Consultant",
+      company: "Greenish",
+      quote:
+        "Lexa's drafting feature is a lifesaver in my hectic schedule. It streamlines the process of creating legal documents, ensuring accuracy and compliance. Couldn't imagine managing my caseload without it.",
+      avatar: "/avatars/avatar-7.png",
+      rating: 5,
+    },
+    {
+      id: "4",
+      name: "Arsla Sidique",
+      role: "Corporate Lawyer",
+      company: "Hues",
+      quote:
+        "Impressed by Lexa's quick responses to my legal queries. Its AI-driven interface delivers clear and authoritative answers, making it my go-to tool for navigating legal complexities with confidence. Highly recommend!",
+      avatar: "/avatars/avatar-1.png",
+      rating: 5,
+    },
+    {
+      id: "5",
+      name: "Fatima Akhtar",
+      role: "Adv. High Court",
+      company: "Hues",
+      quote:
+        "Lexa has transformed how I approach legal research. Its comprehensive database of precedents and analyses provides me with critical insights for formulating winning legal strategies. Exceptional tool!",
+      avatar: "/avatars/avatar-4.png",
+      rating: 5,
+    },
+    {
+      id: "6",
+      name: "Ahsan Haq",
+      role: "Adv. High Court",
+      company: "Hues",
+      quote:
+        "Lexa is more than just a chatbot—it's a visionary tool reshaping legal consultation in Pakistan. Its accessibility and affordability make it an indispensable asset for lawyers and law students alike. Truly revolutionary!",
+      avatar: "/avatars/avatar-3.png",
+      rating: 5,
+    },
+  ],
+  columns = 3,
+} = Astro.props;
+
+const _alignmentClasses = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+
+const _getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("");
+};
+
+const _generateGradient = (index: number) => {
+  const gradients = [
+    "from-blue-400 to-purple-600",
+    "from-green-400 to-blue-600",
+    "from-purple-400 to-pink-600",
+    "from-pink-400 to-red-600",
+    "from-yellow-400 to-orange-600",
+    "from-indigo-400 to-purple-600",
+  ];
+  return gradients[index % gradients.length];
+};
+
+const _gridClasses = {
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-2 lg:grid-cols-3",
+  4: "md:grid-cols-2 lg:grid-cols-4",
+};
+---
+
+<section class="px-6 py-20 max-w-6xl mx-auto">
+  <!-- Heading -->
+  <div class="text-center mb-16">
+    <h4 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">
+      {heading.title}
+    </h4>
+    {heading.subtitle && (
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+        {heading.subtitle}
+      </p>
+    )}
+  </div>
+  
+  <!-- Testimonials Grid -->
+  <div class="relative overflow-hidden">
+    <div id="testimonials-container" class="flex gap-8 w-max">
+      {testimonials.map(({ id, name, role, company, quote, avatar }, index) => (
+      <article
+        key={id}
+        class="w-80 flex-shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-white"
+      >
+        <!-- Quote Section -->
+        <div class="flex items-start border-b border-neutral-200 p-6 lg:p-8">
+          <blockquote class="text-pretty text-base font-light text-neutral-600 md:text-lg">
+            "{quote}"
+          </blockquote>
+        </div>
+        
+        <!-- Author Section -->
+        <div class="flex items-center bg-neutral-50 px-6 py-4 lg:px-8 lg:py-5">
+          <div class="flex flex-1 flex-col gap-0.5">
+            <h5 class="text-xs font-medium text-neutral-500 md:text-sm">
+              {name}
+            </h5>
+            <p class="text-pretty text-xs text-neutral-500 md:text-sm">
+              {role}, {company}
+            </p>
+          </div>
+          <div class="pl-4">
+            <figure class="aspect-square size-8 rounded-full">
+              {avatar ? (
+                <img
+                  alt={name}
+                  class="size-8 rounded-full object-cover"
+                  src={avatar}
+                  width={32}
+                  height={32}
+                />
+              ) : (
+                <div class={`size-8 rounded-full bg-gradient-to-br ${generateGradient(index)} flex items-center justify-center text-white text-xs font-medium`}>
+                  {getInitials(name)}
+                </div>
+              )}
+            </figure>
+          </div>
+        </div>
+      </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  import { animate } from 'motion';
+
+  const container = document.getElementById('testimonials-container');
+  
+  if (container) {
+    let animation = animate(
+      container,
+      { x: [0, "-50%"] },
+      { 
+        duration: 30, 
+        easing: "linear",
+        repeat: Infinity
+      }
+    );
+
+    container.addEventListener('mouseenter', () => {
+      animation.pause();
+    });
+
+    container.addEventListener('mouseleave', () => {
+      animation.play();
+    });
+  }
+</script>
+

@@ -1,0 +1,382 @@
+{
+  "folder": {
+    "name": "Legal Templates & Forms",
+    "tags": ["templates", "forms", "standard-docs"],
+    "category": "legal",
+    "id": "folder-4",
+    "parentId": null,
+    "meta": {
+      "fileCount": 87,
+      "color": "hsl(47.9 95.8% 53.1%)",
+      "icon": "file-text"
+    },
+    "permissions": {
+      "owner": "user-a",
+      "canRead": true,
+      "canWrite": true,
+      "canDelete": true,
+      "sharedWith": [
+        {
+          "id": "all-staff",
+          "access": "viewer"
+        }
+      ]
+    },
+    "timestamp": {
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-08-15T11:45:00Z"
+    }
+  },
+  "subfolders": [
+    {
+      "name": "Court Pleadings",
+      "tags": ["pleadings", "court-documents", "litigation"],
+      "category": "legal",
+      "id": "folder-4-1",
+      "parentId": "folder-4",
+      "meta": {
+        "fileCount": 25,
+        "color": "hsl(220 100% 60%)",
+        "icon": "file-text"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "litigation-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-01-15T10:00:00Z",
+        "updatedAt": "2024-08-10T14:30:00Z"
+      }
+    },
+    {
+      "name": "Contracts & Agreements",
+      "tags": ["contracts", "agreements", "commercial"],
+      "category": "legal",
+      "id": "folder-4-2",
+      "parentId": "folder-4",
+      "meta": {
+        "fileCount": 35,
+        "color": "hsl(150 100% 60%)",
+        "icon": "handshake"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "contract-drafting-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-02-01T09:30:00Z",
+        "updatedAt": "2024-08-15T11:45:00Z"
+      }
+    },
+    {
+      "name": "Legal Notices & Letters",
+      "tags": ["notices", "letters", "correspondence"],
+      "category": "legal",
+      "id": "folder-4-3",
+      "parentId": "folder-4",
+      "meta": {
+        "fileCount": 18,
+        "color": "hsl(280 100% 70%)",
+        "icon": "mail"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "correspondence-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-01-20T11:15:00Z",
+        "updatedAt": "2024-07-28T16:20:00Z"
+      }
+    },
+    {
+      "name": "Regulatory Forms",
+      "tags": ["regulatory", "compliance", "government-forms"],
+      "category": "legal",
+      "id": "folder-4-4",
+      "parentId": "folder-4",
+      "meta": {
+        "fileCount": 9,
+        "color": "hsl(0 84% 60%)",
+        "icon": "clipboard"
+      },
+      "permissions": {
+        "owner": "user-a",
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true,
+        "sharedWith": [
+          {
+            "id": "regulatory-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "timestamp": {
+        "createdAt": "2024-03-10T13:45:00Z",
+        "updatedAt": "2024-08-05T09:30:00Z"
+      }
+    }
+  ],
+  "files": [
+    {
+      "name": "General-Power-of-Attorney-Template.docx",
+      "tags": ["power-of-attorney", "authorization", "template"],
+      "id": "file-4-1",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "all-staff",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-01-10T11:45:00Z",
+        "updatedAt": "2024-07-22T14:30:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 524288,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/EAB308/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    },
+    {
+      "name": "Civil-Suit-Petition-Template.docx",
+      "tags": ["civil-suit", "petition", "litigation"],
+      "id": "file-4-2",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "litigation-team",
+            "access": "editor"
+          },
+          {
+            "id": "junior-associates",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-02-15T10:20:00Z",
+        "updatedAt": "2024-08-12T16:15:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 786432,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/2563EB/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    },
+    {
+      "name": "Employment-Contract-Template.docx",
+      "tags": ["employment", "contract", "labor-law"],
+      "id": "file-4-3",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "hr-legal-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-03-01T14:10:00Z",
+        "updatedAt": "2024-08-08T12:45:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 1048576,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/059669/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    },
+    {
+      "name": "Non-Disclosure-Agreement-Template.docx",
+      "tags": ["nda", "confidentiality", "agreement"],
+      "id": "file-4-4",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "all-staff",
+            "access": "viewer"
+          },
+          {
+            "id": "business-dev-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-01-25T09:15:00Z",
+        "updatedAt": "2024-07-30T15:20:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 655360,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/DC2626/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    },
+    {
+      "name": "Legal-Notice-Template.docx",
+      "tags": ["legal-notice", "pre-litigation", "formal"],
+      "id": "file-4-5",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "correspondence-team",
+            "access": "editor"
+          }
+        ]
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-04-08T11:30:00Z",
+        "updatedAt": "2024-08-15T10:45:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 458752,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/7C2D12/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    },
+    {
+      "name": "Affidavit-Template.docx",
+      "tags": ["affidavit", "sworn-statement", "legal"],
+      "id": "file-4-6",
+      "owner": "user-a",
+      "sharing": {
+        "isShared": true,
+        "sharedWith": [
+          {
+            "id": "all-staff",
+            "access": "viewer"
+          }
+        ]
+      },
+      "location": "folder-4",
+      "timestamp": {
+        "createdAt": "2024-02-20T13:25:00Z",
+        "updatedAt": "2024-06-18T17:10:00Z"
+      },
+      "permissions": {
+        "canRead": true,
+        "canWrite": true,
+        "canDelete": true
+      },
+      "size": 327680,
+      "meta": {
+        "showPreview": true,
+        "preview": {
+          "type": "image",
+          "src": "https://placehold.co/100x100/10B981/FFFFFF?text=DOC",
+          "srcset": []
+        },
+        "type": {
+          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "extension": "docx"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Q3-Report.docx",
+    "tags": ["report", "work", "2024"],
+    "id": "file-1",
+    "owner": "user-a",
+    "sharing": {
+      "isShared": true,
+      "sharedWith": [
+        {
+          "id": "user-b",
+          "access": "editor"
+        }
+      ]
+    },
+    "location": "folder-1",
+    "timestamp": {
+      "createdAt": "2024-07-25T10:00:00Z"
+    },
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100?text=DOC",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      }
+    }
+  },
+  {
+    "name": "Family-Vacation.jpg",
+    "tags": ["photo", "vacation", "2023"],
+    "id": "file-2",
+    "owner": "user-a",
+    "sharing": {
+      "isShared": false,
+      "sharedWith": []
+    },
+    "location": "folder-2",
+    "timestamp": {
+      "createdAt": 1698774000000
+    },
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100?text=IMG",
+        "srcset": []
+      },
+      "type": {
+        "mime": "image/jpeg"
+      }
+    }
+  },
+  {
+    "name": "UI-Kit-v2.sketch",
+    "tags": ["design", "ui/ux"],
+    "id": "file-3",
+    "owner": "user-c",
+    "sharing": {
+      "isShared": true,
+      "sharedWith": [
+        {
+          "id": "user-d",
+          "access": "viewer"
+        }
+      ]
+    },
+    "location": "folder-3",
+    "timestamp": {
+      "createdAt": "2024-08-01T15:30:00Z"
+    },
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100?text=SKETCH",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/sketch"
+      }
+    }
+  },
+  {
+    "name": "Tax-Receipts-2023.pdf",
+    "tags": ["finance", "tax", "document"],
+    "id": "file-4",
+    "owner": "user-a",
+    "sharing": {
+      "isShared": false,
+      "sharedWith": []
+    },
+    "location": "folder-4",
+    "timestamp": {
+      "createdAt": "2024-01-10T11:45:00Z"
+    },
+    "meta": {
+      "showPreview": true,
+      "preview": {
+        "type": "image",
+        "src": "https://placehold.co/100x100?text=PDF",
+        "srcset": []
+      },
+      "type": {
+        "mime": "application/pdf"
+      }
+    }
+  }
+]

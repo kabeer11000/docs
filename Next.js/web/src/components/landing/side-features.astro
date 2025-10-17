@@ -1,0 +1,234 @@
+---
+export interface Props {
+  heading?: {
+    title: string;
+    subtitle?: string;
+    tag?: string;
+    align?: "left" | "center" | "right";
+  };
+  features?: Array<{
+    id: string;
+    title: string;
+    subtitle: string;
+    iconName:
+      | "document"
+      | "form"
+      | "translation"
+      | "security"
+      | "voice"
+      | "library"
+      | "compliance";
+  }>;
+  actions?: Array<{
+    href: string;
+    label: string;
+    type: "primary" | "secondary";
+  }>;
+}
+
+const {
+  heading = {
+    title: "Supercharge Team Productivity",
+    subtitle:
+      "Keep your team focused and productive as they collaborate on building and shipping products swiftly.",
+    tag: "Productivity",
+    align: "left",
+  },
+  features = [
+    {
+      id: "1",
+      title: "AI-Powered Contract Creation",
+      subtitle:
+        "Craft binding legal documents instantly using pre-designed templates and smart prompts tailored for your jurisdiction.",
+      iconName: "document" as const,
+    },
+    {
+      id: "2",
+      title: "Form-Based Drafting with Contextual Input",
+      subtitle:
+        "Upload any contract template, and Lexa turns it into a guided, fillable form—no legal expertise needed.",
+      iconName: "form" as const,
+    },
+    {
+      id: "3",
+      title: "Live Translation & Jargon Decoder",
+      subtitle:
+        "Translate entire contracts in real-time and get clear, plain-English explanations of complex legal terms for better understanding.",
+      iconName: "translation" as const,
+    },
+    {
+      id: "4",
+      title: "Secure E-Signing & Sharing",
+      subtitle:
+        "E-sign documents swiftly and share them securely with built-in encryption, audit logs, and file tracking.",
+      iconName: "security" as const,
+    },
+    {
+      id: "5",
+      title: "Voice & Meeting Intelligence",
+      subtitle:
+        "Lexa listens in on negotiations, provides real-time legal advice, flags risks, and suggests clauses live—just like a legal co-pilot.",
+      iconName: "voice" as const,
+    },
+    {
+      id: "6",
+      title: "Legal Research & Judgment Library",
+      subtitle:
+        "Access over 200K digitized judgments and 10K+ legal documents instantly to inform your drafting and review process.",
+      iconName: "library" as const,
+    },
+    {
+      id: "7",
+      title: "Compliance & Risk Dashboard",
+      subtitle:
+        "Stay ahead of liabilities with automated compliance checks, risk alerts, and renewal reminders.",
+      iconName: "compliance" as const,
+    },
+  ],
+  actions = [
+    { href: "/home", label: "Start Free Trial", type: "primary" },
+    { href: "#", label: "Schedule Demo", type: "secondary" },
+  ],
+} = Astro.props;
+---
+
+<section class="relative max-w-6xl mx-auto flex flex-col lg:flex-row lg:gap-0 py-16 md:py-20 px-6 lg:px-28">
+  <div class="relative top-0 shrink self-stretch lg:w-1/2 lg:pl-0 lg:pr-12 xl:pr-20">
+    <div class="sticky bottom-0 top-[calc(var(--header-height)+40px)] flex flex-col gap-8">
+      <div class="flex flex-col items-start gap-4">
+        {heading.tag && (
+          <span class="inline-block px-3 py-1 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-full">
+            {heading.tag}
+          </span>
+        )}
+        <h2 class="text-3xl sm:text-4xl font-medium text-neutral-900">
+          {heading.title}
+        </h2>
+        {heading.subtitle && (
+          <p class="text-lg text-neutral-600">
+            {heading.subtitle}
+          </p>
+        )}
+      </div>
+      
+      <div class="flex items-center gap-4">
+        {actions.map(({ href, label, type }) => (
+          <a
+            href={href}
+            class={`px-6 py-3 font-medium rounded-lg transition-colors ${
+              type === "primary" 
+                ? "bg-teal-600 text-white hover:bg-teal-700" 
+                : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+            }`}
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+  
+  <div class="w-full flex-1 shrink-0 lg:w-1/2 lg:flex-1 mt-16 lg:mt-0">
+    <div class="relative">
+      <div class="no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory lg:flex-col lg:gap-8 lg:overflow-visible lg:px-0">
+        {Array.from({ length: Math.ceil(features.length / 2) }).map((_, pageIndex) => (
+          <div
+            key={`page-${pageIndex}`}
+            class="grid grid-cols-1 grid-rows-2 gap-4 w-full shrink-0 snap-center lg:contents"
+          >
+            {features.slice(pageIndex * 2, (pageIndex + 1) * 2).map(({ id, title, iconName, subtitle }) => (
+              <article
+                key={id}
+                class="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-50 p-4 lg:w-full lg:flex-row lg:p-8"
+              >
+                <figure class="flex size-12 shrink-0 items-center justify-center rounded-full bg-neutral-200 p-3">
+                  <LucideIcon
+                    name={iconName}
+                    className="h-6 w-6 text-neutral-700"
+                    client:load
+                  />
+                </figure>
+                <div class="flex flex-col items-start gap-1">
+                  <h5 class="text-lg font-medium text-neutral-900">{title}</h5>
+                  <p class="text-pretty text-neutral-600">
+                    {subtitle}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ))}
+      </div>
+      
+      <!-- Scroll indicator dots -->
+      <div class="flex justify-center gap-2 mt-4 lg:hidden">
+        {Array.from({ length: Math.ceil(features.length / 2) }).map((_, index) => (
+          <div
+            key={`dot-${index}`}
+            class="w-2 h-2 rounded-full bg-neutral-300 scroll-indicator-dot"
+            data-index={index}
+          />
+        ))}
+      </div>
+      
+      <!-- Next page hint (right edge peek) -->
+      <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-16 bg-gradient-to-r from-transparent to-white/50 pointer-events-none lg:hidden next-hint opacity-60" />
+    </div>
+  </div>
+</section>
+
+<style>
+  :root {
+    --header-height: 0px;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scroll-indicator-dot.active {
+    background-color: rgb(13 148 136);
+  }
+  
+  .next-hint {
+    animation: pulse-hint 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-hint {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const scrollContainer = document.querySelector('.no-scrollbar');
+    const indicators = document.querySelectorAll('.scroll-indicator-dot');
+    const nextHint = document.querySelector('.next-hint');
+    
+    if (!scrollContainer || !indicators.length) return;
+    
+    function updateActiveIndicator() {
+      const scrollLeft = scrollContainer.scrollLeft;
+      const containerWidth = scrollContainer.clientWidth;
+      const currentPage = Math.round(scrollLeft / containerWidth);
+      
+      indicators.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentPage);
+      });
+      
+      // Hide hint after first scroll
+      if (nextHint && scrollLeft > 10) {
+        nextHint.style.display = 'none';
+      }
+    }
+    
+    scrollContainer.addEventListener('scroll', updateActiveIndicator);
+    updateActiveIndicator(); // Set initial active state
+  });
+</script>

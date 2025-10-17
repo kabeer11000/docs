@@ -1,0 +1,163 @@
+---
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  fields?: Array<{
+    id: string;
+    name: string;
+    label: string;
+    type: "text" | "email" | "tel" | "textarea" | "select";
+    placeholder?: string;
+    required?: boolean;
+    options?: string[];
+  }>;
+  submitButton?: {
+    label: string;
+    type: "primary" | "secondary";
+  };
+}
+
+const {
+  title = "Get in touch",
+  subtitle = "Ready to transform your legal workflow? Let's discuss how Lexa can help your team.",
+  fields = [
+    {
+      id: "name",
+      name: "name",
+      label: "Full Name",
+      type: "text",
+      placeholder: "John Doe",
+      required: true,
+    },
+    {
+      id: "email",
+      name: "email",
+      label: "Email Address",
+      type: "email",
+      placeholder: "john@lawfirm.com",
+      required: true,
+    },
+    {
+      id: "company",
+      name: "company",
+      label: "Company",
+      type: "text",
+      placeholder: "Your Law Firm",
+      required: true,
+    },
+    {
+      id: "message",
+      name: "message",
+      label: "Message",
+      type: "textarea",
+      placeholder: "Tell us about your legal document workflow needs...",
+      required: true,
+    },
+  ],
+  submitButton = { label: "Send Message", type: "primary" },
+} = Astro.props;
+---
+
+<section class="px-6 py-20 max-w-4xl mx-auto">
+  <div class="text-center mb-12">
+    <h2 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">
+      {title}
+    </h2>
+    <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+      {subtitle}
+    </p>
+  </div>
+  
+  <form class="contact-form flex flex-col gap-6 max-w-2xl mx-auto">
+    {fields.map((field) => (
+      <div key={field.id} class="flex flex-col gap-2">
+        <label for={field.id} class="text-sm font-medium text-neutral-700">
+          {field.label}
+          {field.required && <span class="text-red-500 ml-1">*</span>}
+        </label>
+        
+        {field.type === "textarea" ? (
+          <textarea
+            id={field.id}
+            name={field.name}
+            placeholder={field.placeholder}
+            required={field.required}
+            rows="6"
+            class="px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent resize-vertical"
+          ></textarea>
+        ) : field.type === "select" ? (
+          <select
+            id={field.id}
+            name={field.name}
+            required={field.required}
+            class="px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
+          >
+            <option value="">Select an option</option>
+            {field.options?.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+        ) : (
+          <input
+            type={field.type}
+            id={field.id}
+            name={field.name}
+            placeholder={field.placeholder}
+            required={field.required}
+            class="px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
+          />
+        )}
+      </div>
+    ))}
+    
+    <div class="mt-6 flex items-center justify-between">
+      <button
+        type="submit"
+        class={`px-8 py-3 font-medium rounded-lg transition-colors flex items-center gap-2 ${
+          submitButton.type === "primary" 
+            ? "bg-teal-600 text-white hover:bg-teal-700" 
+            : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+        }`}
+      >
+        {submitButton.label}
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+      </button>
+    </div>
+  </form>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.contact-form');
+    form?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Simple form validation
+      const formData = new FormData(form as HTMLFormElement);
+      const data = Object.fromEntries(formData.entries());
+      
+      // Check required fields
+      const requiredFields = Array.from(form.querySelectorAll('[required]'));
+      let isValid = true;
+      
+      requiredFields.forEach(field => {
+        const input = field as HTMLInputElement;
+        if (!input.value.trim()) {
+          input.style.borderColor = '#ef4444';
+          isValid = false;
+        } else {
+          input.style.borderColor = '#d1d5db';
+        }
+      });
+      
+      if (isValid) {
+        alert('Thank you for your message! We\'ll get back to you soon. (This is a demo - no actual form submission)');
+        form.reset();
+      } else {
+        alert('Please fill in all required fields.');
+      }
+    });
+  });
+</script>

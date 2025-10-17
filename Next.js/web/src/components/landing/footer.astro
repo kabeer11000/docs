@@ -1,0 +1,105 @@
+---
+import { Facebook, Instagram, Linkedin } from "lucide-react";
+
+export interface Props {
+  logo?: {
+    src: string;
+    alt: string;
+  };
+  navigation?: Array<{
+    title: string;
+    url: string;
+  }>;
+  socialLinks?: Array<{
+    title: string;
+    url: string;
+    component: any;
+  }>;
+  copyright?: string;
+}
+
+const {
+  logo = {
+    src: "/logo-black.svg",
+    alt: "Lexa",
+  },
+  navigation = [
+    { title: "About Lexa Pro", url: "#features" },
+    { title: "Support", url: "#pricing" },
+    { title: "Privacy Policy", url: "/privacy" },
+    { title: "Terms & Conditions", url: "/terms" },
+    { title: "Open-Source Licences", url: "/support/open-source-licences" },
+  ],
+  socialLinks = [
+    {
+      title: "LinkedIn",
+      url: "https://www.linkedin.com/company/lexa_lawyer/",
+      component: Linkedin,
+    },
+    {
+      title: "Instagram",
+      url: "https://www.instagram.com/lexa_lawyer/",
+      component: Instagram,
+    },
+    {
+      title: "Facebook",
+      url: "https://www.facebook.com/profile.php?id=61554795011681",
+      component: Facebook,
+    },
+  ],
+  copyright = "© 2025 - All Rights Reserved<br/>Lexa created with ❤ from <a href='https://www.otherdev.com' target='_blank' rel='noopener noreferrer' class='text-neutral-300 hover:text-neutral-100 transition-colors font-bold'>Other Dev</a>",
+} = Astro.props;
+---
+
+<footer class="bg-neutral-900 py-4 h-[calc(100vh-3rem)] flex flex-col">
+  <div
+    class="container mx-auto grid grid-cols-2 grid-rows-[auto_auto_auto] place-items-start items-center gap-y-7 px-4 sm:grid-cols-[1fr_auto_1fr] sm:grid-rows-2 sm:gap-x-3 sm:gap-y-16">
+    <!-- Logo -->
+    <a href="/home" class="flex items-center">
+      <img src={logo.src} alt={logo.alt} class="h-6 sm:h-8 w-auto invert-[100%]" />
+    </a>
+
+    <!-- Navigation -->
+    <nav
+      class="col-start-1 row-start-2 flex flex-col gap-x-2 gap-y-3 self-center sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:flex-row sm:items-center sm:place-self-center md:gap-x-4 lg:gap-x-8">
+      {
+        navigation.map((item) => (
+          <a
+            href={item.url}
+            class="px-2-md:px-2 tracking-tight text-neutral-300 hover:text-neutral-100 transition-colors">
+            {item.title}
+          </a>
+        ))
+      }
+          <!-- Social Links -->
+    <ul
+    class="col-span-2 col-start-1 row-start-3 flex w-full items-center gap-x-3.5 gap-y-4 sm:col-span-1 sm:col-start-3 sm:row-start-2 sm:w-auto sm:flex-wrap sm:justify-self-end">
+    {
+      socialLinks.map((link) => (
+        <li class="shrink-0 sm:first:ml-auto">
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block aspect-square p-0.5 text-neutral-300 hover:text-neutral-100 transition-colors"
+            title={link.title}>
+            <link.component class="w-6 h-6" />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+    </nav>
+
+    <!-- Empty space for layout balance -->
+    <div
+      class="col-start-2 row-start-1 flex items-center gap-3 self-center justify-self-end sm:col-span-1 sm:col-start-3 sm:row-start-1">
+    </div>
+  </div>
+  <div class="flex-1"></div>
+  <div class="w-full">
+    <!-- Copyright -->
+    <p class="text-pretty text-sm text-center text-neutral-200 sm:col-span-1" set:html={copyright} />
+  </div>
+</footer>

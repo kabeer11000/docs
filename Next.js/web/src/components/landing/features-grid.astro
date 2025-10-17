@@ -1,0 +1,172 @@
+---
+export interface Props {
+  heading?: {
+    title: string;
+    subtitle?: string;
+    tag?: string;
+    align?: "left" | "center" | "right";
+  };
+  features?: Array<{
+    id: string;
+    title: string;
+    description: string;
+    iconPath: string;
+  }>;
+  actions?: Array<{
+    href: string;
+    label: string;
+    type: "primary" | "secondary";
+  }>;
+}
+
+const {
+  heading = {
+    title: "Comprehensive Legal Solutions",
+    subtitle:
+      "Streamline your legal workflow with AI-powered tools designed for modern legal professionals and businesses.",
+    tag: "Legal Technology",
+    align: "center",
+  },
+  features = [
+    {
+      id: "1",
+      title: "AI-Powered Contract Creation",
+      description:
+        "Craft binding legal documents instantly using pre-designed templates and smart prompts tailored for your jurisdiction.",
+      iconPath:
+        "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+    },
+    {
+      id: "2",
+      title: "Form-Based Drafting with Contextual Input",
+      description:
+        "Upload any contract template, and Lexa turns it into a guided, fillable form—no legal expertise needed.",
+      iconPath:
+        "M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+    },
+    {
+      id: "3",
+      title: "Live Translation & Jargon Decoder",
+      description:
+        "Translate entire contracts in real-time and get clear, plain-English explanations of complex legal terms for better understanding.",
+      iconPath:
+        "M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129",
+    },
+    {
+      id: "4",
+      title: "Secure E-Signing & Sharing",
+      description:
+        "E-sign documents swiftly and share them securely with built-in encryption, audit logs, and file tracking.",
+      iconPath:
+        "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
+    },
+    {
+      id: "5",
+      title: "Voice & Meeting Intelligence",
+      description:
+        "Lexa listens in on negotiations, provides real-time legal advice, flags risks, and suggests clauses live—just like a legal co-pilot.",
+      iconPath:
+        "M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z",
+    },
+    {
+      id: "6",
+      title: "Legal Research & Judgment Library",
+      description:
+        "Access over 200K digitized judgments and 10K+ legal documents instantly to inform your drafting and review process.",
+      iconPath:
+        "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+    },
+    {
+      id: "7",
+      title: "Compliance & Risk Dashboard",
+      description:
+        "Stay ahead of liabilities with automated compliance checks, risk alerts, and renewal reminders.",
+      iconPath:
+        "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    },
+  ],
+  actions = [
+    { href: "/sign-up", label: "Get started", type: "primary" },
+    {
+      href: "/features/collaborative-task-boards",
+      label: "See more",
+      type: "secondary",
+    },
+  ],
+} = Astro.props;
+
+const _alignmentClasses = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+---
+
+<section class="px-6 py-20 max-w-6xl mx-auto">
+  <!-- Heading -->
+  <div class={`mb-16 ${alignmentClasses[heading.align || 'center']}`}>
+    {heading.tag && (
+      <span class="inline-block px-3 py-1 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-full mb-4">
+        {heading.tag}
+      </span>
+    )}
+    <h2 class="text-3xl sm:text-4xl font-medium text-neutral-900 mb-4">
+      {heading.title}
+    </h2>
+    {heading.subtitle && (
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+        {heading.subtitle}
+      </p>
+    )}
+  </div>
+  
+  <!-- Features Grid -->
+  <div class="grid w-full grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+    {features.map(({ id, title, description, iconPath }) => (
+      <article
+        key={id}
+        class="flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 bg-white shadow-[70px_-20px_130px_0px_rgba(255,255,255,0.05)_inset] hover:shadow-md transition-shadow"
+      >
+        <figure class="flex size-9 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 p-2">
+          <svg
+            class="h-[18px] w-[18px] text-neutral-700"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d={iconPath}
+            />
+          </svg>
+        </figure>
+        <div class="flex flex-col items-start gap-1">
+          <h5 class="text-lg font-medium text-neutral-900">{title}</h5>
+          <p class="text-pretty text-neutral-600">
+            {description}
+          </p>
+        </div>
+      </article>
+    ))}
+  </div>
+  
+  <!-- Actions -->
+  {actions.length > 0 && (
+    <div class="flex items-center justify-center gap-3 mt-8">
+      {actions.map(({ href, label, type }) => (
+        <a
+          href={href}
+          class={`px-6 py-3 font-medium rounded-lg transition-colors ${
+            type === "primary" 
+              ? "bg-teal-600 text-white hover:bg-teal-700" 
+              : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+          }`}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+  )}
+</section>

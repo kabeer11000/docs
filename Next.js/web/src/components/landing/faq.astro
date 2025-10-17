@@ -1,0 +1,97 @@
+---
+export interface Props {
+  heading?: {
+    title: string;
+    subtitle?: string;
+    tag?: string;
+    align?: "left" | "center" | "right";
+  };
+  questions?: Array<{
+    id: string;
+    question: string;
+    answer: string;
+  }>;
+  layout?: "grid" | "single-column";
+}
+
+const {
+  heading = {
+    title: "Frequently asked questions",
+    subtitle: "Everything you need to know about Lexa",
+    tag: "FAQs",
+    align: "center",
+  },
+  questions = [
+    {
+      id: "1",
+      question: "Is Lexa legally compliant?",
+      answer:
+        "Yes, Lexa is built with legal compliance in mind. We follow GDPR, SOC2, and other data protection standards to ensure your documents are secure and legally binding.",
+    },
+    {
+      id: "2",
+      question: "Can multiple people edit documents simultaneously?",
+      answer:
+        "Absolutely! Lexa supports real-time collaboration with live cursors, comments, and change tracking, just like Google Docs but built specifically for legal documents.",
+    },
+    {
+      id: "3",
+      question: "How do e-signatures work?",
+      answer:
+        "Our e-signature feature allows you to send documents for signature, track signing progress, and maintain complete audit trails. All signatures are legally binding and compliant with electronic signature laws.",
+    },
+    {
+      id: "4",
+      question: "What types of legal documents can I create with Lexa?",
+      answer:
+        "Lexa supports all types of legal documents including contracts, agreements, NDAs, terms of service, privacy policies, and more. Our templates library covers the most common legal document types.",
+    },
+    {
+      id: "5",
+      question: "How secure is my data on Lexa?",
+      answer:
+        "Security is our top priority. We use enterprise-grade encryption, secure cloud infrastructure, and regular security audits to protect your sensitive legal documents and data.",
+    },
+  ],
+  layout = "grid",
+} = Astro.props;
+
+const _alignmentClasses = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+---
+
+<section class="py-16 md:py-20 flex flex-col items-center gap-10 relative max-w-6xl mx-auto px-6">
+  <!-- Heading -->
+  <div class="text-center">
+    {heading.tag && (
+      <span class="inline-block px-3 py-1 text-sm font-medium text-neutral-600 bg-neutral-100 rounded-full mb-4">
+        {heading.tag}
+      </span>
+    )}
+    <h4 class="text-3xl md:text-4xl font-medium text-neutral-900 mb-4">
+      {heading.title}
+    </h4>
+    {heading.subtitle && (
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+        {heading.subtitle}
+      </p>
+    )}
+  </div>
+  
+  <!-- FAQ Box Grid -->
+  <ul class="mx-auto flex w-full grid-cols-3 flex-col place-content-start items-start gap-8 self-stretch lg:grid lg:gap-14 lg:px-24">
+    {questions.map((item) => (
+      <li key={item.id} class="flex flex-col gap-1.5">
+        <p class="font-medium leading-relaxed tracking-tighter sm:text-lg text-neutral-900">
+          {item.question}
+        </p>
+        <p class="text-sm leading-relaxed tracking-tight text-neutral-500 sm:text-base">
+          {item.answer}
+        </p>
+      </li>
+    ))}
+  </ul>
+</section>
