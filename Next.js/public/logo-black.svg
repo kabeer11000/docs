@@ -4,8 +4,8 @@
 <g clip-path="url(#clip0_8080_5187)">
 <path clip-rule="evenodd" d="M19.802 2.59671e-07V5.94059V19.802H13.8614V12.8746C13.8596 16.7008 10.7573 19.802 6.93069 19.802C3.10298 19.802 0 16.699 0 12.8713C0 9.04357 3.10298 5.94059 6.93069 5.94059C10.7573 5.94059 13.8596 9.0418 13.8614 12.868V5.94059H6.93069H0V2.59671e-07L13.8614 0L19.802 2.59671e-07Z" fill="#09090B" fill-rule="evenodd"/>
 </g>
-<!-- Text "Lexa" -->
-<text x="25" y="15" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#09090B">Lexa</text>
+<!-- Logo text -->
+<text x="25" y="15" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#09090B">Kabeer Docs</text>
 <defs>
 <clipPath id="clip0_8080_5187">
 <rect fill="white" height="19.802" width="19.802"/>

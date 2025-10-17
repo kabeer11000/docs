@@ -3,7 +3,7 @@ import "@/styles/global.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Lexa - Legal Document Management",
+  title: "Kabeer Docs - Legal Document Management",
   description:
     "Professional legal document management and collaboration platform",
 };

@@ -16,7 +16,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     // Console redirect for development
     if (isDevelopment && debugMode) {
       // Add console redirect logic if needed
-      console.log("Lexa UI initialized in development mode");
+      console.log("UI initialized in development mode");
     }
 
     // Load Stats.js for development

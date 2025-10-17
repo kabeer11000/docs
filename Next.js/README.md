@@ -1,10 +1,10 @@
-# Lexa Web Application
+# Kabeer Docs
 
-A modern legal document collaboration platform built with Next.js 15, React 19, and TypeScript. Lexa enables legal professionals to draft, review, and sign documents with real-time collaboration capabilities.
+A modern legal document collaboration platform built with Next.js 15, React 19, and TypeScript. Kabeer Docs enables legal professionals to draft, review, and sign documents with real-time collaboration capabilities.
 
 ## Overview
 
-Lexa is a comprehensive legal document management system designed for law firms and legal departments. The platform provides real-time collaborative editing, secure e-signature workflows, and comprehensive document organization tools.
+Kabeer Docs is a comprehensive legal document management system designed for law firms and legal departments. The platform provides real-time collaborative editing, secure e-signature workflows, and comprehensive document organization tools.
 
 ## Tech Stack
 
@@ -74,7 +74,7 @@ web/
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd lexa/web
+cd web
 
 # Install dependencies
 bun install

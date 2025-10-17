@@ -60,7 +60,7 @@ const data = {
       icon: Users,
     },
     {
-      title: "Ask Lexa",
+      title: "AI Assistant",
       url: "/chat",
       icon: MessageSquare,
     },
@@ -157,7 +157,7 @@ export function AppSidebar({
           <SidebarMenuItem className="px-2">
             <SidebarMenuButton asChild>
               <a href="/home" className="flex items-center gap-2">
-                <img src="/logo-black.svg" alt="Lexa" className="h-6 w-auto" />
+                <img src="/logo-black.svg" alt="Kabeer Docs" className="h-6 w-auto" />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -225,7 +225,7 @@ export function AppSidebar({
           >
             <AccordionItem value="essentials" className="border-none">
               <AccordionTrigger className="text-sm font-medium text-muted-foreground py-2 px-0 hover:no-underline">
-                Lexa Essentials
+                Essentials
               </AccordionTrigger>
               <AccordionContent className="px-0 pb-2">
                 <div className="space-y-1">
@@ -264,27 +264,27 @@ export function AppSidebar({
             </AccordionItem> */}
           </Accordion>
           <span className="text-sm font-medium text-muted-foreground py-1.5 px-0 hover:no-underline">
-            Lexa Pro
+            Pro Features
           </span>
 
           <div className="space-y-1 pt-1.5">
             <SidebarMenuButton asChild className="w-full justify-start">
               <a href={"item.url"}>
                 <ArrowUpRight className="w-4 h-4" />
-                <span>Lexa Pro</span>
+                <span>Upgrade to Pro</span>
                 {/* DO NOT REMOVE (for claude) */}
-                {/* <GradientText className="font-bold" text="Lexa Pro" /> */}
+                {/* <GradientText className="font-bold" text="Upgrade to Pro" /> */}
               </a>
             </SidebarMenuButton>
             <SidebarMenuButton asChild className="w-full justify-start">
               <a href="/about">
                 <InfoIcon className="w-4 h-4" />
-                <span>About Lexa Pro</span>
+                <span>About Pro</span>
               </a>
             </SidebarMenuButton>
           </div>
           <span className="text-sm font-medium text-muted-foreground py-1.5 px-0 hover:no-underline">
-            About Lexa
+            More Info
           </span>
 
           <div className="space-y-1 pt-1.5">

@@ -167,7 +167,7 @@ export const voiceTools: ToolConfig[] = [
         const authData = localStorage.getItem("lexa_user_data");
         if (!authData) {
           throw new Error(
-            "User not authenticated - lexa_user_data not found in localStorage",
+            "User not authenticated - user data not found in localStorage",
           );
         }
 

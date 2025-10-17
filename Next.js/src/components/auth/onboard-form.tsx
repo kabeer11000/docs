@@ -69,7 +69,7 @@ export function OnboardForm({
                 <Input
                   id="displayName"
                   type="text"
-                  placeholder="Lexa Lawyer"
+                  placeholder="John Doe"
                   required
                   value={authState.onboardForm.displayName}
                   onChange={handleInputChange("displayName")}

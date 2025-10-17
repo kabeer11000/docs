@@ -9,7 +9,7 @@ interface OrbProps {
 }
 
 export function VoiceOrb({
-  hue = 160, // Lexa teal hue (greenish-blue)
+  hue = 160, // Teal hue (greenish-blue)
   hoverIntensity = 0.2,
   rotateOnHover = true,
   forceHoverState = false,

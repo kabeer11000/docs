@@ -103,7 +103,7 @@ export function SignupForm() {
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Lexa Lawyer"
+                      placeholder="John Doe"
                       {...field}
                       disabled={authState.isLoading}
                     />

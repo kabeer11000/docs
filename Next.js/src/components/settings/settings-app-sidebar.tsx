@@ -67,7 +67,7 @@ export function SettingsAppSidebar({
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="#">
-                <span className="text-lg font-semibold">Lexa</span>
+                <span className="text-lg font-semibold">Kabeer Docs</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

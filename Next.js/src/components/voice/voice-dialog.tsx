@@ -57,7 +57,7 @@ export function VoiceDialog({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            participantName: "Lexa User",
+            participantName: "User",
           }),
         },
       );
@@ -130,7 +130,7 @@ export function VoiceDialog({
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
             <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-t-teal-500 border-r-gray-200 border-b-teal-500 border-l-gray-200"></div>
             <p className="mt-6 text-gray-700 text-sm font-medium">
-              Connecting to Lexa...
+              Connecting to AI Assistant...
             </p>
           </div>
         )}

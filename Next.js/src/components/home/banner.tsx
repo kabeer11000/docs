@@ -44,12 +44,12 @@ export function Banner() {
       <div className="absolute z-20 p-4 sm:p-6 md:p-8 rounded-lg top-0 left-0">
         <h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 font-medium">
           <GradientText
-            text="Welcome to Lexa"
+            text="Welcome to Kabeer Docs"
             gradient="linear-gradient(90deg, #064e3b 0%, #0c4a6e 30%, #0891b2 50%, #0c4a6e 70%, #064e3b 100%)"
           />
         </h2>
         <p className="text-foreground dark:text-foreground text-xs sm:text-sm max-w-lg leading-relaxed">
-          Lexa redefines legal aid in Pakistan with 24/7 AI support for experts
+          Kabeer Docs provides comprehensive legal document management with 24/7 AI support for legal professionals
           and students. Get started now!
         </p>
       </div>

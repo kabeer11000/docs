@@ -1,4 +1,4 @@
-# Lexa Codebase Instructions
+# Codebase Instructions
 
 ## 🚫 Critical Rules
 - **NEVER** add attribution ("🤖 Generated with Claude Code" or "Co-Authored-By: Claude")
