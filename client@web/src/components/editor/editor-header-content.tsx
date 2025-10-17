@@ -226,24 +226,24 @@ export function EditorHeaderContent({
                 <TooltipTrigger asChild>
                   <div
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border cursor-help",
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border cursor-help bg-transparent h-8",
                       permissions.accessLevel === "owner" &&
-                        "bg-purple-100 text-purple-700 border-purple-200",
+                        "text-purple-300 border-purple-500/50",
                       permissions.accessLevel === "editor" &&
-                        "bg-blue-100 text-blue-700 border-blue-200",
+                        "text-blue-300 border-blue-500/50",
                       permissions.accessLevel === "viewer" &&
-                        "bg-gray-100 text-gray-700 border-gray-200",
+                        "text-gray-300 border-gray-500/50",
                       permissions.accessLevel === "signer" &&
-                        "bg-signer/10 text-signer border-signer/30",
+                        "text-signer/70 border-signer/50",
                     )}
                   >
                     <div
                       className={cn(
                         "w-1.5 h-1.5 rounded-full",
-                        permissions.accessLevel === "owner" && "bg-purple-500",
-                        permissions.accessLevel === "editor" && "bg-blue-500",
-                        permissions.accessLevel === "viewer" && "bg-gray-500",
-                        permissions.accessLevel === "signer" && "bg-signer",
+                        permissions.accessLevel === "owner" && "bg-purple-400",
+                        permissions.accessLevel === "editor" && "bg-blue-400",
+                        permissions.accessLevel === "viewer" && "bg-gray-400",
+                        permissions.accessLevel === "signer" && "bg-signer/70",
                       )}
                     />
                     {permissions.accessLevel === "owner" && "Owner"}
