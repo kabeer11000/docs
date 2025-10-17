@@ -1,10 +1,10 @@
 # Kabeer Docs
 
-A modern legal document collaboration platform built with Next.js 15, React 19, and TypeScript. Kabeer Docs enables legal professionals to draft, review, and sign documents with real-time collaboration capabilities.
+A modern document collaboration platform built with Next.js 15, React 19, and TypeScript. Kabeer Docs enables every professional to draft, review, and sign documents with real-time collaboration capabilities.
 
 ## Overview
 
-Kabeer Docs is a comprehensive legal document management system designed for law firms and legal departments. The platform provides real-time collaborative editing, secure e-signature workflows, and comprehensive document organization tools.
+Kabeer Docs is a comprehensive  document management system designed for  firms and legal departments. The platform provides real-time collaborative editing, secure e-signature workflows, and comprehensive document organization tools.
 
 ## Tech Stack
 
@@ -92,7 +92,7 @@ The development server will be available at `http://localhost:4321`.
 
 ### Document Editor
 - Real-time collaborative editing with live cursors
-- Rich text formatting with legal document templates
+- Rich text formatting with document templates
 - Multi-page document structure with pagination
 - Comment and suggestion system
 - Auto-save functionality
