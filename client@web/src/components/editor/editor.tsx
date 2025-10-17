@@ -779,12 +779,141 @@ const DocumentEditor = ({
   // Show loading state while document is loading
   if (isLoadingDocument) {
     return (
-      <div className="flex items-center bg-background justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading document...</p>
+      <Fragment>
+        {/* Editor Toolbar Skeleton */}
+        <div className="sticky top-0 bg-background z-[10] editor-toolbar border-b">
+          <div className="flex items-center w-full px-4 gap-2 h-14">
+            <div className="flex-1 min-w-0 overflow-x-auto">
+              <div className="h-10 w-full bg-muted animate-pulse rounded" />
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Document Content Area Skeleton */}
+        <div
+          ref={editorContainerRef}
+          className={cn(
+            "flex-1 overflow-y-auto p-8 transition-all bg-muted duration-300 relative",
+            isAIPanelOpen && isCommentsSidebarOpen
+              ? "mr-[640px]"
+              : isAIPanelOpen
+                ? "mr-80"
+                : isCommentsSidebarOpen
+                  ? "mr-80"
+                  : "mr-0",
+          )}
+        >
+          <div className="max-w-4xl mx-auto relative">
+            <div className="bg-background w-full min-h-[calc(100vh-10rem)] rounded-lg p-8">
+              <div className="space-y-4">
+                <div className="h-8 bg-muted/50 rounded w-3/4 animate-pulse"></div>
+                <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
+                <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
+                <div className="h-6 bg-muted/50 rounded w-5/6 animate-pulse"></div>
+                <div className="h-6 bg-muted/50 rounded w-4/6 animate-pulse"></div>
+                <div className="h-6 bg-muted/50 rounded w-5/6 animate-pulse"></div>
+                <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
+                <div className="h-6 bg-muted/50 rounded w-2/3 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Bar Skeleton */}
+        <div
+          className={cn(
+            "sticky bottom-0 editor-status-bar border-t transition-all duration-300",
+            isAIPanelOpen && isCommentsSidebarOpen
+              ? "mr-[640px]"
+              : isAIPanelOpen
+                ? "mr-80"
+                : isCommentsSidebarOpen
+                  ? "mr-80"
+                  : "mr-0",
+          )}
+        >
+          <div className="h-10 bg-muted animate-pulse rounded" />
+        </div>
+
+        {/* AI Components Skeletons */}
+        <Suspense fallback={null}>
+          <AIFab />
+        </Suspense>
+        <Suspense fallback={
+          isAIPanelOpen ? (
+            <div className="fixed right-0 top-0 h-full w-80 bg-background border-l z-50">
+              <div className="flex flex-col h-full">
+                <div className="p-4 border-b">
+                  <div className="h-6 bg-muted animate-pulse rounded w-3/4"></div>
+                </div>
+                <div className="flex-1 p-4 space-y-4">
+                  <div className="h-4 bg-muted animate-pulse rounded w-full"></div>
+                  <div className="h-4 bg-muted animate-pulse rounded w-5/6"></div>
+                  <div className="h-4 bg-muted animate-pulse rounded w-4/6"></div>
+                  <div className="h-10 bg-muted animate-pulse rounded mt-4"></div>
+                </div>
+              </div>
+            </div>
+          ) : null
+        }>
+          <EditorAIChatPanel />
+        </Suspense>
+
+        {/* Selection Menu */}
+        <SelectionMenu
+          isVisible={showSelectionMenu}
+          position={selectionMenuPosition}
+          onComment={handleCommentClick}
+        />
+
+        {/* Collaboration Avatars with loading state */}
+        <Suspense fallback={
+          <div className="flex items-center gap-2 ml-4">
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
+          </div>
+        }>
+          <CollaborationAvatars provider={provider} />
+        </Suspense>
+
+        {/* Comment Dialog */}
+        <CommentDialog
+          isOpen={showCommentDialog}
+          selectedText={selectionRange?.text || ""}
+          onClose={() => {
+            setShowCommentDialog(false);
+            setSelectionRange(null);
+          }}
+          onSubmit={handleCreateComment}
+          isSubmitting={isCreatingComment}
+        />
+
+        {/* Comment Dialog */}
+        <CommentDialog
+          isOpen={showCommentDialog}
+          selectedText={selectionRange?.text || ""}
+          onClose={() => {
+            setShowCommentDialog(false);
+            setSelectionRange(null);
+          }}
+          onSubmit={handleCreateComment}
+          isSubmitting={isCreatingComment}
+        />
+
+        {/* Comments Sidebar */}
+        <CommentsSidebar
+          comments={comments}
+          isOpen={isCommentsSidebarOpen}
+          onClose={() => editorActions.setCommentsSidebarOpen(false)}
+          onCommentClick={handleSidebarCommentClick}
+          onResolve={handleResolveComment}
+          onDelete={handleDeleteComment}
+          onEdit={handleEditComment}
+          onReply={handleReplyComment}
+          currentUserId={currentUser?.id || ""}
+          activeCommentId={activeCommentId}
+        />
+      </Fragment>
     );
   }
 
@@ -801,17 +930,24 @@ const DocumentEditor = ({
   return (
     <Fragment>
       {/* Editor Toolbar */}
-      <div className="sticky top-0 bg-background z-[10] editor-toolbar">
-        <div className="flex items-center w-full px-4 py-2 gap-2">
-          <div className="flex-1 min-w-0">
+      <div className="sticky top-0 bg-background z-[10] editor-toolbar border-b">
+        <div className="flex items-center w-full px-4 gap-2 h-14">
+          <div className="flex-1 min-w-0 overflow-x-auto">
             {permissions.canEdit && (
               <Suspense
                 fallback={
-                  <div className="h-12 bg-muted animate-pulse" />
+                  <div className="h-10 w-full bg-muted animate-pulse rounded" />
                 }
               >
-                <EditorControls canEdit={permissions.canEdit} />
+                <div className="h-10 flex items-center">
+                  <EditorControls canEdit={permissions.canEdit} />
+                </div>
               </Suspense>
+            )}
+            {!permissions.canEdit && (
+              <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
+                View-only mode
+              </div>
             )}
           </div>
         </div>
@@ -832,14 +968,14 @@ const DocumentEditor = ({
         )}
       >
         <div className="max-w-4xl mx-auto relative">
-          <EditorContent editor={editor} className="bg-background w-full editor-paper" />
+          <EditorContent editor={editor} className="bg-background w-full min-h-[calc(100vh-10rem)] editor-paper" />
         </div>
       </div>
 
       {/* Status Bar */}
       <div
         className={cn(
-          "sticky bottom-0 editor-status-bar transition-all duration-300",
+          "sticky bottom-0 editor-status-bar border-t transition-all duration-300",
           isAIPanelOpen && isCommentsSidebarOpen
             ? "mr-[640px]"
             : isAIPanelOpen
@@ -850,7 +986,7 @@ const DocumentEditor = ({
         )}
       >
         <Suspense
-          fallback={<div className="h-8 bg-background animate-pulse" />}
+          fallback={<div className="h-10 bg-background animate-pulse rounded" />}
         >
           <EditorStatusBar />
         </Suspense>
@@ -860,7 +996,23 @@ const DocumentEditor = ({
       <Suspense fallback={null}>
         <AIFab />
       </Suspense>
-      <Suspense fallback={<div className="h-full bg-background animate-pulse" />}>
+      <Suspense fallback={
+        isAIPanelOpen ? (
+          <div className="fixed right-0 top-0 h-full w-80 bg-background border-l z-50">
+            <div className="flex flex-col h-full">
+              <div className="p-4 border-b h-14 flex items-center">
+                <div className="h-6 bg-muted animate-pulse rounded w-3/4"></div>
+              </div>
+              <div className="flex-1 p-4 space-y-4">
+                <div className="h-4 bg-muted animate-pulse rounded w-full"></div>
+                <div className="h-4 bg-muted animate-pulse rounded w-5/6"></div>
+                <div className="h-4 bg-muted animate-pulse rounded w-4/6"></div>
+                <div className="h-10 bg-muted animate-pulse rounded mt-4"></div>
+              </div>
+            </div>
+          </div>
+        ) : null
+      }>
         <EditorAIChatPanel />
       </Suspense>
 
@@ -871,8 +1023,15 @@ const DocumentEditor = ({
         onComment={handleCommentClick}
       />
 
-      {/* Collaboration Avatars */}
-      <CollaborationAvatars provider={provider} />
+      {/* Collaboration Avatars with loading state */}
+      <Suspense fallback={
+        <div className="flex items-center gap-2 ml-4">
+          <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
+          <div className="w-8 h-8 rounded-full bg-muted animate-pulse"></div>
+        </div>
+      }>
+        <CollaborationAvatars provider={provider} />
+      </Suspense>
 
       {/* Comment Dialog */}
       <CommentDialog
@@ -913,7 +1072,7 @@ const DocumentEditor = ({
                   <h4
                     className={`font-semibold text-xs ${flagTooltip.type === "red" ? "text-red-900" : "text-green-900"}`}
                   >
-                    {flagTooltip.type === "red" ? "Red Flag" : "Green Flag"}
+                    {flagTooltip.type === "Red Flag" ? "Red Flag" : "Green Flag"}
                   </h4>
                   <span
                     className={`text-xs px-1.5 py-0.5 rounded ${
