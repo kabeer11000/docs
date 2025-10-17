@@ -66,16 +66,16 @@ const data = {
     // },
   ],
   otherMenus: [
-    {
-      title: "Privacy Policy",
-      url: "/privacy",
-      icon: Shield,
-    },
-    {
-      title: "Terms & Conditions",
-      url: "/terms",
-      icon: FileText,
-    },
+    // {
+    //   title: "Privacy Policy",
+    //   url: "/privacy",
+    //   icon: Shield,
+    // },
+    // {
+    //   title: "Terms & Conditions",
+    //   url: "/terms",
+    //   icon: FileText,
+    // },
   ],
 };
 
@@ -283,7 +283,7 @@ export function AppSidebar({
               </a>
             </SidebarMenuButton>
           </div>
-          <span className="text-sm font-medium text-muted-foreground py-1.5 px-0 hover:no-underline">
+          {/* <span className="text-sm font-medium text-muted-foreground py-1.5 px-0 hover:no-underline">
             More Info
           </span>
 
@@ -300,7 +300,7 @@ export function AppSidebar({
                 </a>
               </SidebarMenuButton>
             ))}
-          </div>
+          </div> */}
         </div>
       </SidebarContent>
       <SidebarFooter>
