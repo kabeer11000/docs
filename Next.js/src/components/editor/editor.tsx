@@ -1491,9 +1491,9 @@ const DocumentEditor = ({
       </div>
 
       {/* AI Components */}
-      <Suspense fallback={null}>
+      {/* <Suspense fallback={null}>
         <AIFab />
-      </Suspense>
+      </Suspense> */}
       <Suspense fallback={null}>
         <EditorAIChatPanel />
       </Suspense>
@@ -1523,7 +1523,7 @@ const DocumentEditor = ({
       )}
 
       {/* Selection Menu - Show Ask Lexa & Comment for all, other features for editors only */}
-      <SelectionMenu
+      {/* <SelectionMenu
         isVisible={showSelectionMenu}
         position={selectionMenuPosition}
         onComment={handleCommentClick}
@@ -1531,7 +1531,7 @@ const DocumentEditor = ({
         onAskLexa={handleAskLexaClick}
         onSummarize={permissions.canEdit ? handleSummarizeClick : undefined}
         onAnalyze={permissions.canEdit ? handleAnalyzeClick : undefined}
-      />
+      /> */}
 
       {/* Analysis Dialog - Only for editors */}
       {permissions.canEdit && (

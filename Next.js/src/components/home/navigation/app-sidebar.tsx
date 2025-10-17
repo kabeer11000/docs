@@ -59,11 +59,11 @@ const data = {
       url: "/shared",
       icon: Users,
     },
-    {
-      title: "AI Assistant",
-      url: "/chat",
-      icon: MessageSquare,
-    },
+    // {
+    //   title: "AI Assistant",
+    //   url: "/chat",
+    //   icon: MessageSquare,
+    // },
   ],
   otherMenus: [
     {
