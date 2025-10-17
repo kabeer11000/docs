@@ -930,7 +930,18 @@ const DocumentEditor = ({
   return (
     <Fragment>
       {/* Editor Toolbar */}
-      <div className="sticky top-0 bg-background z-[10] editor-toolbar border-b">
+      <div 
+        className={cn(
+          "sticky top-0 bg-background z-[10] editor-toolbar border-b transition-all duration-300 ease-in-out",
+          isAIPanelOpen && isCommentsSidebarOpen
+            ? "mr-[640px]"
+            : isAIPanelOpen
+              ? "mr-80"
+              : isCommentsSidebarOpen
+                ? "mr-80"
+                : "mr-0",
+        )}
+      >
         <div className="flex items-center w-full px-4 gap-2 h-14">
           <div className="flex-1 min-w-0 overflow-x-auto">
             {permissions.canEdit && (
@@ -957,7 +968,7 @@ const DocumentEditor = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "flex-1 overflow-y-auto p-8 transition-all bg-muted duration-300 relative",
+          "flex-1 overflow-y-auto p-8 transition-all bg-muted duration-300 ease-in-out relative",
           isAIPanelOpen && isCommentsSidebarOpen
             ? "mr-[640px]"
             : isAIPanelOpen
@@ -975,7 +986,7 @@ const DocumentEditor = ({
       {/* Status Bar */}
       <div
         className={cn(
-          "sticky bottom-0 editor-status-bar border-t transition-all duration-300",
+          "sticky bottom-0 editor-status-bar border-t transition-all duration-300 ease-in-out",
           isAIPanelOpen && isCommentsSidebarOpen
             ? "mr-[640px]"
             : isAIPanelOpen
