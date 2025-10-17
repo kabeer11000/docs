@@ -1,14 +1,22 @@
 import type { IFolderItem, IMenuAction } from "@shared-types";
 import {
+  ChevronDown,
   Copy,
   Download,
   Edit,
   EllipsisVertical,
+  ExternalLink,
   FolderOpen,
   Share,
   Trash,
 } from "lucide-react";
 import { Fragment, type ReactNode, useState } from "react";
+import { PiInfo } from "react-icons/pi";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   DeleteConfirmationDialog,
   RenameDialog,
@@ -45,11 +53,16 @@ export interface IFolderViewProps {
   openInNew?: boolean;
   isLoading?: boolean;
   onFolderOpen?: (folder: IFolderItem) => void;
+  onCreateFolder?: () => void | Promise<void>;
   generateFolderUrl?: (folderName: string) => string;
   enableContextMenu?: boolean;
   enableDropdownMenu?: boolean;
   showViewMoreButton?: boolean;
+  collapsible?: boolean;
   // Action enablers
+  enableOpen?: boolean;
+  enableOpenNewTab?: boolean;
+  enableDetails?: boolean;
   enableRename?: boolean;
   enableShare?: boolean;
   enableCopy?: boolean;
@@ -65,10 +78,15 @@ export function FoldersView({
   openInNew,
   isLoading,
   onFolderOpen,
+  onCreateFolder,
   generateFolderUrl = (name: string) => `/folder/${name}`,
   enableContextMenu = true,
   enableDropdownMenu = true,
   showViewMoreButton = true,
+  collapsible = true,
+  enableOpen = true,
+  enableOpenNewTab = true,
+  enableDetails = true,
   enableRename = true,
   enableShare = true,
   enableCopy = true,
@@ -85,19 +103,58 @@ export function FoldersView({
     folder?: IFolderItem;
   }>({ open: false });
   const [isProcessing, setIsProcessing] = useState<Set<string>>(new Set());
-  const { updateFolder } = useCloudStore();
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [isOpen, setIsOpen] = useState(folders.length > 0);
+  const { deleteFolder, updateFolder, duplicateFolder } = useCloudStore();
 
   const displayFolders = folders.slice(0, initialFolderCount);
   const hasMoreFolders = folders.length > initialFolderCount;
 
   // Define menu actions internally
   const menuActions: IFolderMenuAction[] = [
+    ...(enableOpen
+      ? [
+          {
+            id: "open",
+            label: "Open",
+            icon: ExternalLink,
+            onClick: (folder: IFolderItem) => {
+              handleFolderOpen(folder);
+            },
+          },
+        ]
+      : []),
+    ...(enableOpenNewTab
+      ? [
+          {
+            id: "openInNewTab",
+            label: "Open in new tab",
+            icon: ExternalLink,
+            onClick: (folder: IFolderItem) => {
+              window.open(generateFolderUrl(folder.name), "_blank");
+            },
+          },
+        ]
+      : []),
+    ...(enableDetails
+      ? [
+          {
+            id: "showDetails",
+            label: "Show folder details",
+            icon: PiInfo,
+            onClick: (_folder: IFolderItem) => {
+              // TODO: Implement folder details
+            },
+          },
+        ]
+      : []),
     ...(enableRename
       ? [
           {
             id: "rename",
             label: "Rename",
             icon: Edit,
+            separator: "before" as const,
             onClick: (folder: IFolderItem) => {
               setRenameDialog({ open: true, folder });
             },
@@ -110,7 +167,6 @@ export function FoldersView({
             id: "share",
             label: "Share",
             icon: Share,
-            separator: "before" as const,
             onClick: (folder: IFolderItem) => {
               if (typeof navigator !== "undefined" && navigator.clipboard) {
                 navigator.clipboard
@@ -134,8 +190,26 @@ export function FoldersView({
             id: "copy",
             label: "Make a copy",
             icon: Copy,
-            onClick: (_folder: IFolderItem) => {
-              // TODO: Implement copy functionality
+            onClick: async (folder: IFolderItem) => {
+              setIsProcessing((prev) => new Set(prev).add(folder.id));
+              try {
+                const newId = await duplicateFolder(folder.id);
+
+                if (newId) {
+                  console.log("Folder copied successfully");
+                } else {
+                  alert(`Failed to copy ${folder.name}`);
+                }
+              } catch (error) {
+                console.error("Copy error:", error);
+                alert(`Failed to copy ${folder.name}`);
+              } finally {
+                setIsProcessing((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(folder.id);
+                  return newSet;
+                });
+              }
             },
           },
         ]
@@ -161,12 +235,7 @@ export function FoldersView({
             variant: "destructive" as const,
             separator: "before" as const,
             onClick: (folder: IFolderItem) => {
-              fetch(`/api/folders/${folder.id}`, { method: "DELETE" })
-                .then(() => {
-                  alert(`${folder.name} has been deleted`);
-                  window.location.reload();
-                })
-                .catch(() => alert("Failed to delete folder"));
+              setDeleteDialog({ open: true, folder });
             },
           },
         ]
@@ -202,10 +271,30 @@ export function FoldersView({
     }
   };
 
-  const handleDeleteConfirm = () => {
-    if (deleteDialog.folder && deleteDialog.action) {
-      deleteDialog.action.onClick(deleteDialog.folder);
-      setDeleteDialog({ open: false });
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.folder) return;
+
+    const folder = deleteDialog.folder;
+    setIsProcessing((prev) => new Set(prev).add(folder.id));
+
+    try {
+      const success = await deleteFolder(folder.id);
+
+      if (success) {
+        console.log(`${folder.name} has been deleted`);
+        setDeleteDialog({ open: false });
+      } else {
+        alert(`Failed to delete ${folder.name}`);
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert(`Failed to delete ${folder.name}`);
+    } finally {
+      setIsProcessing((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(folder.id);
+        return newSet;
+      });
     }
   };
 
@@ -238,6 +327,19 @@ export function FoldersView({
   const handleMenuClick = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+  };
+
+  const handleCreateFolder = async () => {
+    if (!onCreateFolder) return;
+
+    setIsCreatingFolder(true);
+    try {
+      await onCreateFolder();
+    } catch (error) {
+      console.error("Failed to create folder:", error);
+    } finally {
+      setIsCreatingFolder(false);
+    }
   };
 
   const renderMenuItems = (
@@ -314,11 +416,6 @@ export function FoldersView({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={(e) => handleFolderOpen(folder, e)}>
-                  <FolderIcon folder={folder} className="mr-2 h-4 w-4" />
-                  Open
-                </DropdownMenuItem>
-                {menuActions.length > 0 && <DropdownMenuSeparator />}
                 {renderMenuItems(folder, false)}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -332,11 +429,6 @@ export function FoldersView({
         <ContextMenu key={folder.id}>
           <ContextMenuTrigger asChild>{folderElement}</ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem onClick={(e) => handleFolderOpen(folder, e)}>
-              <FolderIcon folder={folder} className="mr-2 h-4 w-4" />
-              Open
-            </ContextMenuItem>
-            {menuActions.length > 0 && <ContextMenuSeparator />}
             {renderMenuItems(folder, true)}
           </ContextMenuContent>
         </ContextMenu>
@@ -359,49 +451,103 @@ export function FoldersView({
   );
 
   if (isLoading) {
-    return (
-      <div>
-        {/* Header with title - always visible during loading */}
-        <div className="flex items-center justify-between mb-4">
-          {showHeadline && (
-            <h2 className="text-lg font-semibold">{headlineText}</h2>
-          )}
-          {showViewMoreButton && <Skeleton className="h-8 w-20 rounded-full" />}
-        </div>
-
-        {/* Skeleton folder grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
-          {Array.from({ length: initialFolderCount }, (_, i) => (
-            <FolderSkeleton key={i} />
-          ))}
-        </div>
+    const loadingContent = (
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+        {Array.from({ length: initialFolderCount }, (_, i) => (
+          <FolderSkeleton key={i} />
+        ))}
       </div>
+    );
+
+    if (!collapsible) {
+      return (
+        <div>
+          {/* Header with title - always visible during loading */}
+          <div className="flex items-center justify-between mb-4">
+            {showHeadline && (
+              <h2 className="text-lg font-semibold">{headlineText}</h2>
+            )}
+            {showViewMoreButton && <Skeleton className="h-8 w-20 rounded-full" />}
+          </div>
+
+          {loadingContent}
+        </div>
+      );
+    }
+
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        {showHeadline && (
+          <div className="flex sticky top-2 z-[10] items-center justify-between mb-0">
+            <div className="flex-1">
+              <CollapsibleTrigger className="backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit">
+                <h2 className="text-lg font-semibold">{headlineText}</h2>
+                <ChevronDown
+                  className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                />
+              </CollapsibleTrigger>
+            </div>
+            {showViewMoreButton && <Skeleton className="h-8 w-20 rounded-full" />}
+          </div>
+        )}
+        <CollapsibleContent>{loadingContent}</CollapsibleContent>
+      </Collapsible>
     );
   }
 
   if (!folders.length) {
-    return (
-      <div>
-        {showHeadline && (
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">{headlineText}</h2>
-          </div>
-        )}
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center border border-border rounded-lg bg-card">
-          <div className="mb-6 p-4 rounded-2xl bg-muted dark:bg-muted/50">
-            <FolderOpen className="w-12 h-12 text-muted-foreground" />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            No folders yet
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-sm mb-6">
-            Create your first folder to organize your documents
-          </p>
+    const emptyContent = (
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="mb-6 p-4 rounded-2xl bg-muted dark:bg-muted/50">
+          <FolderOpen className="w-12 h-12 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          No folders yet
+        </h3>
+        <p className="text-sm text-muted-foreground max-w-sm mb-6">
+          Create your first folder to organize your documents
+        </p>
+        {onCreateFolder ? (
+          <Button size="lg" onClick={handleCreateFolder} disabled={isCreatingFolder}>
+            {isCreatingFolder ? "Creating..." : "Create Folder"}
+          </Button>
+        ) : (
           <Button asChild size="lg">
             <a href="/folder/new">Create Folder</a>
           </Button>
-        </div>
+        )}
       </div>
+    );
+
+    if (!collapsible) {
+      return (
+        <div>
+          {showHeadline && (
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">{headlineText}</h2>
+            </div>
+          )}
+          {emptyContent}
+        </div>
+      );
+    }
+
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        {showHeadline && (
+          <div className="flex sticky top-2 z-[10] items-center justify-between mb-0">
+            <div className="flex-1">
+              <CollapsibleTrigger className="backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit">
+                <h2 className="text-lg font-semibold">{headlineText}</h2>
+                <ChevronDown
+                  className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                />
+              </CollapsibleTrigger>
+            </div>
+          </div>
+        )}
+        <CollapsibleContent>{emptyContent}</CollapsibleContent>
+      </Collapsible>
     );
   }
 
@@ -409,14 +555,84 @@ export function FoldersView({
   const _destructiveAction = deleteDialog.action;
   const hasDestructiveActions = enableDelete;
 
+  const content = (
+    <div>
+      {/* Show display folders */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+        {displayFolders.map(renderFolderItem)}
+      </div>
+    </div>
+  );
+
+  if (!collapsible) {
+    return (
+      <Fragment>
+        <div>
+          {/* Header with title and view more button */}
+          <div className="flex items-center justify-between mb-4">
+            {showHeadline && (
+              <h2 className="text-lg font-semibold">{headlineText}</h2>
+            )}
+            {showViewMoreButton && hasMoreFolders && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary font-medium hover:text-teal-700 transition-colors rounded-full"
+                onClick={() => (window.location.href = "/vault")}
+              >
+                View More
+              </Button>
+            )}
+          </div>
+
+          {content}
+        </div>
+
+        {hasDestructiveActions && (
+          <DeleteConfirmationDialog
+            open={deleteDialog.open}
+            onOpenChange={(open) => setDeleteDialog({ open })}
+            itemName={deleteDialog.folder?.name || ""}
+            itemType="folder"
+            onConfirm={handleDeleteConfirm}
+            isLoading={
+              deleteDialog.folder
+                ? isProcessing.has(deleteDialog.folder.id)
+                : false
+            }
+          />
+        )}
+
+        {enableRename && (
+          <RenameDialog
+            open={renameDialog.open}
+            onOpenChange={(open) => setRenameDialog({ open })}
+            itemName={renameDialog.folder?.name || ""}
+            itemType="folder"
+            onConfirm={handleRename}
+            isLoading={
+              renameDialog.folder
+                ? isProcessing.has(renameDialog.folder.id)
+                : false
+            }
+          />
+        )}
+      </Fragment>
+    );
+  }
+
   return (
-    <Fragment>
-      <div>
-        {/* Header with title and view more button */}
-        <div className="flex items-center justify-between mb-4">
-          {showHeadline && (
-            <h2 className="text-lg font-semibold">{headlineText}</h2>
-          )}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      {showHeadline && (
+        <div className="flex sticky top-2 z-[10] items-center justify-between mb-0">
+          <div className="flex-1">
+            <CollapsibleTrigger className="backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit">
+              <h2 className="text-lg font-semibold">{headlineText}</h2>
+              <ChevronDown
+                className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+              />
+            </CollapsibleTrigger>
+          </div>
           {showViewMoreButton && hasMoreFolders && (
             <Button
               variant="ghost"
@@ -428,12 +644,8 @@ export function FoldersView({
             </Button>
           )}
         </div>
-
-        {/* Show display folders */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
-          {displayFolders.map(renderFolderItem)}
-        </div>
-      </div>
+      )}
+      <CollapsibleContent>{content}</CollapsibleContent>
 
       {hasDestructiveActions && (
         <DeleteConfirmationDialog
@@ -442,6 +654,11 @@ export function FoldersView({
           itemName={deleteDialog.folder?.name || ""}
           itemType="folder"
           onConfirm={handleDeleteConfirm}
+          isLoading={
+            deleteDialog.folder
+              ? isProcessing.has(deleteDialog.folder.id)
+              : false
+          }
         />
       )}
 
@@ -459,6 +676,6 @@ export function FoldersView({
           }
         />
       )}
-    </Fragment>
+    </Collapsible>
   );
 }

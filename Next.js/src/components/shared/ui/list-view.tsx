@@ -122,6 +122,7 @@ export interface IListViewProps {
   items: IListItem[];
   isLoading?: boolean;
   mode?: "recent-files" | "folder-contents" | "shared-with-me";
+  parent?: string; // parent folder ID for context
   enableContextMenu?: boolean;
   enableDropdownMenu?: boolean;
   collapsible?: boolean;
@@ -161,6 +162,7 @@ export const ListView = React.memo(function ListView({
   items,
   isLoading,
   mode = "folder-contents",
+  parent,
   enableContextMenu = true,
   enableDropdownMenu = true,
   collapsible = true,
@@ -907,13 +909,14 @@ export const ListView = React.memo(function ListView({
 
   const EmptyState = () => {
     const getEmptyStateContent = () => {
+      const folderId = parent || "root";
       if (mode === "recent-files") {
         return {
           icon: FileText,
           title: "No recent files",
           description: "Create your first document to get started",
           action: "Create Document",
-          actionLink: "/document/new",
+          actionLink: `/document/new/templates?folderId=${folderId}`,
         };
       } else {
         return {
@@ -921,7 +924,7 @@ export const ListView = React.memo(function ListView({
           title: "This folder is empty",
           description: "Create your first document to get started",
           action: "Create Document",
-          actionLink: "/document/new",
+          actionLink: `/document/new/templates?folderId=${folderId}`,
         };
       }
     };

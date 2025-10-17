@@ -33,6 +33,7 @@ export const LiveListView = React.memo(function LiveListView({
       collapsible={collapsible}
       isLoading={isLoading}
       mode={mode}
+      parent={parent}
       enableContextMenu={true}
       enableDropdownMenu={true}
       enableOpen={true}
