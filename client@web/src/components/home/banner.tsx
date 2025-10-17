@@ -23,12 +23,12 @@ export function Banner() {
     >
       {/* Ethereal background blur effects */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <figure className="absolute top-0 left-1/2 w-full h-full -translate-x-1/2 rounded-full bg-teal-500/30 dark:bg-teal-500/20 blur-[120px]" />
+        <figure className="absolute top-0 left-1/2 w-full h-full -translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
       </div>
 
       {/* Accent blur for depth */}
-      <figure className="pointer-events-none absolute left-[5%] top-[20%] z-10 aspect-square w-[200px] rounded-full bg-cyan-400/40 dark:bg-cyan-400/25 blur-[100px]" />
-      <figure className="pointer-events-none absolute right-[5%] bottom-[20%] z-10 aspect-square w-[180px] rounded-full bg-teal-400/35 dark:bg-teal-400/20 blur-[80px]" />
+      <figure className="pointer-events-none absolute left-[5%] top-[20%] z-10 aspect-square w-[200px] rounded-full bg-secondary/30 blur-[100px]" />
+      <figure className="pointer-events-none absolute right-[5%] bottom-[20%] z-10 aspect-square w-[180px] rounded-full bg-accent/25 blur-[80px]" />
 
       <div className="absolute z-20 top-2 right-2">
         <Button
@@ -45,7 +45,7 @@ export function Banner() {
         <h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 font-medium">
           <GradientText
             text="Welcome to Kabeer Docs"
-            gradient="linear-gradient(90deg, #064e3b 0%, #0c4a6e 30%, #0891b2 50%, #0c4a6e 70%, #064e3b 100%)"
+            gradient="linear-gradient(90deg, hsl(220, 98%, 61%) 0%, hsl(260, 80%, 56%) 50%, hsl(40, 100%, 50%) 100%)"
           />
         </h2>
         <p className="text-foreground dark:text-foreground text-xs sm:text-sm max-w-lg leading-relaxed">

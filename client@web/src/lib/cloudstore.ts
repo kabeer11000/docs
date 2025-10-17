@@ -8,7 +8,7 @@ console.log("cl: ", CloudStore);
 // Environment configuration
 const CLOUDSTORE_CONFIG = {
   URI: "https://lxcloudstore.deployments.otherdev.com",
-  DATABASE_NAME: "cloudstore-demo-lexa",
+  DATABASE_NAME: "kabeers-docs-cl",
 };
 
 function createCloudStore(

@@ -1,0 +1,386 @@
+@import "tailwindcss";
+
+:root {
+  /* Light mode only - Clean and bright Material UI 3 style */
+  /* Base colors */
+  --background: 0 0% 100%;
+  --foreground: 200 40% 8%;
+
+  /* Card colors */
+  --card: 0 0% 100%;
+  --card-foreground: 200 40% 8%;
+
+  /* Popover colors */
+  --popover: 0 0% 100%;
+  --popover-foreground: 200 40% 8%;
+
+  /* Primary colors - Material UI 3 Blue */
+  --primary: 220 98% 61%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary colors - Material UI 3 Purple */
+  --secondary: 260 80% 56%;
+  --secondary-foreground: 0 0% 100%;
+
+  /* Muted colors - for secondary text and backgrounds */
+  --muted: 0 0% 96%;
+  --muted-foreground: 200 15% 45%;
+
+  /* Accent colors - Tertiary Gold */
+  --accent: 40 100% 50%;
+  --accent-foreground: 200 40% 8%;
+
+  /* Destructive colors */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Border, input, ring colors */
+  --border: 0 0% 92%;
+  --input: 0 0% 96%;
+  --ring: 220 98% 61%;
+
+  /* Radius tokens - Material UI 3 style */
+  --radius: 0.75rem;
+
+  /* Additional light mode tokens */
+  --surface: 0 0% 100%;
+  --surface-variant: 0 0% 98%;
+  --outline: 200 10% 50%;
+}
+
+@theme inline {
+  /* Map CSS variables to Tailwind color tokens */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  /* Font families */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Border radius */
+  --radius: var(--radius);
+}
+
+/* Spacing scale - MUI 3 inspired */
+:root {
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-base: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 2.5rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+
+  /* Transitions for micro-interactions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+}
+
+/* Smooth transitions for interactive elements */
+button,
+a,
+input,
+textarea,
+select,
+[role="button"] {
+  transition: all var(--transition-fast);
+}
+
+/* Hover and focus states with micro-animations */
+button:hover:not(:disabled),
+[role="button"]:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+button:active:not(:disabled),
+[role="button"]:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Input focus animation */
+input:focus,
+textarea:focus,
+select:focus {
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1), 0 0 0 1px hsl(var(--primary));
+}
+
+/* Smooth scale on interactive elements */
+@media (prefers-reduced-motion: no-preference) {
+  button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+/* Card and container elevation effects */
+[role="dialog"],
+[role="menu"],
+[role="listbox"],
+.card,
+.popover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+[role="dialog"]:hover,
+.card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Smooth opacity transitions for visibility changes */
+[hidden],
+[aria-hidden="true"] {
+  display: none;
+}
+
+/* Table row hover effects with micro-animations */
+tr:not([role="presentation"]):hover {
+  background-color: hsl(var(--muted));
+  transition: background-color var(--transition-fast);
+}
+
+/* Icon spin animation for loading states */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Loading spinner */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Fade in animation */
+.animate-fadeIn {
+  animation: fadeIn var(--transition-base);
+}
+
+/* Slide in animation */
+.animate-slideInUp {
+  animation: slideInUp var(--transition-base);
+}
+
+/* Pulse animation */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Editor page styling */
+.editor-container {
+  background: hsl(var(--background));
+}
+
+/* Paper/document styling */
+.editor-paper,
+.prose {
+  background: hsl(var(--background));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius);
+  transition: box-shadow var(--transition-base);
+}
+
+.editor-paper:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Page break styling */
+.page-break {
+  background-color: hsl(var(--muted));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: background-color var(--transition-fast);
+}
+
+/* Editor toolbar refinement */
+.editor-toolbar {
+  background: hsl(var(--background));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid hsl(var(--border));
+  transition: all var(--transition-fast);
+}
+
+.editor-toolbar:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Status bar styling */
+.editor-status-bar {
+  background: hsl(var(--background));
+  border-top: 1px solid hsl(var(--border));
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-fast);
+}
+
+/* Improved prose styling for better readability */
+.prose {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.prose p {
+  margin-bottom: var(--spacing-md);
+  transition: color var(--transition-fast);
+}
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-base);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: hsl(var(--foreground));
+}
+
+.prose h1 {
+  font-size: 2rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+}
+
+/* Better list styling */
+.prose ul,
+.prose ol {
+  margin-left: var(--spacing-lg);
+  margin-bottom: var(--spacing-base);
+}
+
+.prose li {
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Table improvements */
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: var(--spacing-lg);
+}
+
+.prose th,
+.prose td {
+  padding: var(--spacing-base);
+  border: 1px solid hsl(var(--border));
+  text-align: left;
+}
+
+.prose th {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.prose tr:hover {
+  background-color: hsl(var(--muted) / 0.5);
+  transition: background-color var(--transition-fast);
+}
+
+/* Code block improvements */
+.prose code {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+  font-family: var(--font-mono);
+}
+
+.prose pre {
+  background-color: hsl(var(--foreground) / 0.05);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: var(--spacing-base);
+  overflow-x: auto;
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Blockquote styling */
+.prose blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  padding-left: var(--spacing-lg);
+  margin-left: 0;
+  margin-bottom: var(--spacing-lg);
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Focus mode enhancement */
+.prose:focus {
+  outline: none;
+}

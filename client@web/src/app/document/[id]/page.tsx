@@ -110,7 +110,7 @@ export default function DocumentPage({
       editorHeaderContent={<EditorHeaderContent documentId={documentId} />}
     >
       <div
-        className="bg-neutral-200 h-full flex flex-col overflow-hidden relative"
+        className="bg-background h-full flex flex-col overflow-hidden relative"
         id="editor-container"
       >
         <Editor

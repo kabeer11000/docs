@@ -208,7 +208,9 @@ export const backendApi = new ApiClient(
 export const aiApi = new ApiClient(
   process.env.PUBLIC_AI_BASE_URL || "http://localhost:8000",
 );
-export const authApi = new ApiClient("http://localhost:8081");
+export const authApi = new ApiClient(
+  process.env.NEXT_PUBLIC_AUTH_BASE_URL || "http://localhost:8081",
+);
 
 // Export the main API client (backend by default)
 export const api = backendApi;

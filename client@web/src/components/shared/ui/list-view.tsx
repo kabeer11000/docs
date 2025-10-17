@@ -866,7 +866,7 @@ export const ListView = React.memo(function ListView({
   );
 
   const ItemRowSkeleton = () => (
-    <TableRow className="group border-t-border-neutral-400 hover:bg-neutral-200 transition-colors">
+    <TableRow className="group border-t-border hover:bg-muted transition-colors">
       <TableCell className="p-0 sm:p-2 md:p-4 rounded-l-md">
         <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
           <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
@@ -958,7 +958,7 @@ export const ListView = React.memo(function ListView({
     const isItemProcessing = isProcessing.has(item.id);
     const itemElement = (
       <TableRow
-        className={`group border-t-border-neutral-400 hover:bg-neutral-200 transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""}`}
+        className={`group border-t-border hover:bg-muted transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""}`}
       >
         <TableCell
           className="p-0 sm:p-2 md:p-4 rounded-l-md"
@@ -1118,7 +1118,7 @@ export const ListView = React.memo(function ListView({
       const itemElement = (
         <TableRow
           key={item.id}
-          className={`group border-t-border-neutral-400 hover:bg-neutral-200 transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""} ${isSelected ? "bg-blue-50" : ""}`}
+          className={`group border-t-border hover:bg-muted transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""} ${isSelected ? "bg-primary/10" : ""}`}
         >
           {enableBulkSelection && (
             <TableCell
@@ -1129,7 +1129,7 @@ export const ListView = React.memo(function ListView({
                 checked={isSelected}
                 onCheckedChange={() => toggleItemSelection(item.id)}
                 aria-label={`Select ${item.name}`}
-                className="border-2 border-neutral-400 bg-white"
+                className="border-2 border-border bg-background"
               />
             </TableCell>
           )}
@@ -1181,7 +1181,7 @@ export const ListView = React.memo(function ListView({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Tooltip>
                 <TooltipTrigger>
-                  <Avatar className="bg-primary/60 text-white border text-center items-center flex justify-center">
+                  <Avatar className="bg-primary text-primary-foreground border text-center items-center flex justify-center">
                     {getUserInitials(item.owner)}
                   </Avatar>
                 </TooltipTrigger>
@@ -1373,7 +1373,7 @@ export const ListView = React.memo(function ListView({
                   }
                   onCheckedChange={toggleSelectAll}
                   aria-label="Select all"
-                  className="border-2 border-neutral-400 bg-white"
+                  className="border-2 border-border bg-background"
                 />
               </TableHead>
             )}

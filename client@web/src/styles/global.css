@@ -66,87 +66,67 @@
   --color-signer-foreground: var(--signer-foreground);
 }
 
-/* Color Palette */
+/* Monotone Dark Color Palette */
 :root {
-  --radius: 0rem;
-  /* 0.625rem; */
+  --radius: 1rem; /* Kept this for a very rounded look */
+/* var(--color-neutral-900); oklch(0.07 0 0)*/
+  /* Dark background with light text */
+  --background: var(--color-neutral-950); /* Near black */
+  --foreground: oklch(0.98 0 0); /* Near white text */ 
 
-  /* Neutral 200 as background (light neutralish) */
-  --background: oklch(0.98 0.002 50);
-  /* Very light neutral background */
-  --foreground: oklch(0.1 0.005 48);
-  /* Very dark neutral/black text */
+  /* Cards & Popovers: slightly lighter than the background */
+  --card: oklch(0.11 0.003 240); /* Dark gray, subtle blue hue */
+  --card-foreground: oklch(0.98 0 0);
 
-  /* Cards & Popovers */
-  --card: oklch(1 0 0);
-  /* Pure white cards */
-  --card-foreground: oklch(0.1 0.005 48);
-  /* Dark text on cards */
+  --popover: oklch(0.11 0.003 240);
+  --popover-foreground: oklch(0.98 0 0);
 
-  /* Popovers (dropdowns, tooltips) */
-  --popover: oklch(1 0 0);
-  /* white */
-  --popover-foreground: oklch(0.15 0.005 48);
+  /* Primary action: Inverted for high contrast */
+  --primary: oklch(0.98 0 0); /* Near white button */
+  --primary-foreground: oklch(0.07 0 0); /* Dark text on button */
 
-  /* Primary (used for buttons, links, active states) */
-  --primary: oklch(47.16% 0.073 211.70);
-  /* Muted Teal-Green */
-  --primary-foreground: oklch(0.95 0.005 160);
-  /* Light green-50 */
+  /* Secondary action: a subtler dark button */
+  --secondary: oklch(0.2 0.003 240); /* Medium gray */
+  --secondary-foreground: oklch(0.98 0 0); /* Light text */
 
-  /* Secondary (subtle actions, toggles) */
-  --secondary: oklch(0.92 0.008 160);
-  /* Light neutral-green */ 
-  --secondary-foreground: oklch(0.1 0.01 160);
-  /* Dark green text */
+  /* Muted elements */
+  --muted: oklch(0.2 0.003 240);
+  --muted-foreground: oklch(0.65 0.001 240); /* Lighter gray text */
 
-  /* Muted (backgrounds, subtle borders) */
-  --muted: oklch(0.95 0.002 50);
-  /* Very light neutral for muted backgrounds */
-  --muted-foreground: oklch(0.4 0.01 52);
-  /* Darker neutral for muted text */
+  /* Accent: follows secondary for a monotone feel */
+  --accent: oklch(0.2 0.003 240);
+  --accent-foreground: oklch(0.98 0 0);
 
-  /* Accent (your main brand color - muted green) */
-  --accent: oklch(0.85 0.02 155);
-  /* Softer green, calm */
-  --accent-foreground: oklch(0.18 0.01 155);
+  /* Destructive actions */
+  --destructive: oklch(0.55 0.2 25); /* Saturated red */
+  --destructive-foreground: oklch(0.98 0 0);
 
-  /* Destructive (errors, delete) */
-  --destructive: oklch(0.6 0.18 25);
-  /* Warm red */
-  --destructive-foreground: oklch(0.95 0.01 25);
-
-  /* Borders & Inputs */
-  --border: oklch(0.85 0.003 49);
-  /* Darker border for better visibility */
-  --input: oklch(0.98 0.002 49);
-  /* Light input background */
-  --ring: oklch(0.4 0.03 160);
-  /* Greenish focus ring */
+  /* Borders, Inputs, and Rings */
+  --border: oklch(0.2 0.003 240);
+  --input: oklch(0.2 0.003 240);
+  --ring: oklch(0.98 0 0); /* White/light focus ring for visibility */
 
   /* Sidebar */
   --sidebar: var(--background);
-  /* Slightly lighter than background */
-  /* oklch(0.97 0.002 51);  */
   --sidebar-foreground: var(--foreground);
-  /* oklch(0.2 0.005 48); */
+  
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 
   /* Signer theme color */
-  --signer: #1b6673;
-  --signer-foreground: #ffffff;
-  --sidebar-primary: oklch(0.3 0.04 160);
-  --sidebar-primary-foreground: oklch(0.95 0.005 160);
-  --sidebar-accent: oklch(0.85 0.02 155);
-  --sidebar-accent-foreground: oklch(0.18 0.01 155);
-  --sidebar-border: oklch(0.88 0.003 49);
-  --sidebar-ring: oklch(0.4 0.03 160);
-
+  --signer: oklch(0.98 0 0);
+  --signer-foreground: oklch(0.07 0 0);
+  
   /* Charts (optional) */
-  --chart-1: oklch(0.6 0.12 165);
-  --chart-2: oklch(0.65 0.1 145);
-  --chart-3: oklch(0.55 0.08 180);
-  --chart-4: oklch(0.7 0.1 130);
-  --chart-5: oklch(0.5 0.06 170);
+  --chart-1: oklch(0.7 0.001 240);
+  --chart-2: oklch(0.6 0.001 240);
+  --chart-3: oklch(0.5 0.001 240);
+  --chart-4: oklch(0.4 0.001 240);
+  --chart-5: oklch(0.3 0.001 240);
 }
 
 /* Base Layer */
@@ -170,10 +150,6 @@
     opacity: 1;
   }
 }
-
-/* .tiptap-collaboration-caret__caret {
-  @apply caret-blink
-} */
 
 /* TipTap Editor Table Styles */
 .ProseMirror {
@@ -391,17 +367,17 @@
 @keyframes glow-fade {
   0% {
     opacity: 1;
-    box-shadow: 0 0 12px rgba(59, 130, 246, 0.8), 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(59, 130, 246, 0.4);
-    background: rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 12px rgba(200, 200, 200, 0.8), 0 0 20px rgba(200, 200, 200, 0.6), 0 0 30px rgba(200, 200, 200, 0.4);
+    background: rgba(200, 200, 200, 0.15);
   }
   50% {
-    box-shadow: 0 0 16px rgba(59, 130, 246, 0.6), 0 0 24px rgba(59, 130, 246, 0.4), 0 0 36px rgba(59, 130, 246, 0.3);
-    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 16px rgba(200, 200, 200, 0.6), 0 0 24px rgba(200, 200, 200, 0.4), 0 0 36px rgba(200, 200, 200, 0.3);
+    background: rgba(200, 200, 200, 0.1);
   }
   100% {
     opacity: 0;
-    box-shadow: 0 0 4px rgba(59, 130, 246, 0.2);
-    background: rgba(59, 130, 246, 0.02);
+    box-shadow: 0 0 4px rgba(200, 200, 200, 0.2);
+    background: rgba(200, 200, 200, 0.02);
   }
 }
 
@@ -410,28 +386,26 @@
 }
 
 .summary-ready {
-  /* background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4, #3b82f6) !important; */
   background-size: 400% 400%;
   animation: gradient-pulse 2s ease-in-out infinite;
   border: none;
-  /* border-radius: 50% !important; */
 }
 
 /* Comment Highlighting Styles */
 .comment-highlight {
-  @apply bg-yellow-100 border-b-2 border-yellow-400 cursor-pointer transition-colors;
+  @apply bg-yellow-400/20 border-b-2 border-yellow-400 cursor-pointer transition-colors;
 }
 
 .comment-highlight:hover {
-  @apply bg-yellow-200 border-yellow-500;
+  @apply bg-yellow-400/30 border-yellow-500;
 }
 
 .comment-highlighted {
-  @apply bg-blue-100 border-blue-500;
+  @apply bg-blue-400/20 border-blue-500;
 }
 
 .comment-highlight.comment-resolved {
-  @apply bg-green-50 border-green-300;
+  @apply bg-green-500/10 border-green-400;
 }
 
 /* Flag underlines - Grammarly style */

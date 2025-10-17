@@ -255,7 +255,7 @@ export function AccountPopover() {
           {/* Logout */}
           <Button
             variant="ghost"
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={async () => {
               setOpen(false);
               await auth.logout();
