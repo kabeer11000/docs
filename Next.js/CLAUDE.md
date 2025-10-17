@@ -4,8 +4,7 @@
 - **NEVER** add attribution ("🤖 Generated with Claude Code" or "Co-Authored-By: Claude")
 - **NEVER** suggest switching technologies - use existing stack only
 - **ALWAYS** read relevant existing files before making changes
-- **never use** wrappers until theres a do or die situation
-
+- **Never** use wrappers unless theres a do-die situation
 ## 🔒 Tech Stack (DO NOT CHANGE)
 - Next.js 15 (App Router) | React 19 | TypeScript
 - Nanostores (state) | TipTap (editor) | CloudStore (sync)
