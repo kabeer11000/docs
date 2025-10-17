@@ -1,5 +1,5 @@
 import type { IComment } from "@shared-types";
-import { MessagesSquare, X } from "lucide-react";
+import { Check, MessagesSquare, Trash, X } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -124,23 +124,28 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 key={comment.id}
                 className={cn(
                   "rounded-lg border p-3 transition-all cursor-pointer",
+                  comment.resolved 
+                    ? "border-border bg-muted/30"
+                    : "border-border hover:bg-accent",
                   activeCommentId === comment.id
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:bg-accent"
+                    ? comment.resolved 
+                      ? "border-primary bg-primary/5"
+                      : "border-primary bg-primary/5"
+                    : ""
                 )}
                 onClick={() => onCommentClick(comment.id)}
               >
                 {/* Author and timestamp */}
-                <div className="flex items-start gap-2 mb-2">
+                <div className="flex items-start gap-2.5 mb-2">
                   <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium flex-shrink-0">
                     {comment.author.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 mb-1">
+                    <div className="flex items-center gap-1.5 mb-1">
                       <span className="text-xs font-medium text-foreground truncate">
                         {comment.author.name}
                       </span>
-                      <span className="text-xs text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground">•</span>
                       <span className="text-xs text-muted-foreground">
                         {new Date(
                           comment.timestamp.createdAt
@@ -154,35 +159,35 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                 </div>
 
                 {/* Comment content */}
-                <div className="text-sm text-foreground leading-relaxed mb-3">
+                <div className="text-sm text-foreground leading-relaxed mb-2.5">
                   {comment.content}
                 </div>
 
                 {/* Actions */}
                 {!comment.resolved ? (
-                  <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                  <div className="flex items-center gap-1.5 pt-2 border-t border-border/50">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         onResolve(comment.id);
                       }}
-                      className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                      className="h-7 w-7 p-0 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700"
                     >
-                      Resolve
+                      <Check className="h-4 w-4" />
                     </Button>
                     {comment.author.id === currentUserId && (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(comment.id);
                         }}
-                        className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="h-7 w-7 p-0 border-destructive text-destructive hover:bg-destructive/10"
                       >
-                        Delete
+                        <Trash className="h-4 w-4" />
                       </Button>
                     )}
                     {comment.replies && comment.replies.length > 0 && (
@@ -193,19 +198,19 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 pt-2 border-t border-border/50">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <div className="flex items-center gap-1.5 pt-2 border-t border-border/50">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-700 border border-green-500/30">
                       Resolved
                     </span>
                     {comment.author.id === currentUserId && (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(comment.id);
                         }}
-                        className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                        className="h-6 px-2 text-xs border-destructive text-destructive hover:bg-destructive/10 ml-auto"
                       >
                         Delete
                       </Button>

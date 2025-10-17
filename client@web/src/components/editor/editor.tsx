@@ -594,34 +594,90 @@ const DocumentEditor = ({
       setActiveCommentId(commentId);
       const comment = getComment(commentId);
 
-      if (comment && editor && editor.view) {
-        // Validate comment range before navigating
-        const docSize = editor.state.doc.content.size;
-        const isValidRange =
-          comment.range.from >= 0 &&
-          comment.range.to <= docSize &&
-          comment.range.from < comment.range.to;
-
-        if (!isValidRange) {
-          console.warn(
-            "Comment has invalid range, skipping navigation:",
-            comment.id,
-          );
-          return;
-        }
-
+      if (comment) {
         // Hide selection menu before jumping to comment
         setShowSelectionMenu(false);
 
-        // Focus editor and scroll to the comment range
-        editor.view.focus();
-        editor.commands.setTextSelection({
-          from: comment.range.from,
-          to: comment.range.to,
-        });
+        // Try immediate navigation if editor is ready
+        if (editor && editor.view && !editor.isDestroyed) {
+          try {
+            // Validate comment range before navigating
+            const docSize = editor.state.doc.content.size;
+            const isValidRange =
+              comment.range.from >= 0 &&
+              comment.range.to <= docSize &&
+              comment.range.from < comment.range.to;
 
-        // Scroll into view
-        editor.commands.scrollIntoView();
+            if (!isValidRange) {
+              console.warn(
+                "Comment has invalid range, skipping navigation:",
+                comment.id,
+              );
+              return;
+            }
+
+            // Focus editor and scroll to the comment range
+            editor.view.focus();
+            editor.commands.setTextSelection({
+              from: comment.range.from,
+              to: comment.range.to,
+            });
+
+            // Scroll into view
+            editor.commands.scrollIntoView();
+          } catch (error) {
+            console.warn("Error navigating to comment, will retry:", error);
+            // If immediate navigation fails, try with delay
+            setTimeout(() => {
+              if (editor && editor.view && !editor.isDestroyed) {
+                try {
+                  const docSize = editor.state.doc.content.size;
+                  const isValidRange =
+                    comment.range.from >= 0 &&
+                    comment.range.to <= docSize &&
+                    comment.range.from < comment.range.to;
+
+                  if (isValidRange) {
+                    editor.view.focus();
+                    editor.commands.setTextSelection({
+                      from: comment.range.from,
+                      to: comment.range.to,
+                    });
+                    editor.commands.scrollIntoView();
+                  }
+                } catch (retryError) {
+                  console.error("Retry navigation also failed:", retryError);
+                }
+              }
+            }, 200);
+          }
+        } else {
+          // If editor isn't ready, set a timeout to try again
+          // This handles the case where the editor is still initializing after page load
+          setTimeout(() => {
+            if (editor && editor.view && !editor.isDestroyed) {
+              try {
+                // Re-validate range after timeout
+                const docSize = editor.state.doc.content.size;
+                const isValidRange =
+                  comment.range.from >= 0 &&
+                  comment.range.to <= docSize &&
+                  comment.range.from < comment.range.to;
+
+                if (isValidRange) {
+                  editor.view.focus();
+                  editor.commands.setTextSelection({
+                    from: comment.range.from,
+                    to: comment.range.to,
+                  });
+                  editor.commands.scrollIntoView();
+                }
+              } catch (retryError) {
+                console.error("Delayed navigation failed:", retryError);
+              }
+            }
+          }, 200);
+        }
       }
     },
     [getComment, editor],
@@ -633,12 +689,16 @@ const DocumentEditor = ({
         const success = await resolveComment(commentId);
         if (success) {
           setActiveCommentId(null);
+          // Reset selection menu if it was related to this comment
+          setSelectionRange(null);
+          setShowCommentDialog(false);
         }
       } catch (error) {
         console.error("Failed to resolve comment:", error);
+        // Potentially show error to user
       }
     },
-    [resolveComment],
+    [resolveComment, setSelectionRange, setShowCommentDialog],
   );
 
   const handleDeleteComment = useCallback(
@@ -647,12 +707,16 @@ const DocumentEditor = ({
         const success = await deleteComment(commentId);
         if (success) {
           setActiveCommentId(null);
+          // Reset selection menu if it was related to this comment
+          setSelectionRange(null);
+          setShowCommentDialog(false);
         }
       } catch (error) {
         console.error("Failed to delete comment:", error);
+        // Potentially show error to user
       }
     },
-    [deleteComment],
+    [deleteComment, setSelectionRange, setShowCommentDialog],
   );
 
   const handleEditComment = useCallback(

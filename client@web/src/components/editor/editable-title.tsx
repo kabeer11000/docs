@@ -414,11 +414,10 @@ export function EditableTitle({
             onBlur={handleBlur}
             disabled={isLoading}
             className={cn(
-              "text-sm font-semibold border-2 shadow-sm px-3 py-2 h-auto w-full",
-              "focus:ring-0 focus-visible:ring-2 focus-visible:ring-primary/50",
-              "bg-white border-border rounded-lg transition-all duration-200",
-              "focus:bg-white focus:border-primary text-foreground",
-              "placeholder:text-muted-foreground/70",
+              "h-8 text-sm font-semibold border border-input bg-background px-3 py-1.5 rounded-md w-full",
+              "focus:ring-0 focus-visible:ring-0 focus-visible:outline-none focus:border-primary/50",
+              "focus:bg-background focus:border-primary/50 transition-all duration-200",
+              "placeholder:text-muted-foreground/70 truncate",
               error && "text-destructive bg-destructive/10 border-destructive",
               isLoading && "opacity-70",
             )}
@@ -431,7 +430,7 @@ export function EditableTitle({
             </div>
           )}
           {error && (
-            <p className="text-xs text-destructive absolute top-full left-1 mt-1 whitespace-nowrap">
+            <p className="text-xs text-destructive absolute top-full left-0 mt-1 whitespace-nowrap">
               {error}
             </p>
           )}
@@ -447,15 +446,15 @@ export function EditableTitle({
           <TooltipTrigger asChild>
             <div
               className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200 w-full",
-                "bg-muted/30 border border-border/40",
+                "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200 w-full h-8",
+                "bg-transparent border border-transparent",
                 canRename &&
-                  "hover:bg-muted/60 cursor-pointer group hover:border-border/70",
+                  "hover:bg-accent hover:border-border cursor-pointer group",
                 !canRename && "cursor-default",
               )}
               onClick={() => canRename && setIsEditing(true)}
             >
-              <h2 className="text-sm font-semibold truncate flex-1 text-foreground transition-colors">
+              <h2 className="text-sm font-semibold truncate flex-1 text-foreground">
                 {title}
               </h2>
               {canRename && (
