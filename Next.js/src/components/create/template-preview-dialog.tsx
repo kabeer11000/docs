@@ -28,7 +28,7 @@ interface Template {
   id: string;
   name: string;
   description: string;
-  content: string;
+  content: string | { type: string; content: any[] }; // Support both HTML and JSON
   group: string;
   tags: string[];
   isPublic: boolean;
@@ -54,9 +54,7 @@ export function TemplatePreviewDialog({
     {
       immediatelyRender: false,
       extensions: [
-        StarterKit.configure({
-          heading: false,
-        }),
+        StarterKit,
         Underline,
         TextStyle,
         FontSize,

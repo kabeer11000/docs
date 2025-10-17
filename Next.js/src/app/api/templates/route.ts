@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import templatesData from "@/data/templates.json";
+import templatesDataV2 from "@/data/templates-v2.json";
+import templatesDataLegacy from "@/data/templates.json";
 
 export interface Template {
   id: string;
   name: string;
   description: string;
-  content: string;
+  content: string | { type: string; content: any[] }; // Support both HTML and JSON
   group: string;
   tags: string[];
   isPublic: boolean;
@@ -21,8 +22,12 @@ export async function GET(request: Request) {
     const tag = searchParams.get("tag");
     const page = searchParams.get("page");
     const limit = searchParams.get("limit");
+    const version = searchParams.get("version"); // "v2" (default) or "legacy"
 
-    let templates = templatesData as Template[];
+    // Load templates based on version parameter
+    let templates = version === "legacy"
+      ? (templatesDataLegacy as Template[])
+      : (templatesDataV2 as Template[]);
 
     // Filter by group if provided
     if (group) {
@@ -59,10 +64,11 @@ export async function GET(request: Request) {
       templates = templates.slice(0, parseInt(limit, 10));
     }
 
-    // Extract all unique tags for filtering UI
+    // Extract all unique tags for filtering UI from the original data source (before filters)
+    const sourceData = version === "legacy" ? templatesDataLegacy : templatesDataV2;
     const allTags = Array.from(
       new Set(
-        (templatesData as Template[]).flatMap((template) => template.tags),
+        (sourceData as Template[]).flatMap((template) => template.tags),
       ),
     ).sort();
 

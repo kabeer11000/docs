@@ -90,7 +90,7 @@ interface TemplateCardProps {
   description: string;
   category: string;
   tags: string[];
-  content: string;
+  content: string | { type: string; content: any[] };
   onClick?: () => void;
 }
 
@@ -100,7 +100,7 @@ interface Template {
   description: string;
   group: string;
   tags: string[];
-  content: string;
+  content: string | { type: string; content: any[] }; // Support both HTML and JSON
   isPublic: boolean;
   createdAt: string;
 }
@@ -337,9 +337,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
     {
       immediatelyRender: false,
       extensions: [
-        StarterKit.configure({
-          heading: false,
-        }),
+        StarterKit,
         Underline,
         TextStyle,
         FontSize,
@@ -381,7 +379,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
             {isInView && previewEditor ? (
               <EditorContent
                 editor={previewEditor}
-                className="text-[0.5rem] leading-tight line-clamp-[20] opacity-70"
+                className="text-[0.5rem] leading-tight line-clamp-[20] opacity-70 [&_h1]:text-[0.65rem] [&_h1]:font-semibold [&_h1]:mb-1 [&_h2]:text-[0.55rem] [&_h2]:font-medium [&_h2]:mb-0.5 [&_h3]:text-[0.5rem] [&_h3]:font-medium"
               />
             ) : (
               <div className="text-[0.5rem] leading-tight opacity-30 text-muted-foreground">
