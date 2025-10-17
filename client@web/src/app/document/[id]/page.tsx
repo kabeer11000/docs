@@ -102,19 +102,16 @@ export default function DocumentPage({
       searchActions.setCurrentPage(`document/${documentId}`);
     }
 
-    // Listen for AI panel state changes and update header
+    // Listen for AI panel and comments sidebar state changes and update header
     const unsubscribe = editorUIState.subscribe((state) => {
       const header = document.querySelector("header");
 
-      if (state.isAIPanelOpen) {
-        if (header) {
-          header.style.paddingRight = "320px";
-          header.style.transition = "padding-right 0.3s ease-in-out";
-        }
-      } else {
-        if (header) {
-          header.style.paddingRight = "0";
-        }
+      const isSidebarOpen = state.isAIPanelOpen || state.isCommentsSidebarOpen;
+      const totalSidebarWidth = (state.isAIPanelOpen ? 320 : 0) + (state.isCommentsSidebarOpen ? 320 : 0);
+
+      if (header) {
+        header.style.paddingRight = `${totalSidebarWidth}px`;
+        header.style.transition = "padding-right 0.3s ease-in-out";
       }
     });
 

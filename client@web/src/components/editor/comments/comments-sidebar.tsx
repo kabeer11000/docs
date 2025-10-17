@@ -26,10 +26,13 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
   onCommentClick,
   onResolve,
   onDelete,
+  onEdit,
+  onReply,
   currentUserId,
   activeCommentId,
 }) => {
   const [showResolved, setShowResolved] = useState(false);
+  const [showDeleteResolved, setShowDeleteResolved] = useState(false);
 
   const filteredComments = showResolved
     ? comments.filter((c) => c.resolved)
@@ -38,21 +41,29 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
   const unresolvedCount = comments.filter((c) => !c.resolved).length;
   const resolvedCount = comments.filter((c) => c.resolved).length;
 
+  // Add functionality to delete all resolved comments
+  const handleDeleteAllResolved = () => {
+    comments
+      .filter((c) => c.resolved && c.author.id === currentUserId)
+      .forEach((comment) => onDelete(comment.id));
+    setShowDeleteResolved(false);
+  };
+
   return (
     <div
       className={cn(
-        "fixed top-0 right-0 h-full w-80 bg-background border-l border-border shadow-lg transition-transform duration-300 ease-in-out z-50 flex flex-col",
-        isOpen ? "translate-x-0" : "translate-x-full",
+        "fixed top-0 right-0 h-full w-80 bg-background border-l border-border transition-transform duration-300 ease-in-out z-50",
+        isOpen ? "translate-x-0" : "translate-x-full"
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-            <MessagesSquare className="w-4 h-4 text-white" />
+          <div className="p-2 rounded-lg bg-blue-500">
+            <MessagesSquare className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">Comments</h3>
+            <h3 className="text-sm font-medium text-foreground">Comments</h3>
             <p className="text-xs text-muted-foreground">
               {unresolvedCount} open
             </p>
@@ -62,39 +73,43 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 rounded-full"
         >
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Filter Toggle */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30">
-        <Button
-          variant={!showResolved ? "default" : "ghost"}
-          size="sm"
+      <div className="flex items-center gap-1 px-3 py-2 border-b bg-muted/30">
+        <button
           onClick={() => setShowResolved(false)}
-          className="flex-1 h-8 text-xs"
+          className={`flex-1 py-1.5 px-2 text-xs font-medium rounded-sm transition-colors ${
+            !showResolved
+              ? "bg-primary text-primary-foreground"
+              : "text-foreground hover:bg-accent"
+          }`}
         >
           Open ({unresolvedCount})
-        </Button>
-        <Button
-          variant={showResolved ? "default" : "ghost"}
-          size="sm"
+        </button>
+        <button
           onClick={() => setShowResolved(true)}
-          className="flex-1 h-8 text-xs"
+          className={`flex-1 py-1.5 px-2 text-xs font-medium rounded-sm transition-colors ${
+            showResolved
+              ? "bg-primary text-primary-foreground"
+              : "text-foreground hover:bg-accent"
+          }`}
         >
           Resolved ({resolvedCount})
-        </Button>
+        </button>
       </div>
 
       {/* Comments List */}
-      <ScrollArea className="flex-1">
-        <div className="p-3 space-y-2">
+      <ScrollArea className="h-[calc(100%-8rem)]">
+        <div className="p-3 space-y-3">
           {filteredComments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <MessagesSquare className="w-8 h-8 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                <MessagesSquare className="w-6 h-6 text-muted-foreground" />
               </div>
               <p className="text-sm font-medium text-foreground mb-1">
                 {showResolved ? "No resolved comments" : "No open comments"}
@@ -108,83 +123,143 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
               <div
                 key={comment.id}
                 className={cn(
-                  "group rounded-lg border transition-all cursor-pointer",
+                  "rounded-lg border p-3 transition-all cursor-pointer",
                   activeCommentId === comment.id
-                    ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-border bg-card hover:border-primary/50 hover:bg-accent/50",
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:bg-accent"
                 )}
                 onClick={() => onCommentClick(comment.id)}
               >
-                <div className="p-3">
-                  {/* Author and timestamp */}
-                  <div className="flex items-start gap-2 mb-2">
-                    <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium flex-shrink-0">
-                      {comment.author.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <span className="text-xs font-medium text-foreground truncate">
-                          {comment.author.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">·</span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(
-                            comment.timestamp.createdAt,
-                          ).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
+                {/* Author and timestamp */}
+                <div className="flex items-start gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium flex-shrink-0">
+                    {comment.author.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className="text-xs font-medium text-foreground truncate">
+                        {comment.author.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(
+                          comment.timestamp.createdAt
+                        ).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric"
+                        })}
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Comment content */}
-                  <div className="text-sm text-foreground leading-relaxed mb-2 line-clamp-3">
-                    {comment.content}
-                  </div>
+                {/* Comment content */}
+                <div className="text-sm text-foreground leading-relaxed mb-3">
+                  {comment.content}
+                </div>
 
-                  {/* Actions */}
-                  {!comment.resolved && (
-                    <div className="flex items-center gap-1 pt-2 border-t border-border/50">
+                {/* Actions */}
+                {!comment.resolved ? (
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onResolve(comment.id);
+                      }}
+                      className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                    >
+                      Resolve
+                    </Button>
+                    {comment.author.id === currentUserId && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onResolve(comment.id);
+                          onDelete(comment.id);
                         }}
-                        className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-500/10"
+                        className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
-                        Resolve
+                        Delete
                       </Button>
-                      {comment.author.id === currentUserId && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(comment.id);
-                          }}
-                          className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          Delete
-                        </Button>
-                      )}
-                      {comment.replies && comment.replies.length > 0 && (
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {comment.replies.length}{" "}
-                          {comment.replies.length === 1 ? "reply" : "replies"}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    )}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {comment.replies.length}{" "}
+                        {comment.replies.length === 1 ? "reply" : "replies"}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Resolved
+                    </span>
+                    {comment.author.id === currentUserId && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(comment.id);
+                        }}
+                        className="h-6 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 ml-auto"
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           )}
         </div>
       </ScrollArea>
+
+      {/* Delete Resolved Confirmation Dialog */}
+      {showDeleteResolved && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg p-6 max-w-sm w-full border">
+            <h3 className="font-medium text-foreground mb-2">Delete Resolved Comments</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Are you sure you want to delete all resolved comments? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteResolved(false)}
+                className="h-8"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteAllResolved}
+                className="h-8"
+              >
+                Delete All
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer actions for resolved comments */}
+      {showResolved && resolvedCount > 0 && (
+        <div className="absolute bottom-0 w-full p-3 border-t bg-background">
+          <Button
+            variant="outline"
+            className="w-full h-8 text-xs font-medium text-destructive border-destructive hover:bg-destructive/10"
+            onClick={() => setShowDeleteResolved(true)}
+          >
+            Delete All Resolved
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
