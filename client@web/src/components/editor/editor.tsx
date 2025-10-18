@@ -66,7 +66,7 @@ const PAGINATION_CONFIG = {
   pageHeight: 842, // Letter height (11" × 96dpi)
   pageGap: 20,
   pageGapBorderSize: 1,
-  pageBreakBackground: "hsl(var(--muted))",
+  pageBreakBackground: "hsl(var(--color-neutral-900))",
   pageHeaderHeight: 0,
   pageFooterHeight: 0,
   footerRight: "",

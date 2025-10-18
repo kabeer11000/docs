@@ -1,6 +1,6 @@
 {
-  "name": "Kabeer's Docs",
-  "short_name": "Docs",
+  "name": "Kabeer's Docs - Document Management & Collaboration",
+  "short_name": "Kabeer's Docs",
   "description": "Professional document management and collaboration platform",
   "start_url": "/",
   "display": "standalone",
@@ -10,10 +10,45 @@
   "scope": "/",
   "icons": [
     {
+      "src": "/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
     },
     {
       "src": "/icon-512x512.png",
@@ -26,7 +61,29 @@
       "type": "image/png"
     }
   ],
-  "categories": ["productivity", "utilities"],
+  "categories": ["productivity", "utilities", "business"],
   "lang": "en",
-  "dir": "ltr"
+  "dir": "ltr",
+  "id": "/",
+  "serviceworker": {
+    "src": "/sw.js",
+    "scope": "/",
+    "update_via_cache": "all"
+  },
+  "shortcuts": [
+    {
+      "name": "Create New Document",
+      "short_name": "New Doc",
+      "description": "Create a new document",
+      "url": "/document/new/templates",
+      "icons": [{ "src": "/file.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Vault",
+      "short_name": "Vault",
+      "description": "Access your secure vault",
+      "url": "/vault",
+      "icons": [{ "src": "/lock-icon.png", "sizes": "192x192" }]
+    }
+  ]
 }
