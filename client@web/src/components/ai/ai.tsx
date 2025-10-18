@@ -750,8 +750,8 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
                     Ask Lexa
                   </h3>
                   <p className="text-neutral-600 text-sm max-w-md">
-                    Get expert legal guidance on contracts, compliance, and
-                    business law
+                    Get expert guidance on documents, workflows, and
+                    business processes
                   </p>
                 </div>
 
@@ -760,27 +760,27 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
                   {[
                     {
                       icon: File,
-                      title: "Contract Review",
+                      title: "Document Review",
                       prompt:
-                        "Help me review this employment contract and identify key terms",
+                        "Help me review this document and identify key sections",
                     },
                     {
                       icon: Scale,
-                      title: "Legal Compliance",
+                      title: "Compliance",
                       prompt:
-                        "What are the compliance requirements for GDPR in my business?",
+                        "What are the compliance requirements for data protection in my business?",
                     },
                     {
                       icon: Building,
-                      title: "Business Formation",
+                      title: "Business Processes",
                       prompt:
-                        "Guide me through incorporating a business in my state",
+                        "Guide me through creating business processes for my organization",
                     },
                     {
                       icon: Shield,
                       title: "Risk Assessment",
                       prompt:
-                        "Analyze potential legal risks in this business partnership",
+                        "Analyze potential risks in this business partnership",
                     },
                   ].map((suggestion, index) => (
                     <button

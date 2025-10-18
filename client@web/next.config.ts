@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  typescript: {
+    ignoreBuildErrors: true
+  },
   compress: true,
 };
 

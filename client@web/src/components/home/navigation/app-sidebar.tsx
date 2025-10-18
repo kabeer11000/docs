@@ -162,7 +162,7 @@ export function AppSidebar({
           <SidebarMenuItem className="px-2">
             <SidebarMenuButton asChild>
               <a href="/home" className="flex items-center gap-2">
-              <h2 className="p-2 text-md font-mono font-bold">KN / DocFlow</h2>
+              <h2 className="p-2 text-md font-mono font-bold">KN / Libre Docs</h2>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

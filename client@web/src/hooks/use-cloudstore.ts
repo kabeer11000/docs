@@ -41,12 +41,12 @@ export function useCloudStore() {
           id: docId,
           name: input.name ?? "Untitiled Folder",
           tags: [],
-          category: "legal",
+          category: "general",
           parents: [parentFolder],
           meta: {
             fileCount: 0,
             color: "hsl(142.1 76.2% 36.3%)",
-            icon: "scale",
+            icon: "folder",
           },
           permissions: {
             owner: user.id,

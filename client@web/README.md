@@ -1,10 +1,10 @@
-# DocFlow
+# Kabeer's Docs (KN / Libre Docs)
 
-A modern document collaboration platform built with Next.js 15, React 19, and TypeScript. DocFlow enables teams to draft, review, and manage documents with real-time collaboration capabilities.
+A modern document collaboration platform built with Next.js 15, React 19, and TypeScript. Kabeer's Docs enables teams to draft, review, and manage documents with real-time collaboration capabilities.
 
 ## Overview
 
-DocFlow is a comprehensive document management system designed for teams of all types. The platform provides real-time collaborative editing, secure document workflows, and comprehensive document organization tools.
+Kabeer's Docs is a comprehensive document management system designed for teams of all types. The platform provides real-time collaborative editing, secure document workflows, and comprehensive document organization tools.
 
 ## Tech Stack
 
