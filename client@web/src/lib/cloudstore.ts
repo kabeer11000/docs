@@ -13,9 +13,9 @@ const CLOUDSTORE_CONFIG = {
 
 function createCloudStore(
   accessToken?: string,
-  tenantId?: string,
+  tenant_id?: string,
 ): typeof CloudStore | null {
-  if (!accessToken || !tenantId) {
+  if (!accessToken || !tenant_id) {
     console.log("CloudStore: Skipping initialization - missing credentials");
     return null;
   }
@@ -24,7 +24,7 @@ function createCloudStore(
       uri: CLOUDSTORE_CONFIG.URI,
       access: {
         key: accessToken || "",
-        tenant_id: tenantId || "default",
+        tenant_id: tenant_id || "default",
       },
       config: {
         upgradeToBackgroundSync: true,

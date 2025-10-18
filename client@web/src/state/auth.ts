@@ -14,7 +14,7 @@ interface AuthState {
   onboardForm: {
     displayName: "";
     email: "";
-    tenantId: "1234",
+    tenant_id: "1234",
     password: "";
     confirmPassword: "";
   };
@@ -32,7 +32,7 @@ const initialState: AuthState = {
     displayName: "",
     email: "",
     password: "",
-    tenantId: '1234',
+    tenant_id: '1234',
     confirmPassword: "",
   },
 };
@@ -242,7 +242,7 @@ export const auth = {
         name: userData.displayName,
         email: userData.email,
         password: userData.password,
-        tenantId: userData.tenantId,
+        tenant_id: userData.tenant_id,
       });
       saveAuth(response.user, {
         accessToken: response.accessToken,
