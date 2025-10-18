@@ -1134,7 +1134,7 @@ export const ListView = React.memo(function ListView({
             </TableCell>
           )}
           <TableCell
-            className="p-0 sm:p-2 md:p-4 rounded-l-md"
+            className="p-0 sm:p-2 md:p-3 rounded-l-md"
             onClick={() => handleItemClick(item)}
           >
             <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
@@ -1177,7 +1177,7 @@ export const ListView = React.memo(function ListView({
               : `You edited • ${(item as any).formattedDate}`}
           </TableCell>
 
-          <TableCell className="hidden md:table-cell p-2 md:p-4">
+          <TableCell className="hidden md:table-cell p-2 md:p-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Tooltip>
                 <TooltipTrigger>
@@ -1193,7 +1193,7 @@ export const ListView = React.memo(function ListView({
             </div>
           </TableCell>
 
-          <TableCell className="hidden lg:table-cell p-2 md:p-4">
+          <TableCell className="hidden lg:table-cell p-2 md:p-3">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

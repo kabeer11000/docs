@@ -11,6 +11,7 @@ import {
   MessageSquare,
   PlusIcon,
   Shield,
+  Star,
   Users,
 } from "lucide-react";
 import type * as React from "react";
@@ -220,7 +221,7 @@ export function AppSidebar({
         <div className="px-2 flex-1">
           <Accordion
             type="multiple"
-            defaultValue={["essentials", "documents", "settings"]}
+            defaultValue={["essentials", "starred", "settings"]}
             className="w-full"
           >
             <AccordionItem value="essentials" className="border-none">
@@ -245,23 +246,14 @@ export function AppSidebar({
               </AccordionContent>
             </AccordionItem>
 
-            {/* <AccordionItem value="documents" className="border-none">
+            <AccordionItem value="starred" className="border-none">
               <AccordionTrigger className="text-sm font-medium text-muted-foreground py-2 px-0 hover:no-underline">
-                Documents
+                Starred
               </AccordionTrigger>
               <AccordionContent className="px-0 pb-2">
-                <div className="space-y-1">
-                  {data.documents.map((item) => (
-                    <SidebarMenuButton key={item.name} asChild className="w-full justify-start">
-                      <a href={item.url}>
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.name}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  ))}
-                </div>
+                <StarredDocuments />
               </AccordionContent>
-            </AccordionItem> */}
+            </AccordionItem>
           </Accordion>
           <span className="text-sm font-medium text-muted-foreground py-1.5 px-0 hover:no-underline">
             Support & Donate
@@ -307,6 +299,69 @@ export function AppSidebar({
         <AccountStorage />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function StarredDocuments() {
+  const [starredDocs, setStarredDocs] = useState<any[]>([]);
+  const authState = useStore($auth);
+
+  useEffect(() => {
+    if (!authState.user || authState.isLoading) return;
+
+    let watcher: any = null;
+
+    const startWatching = async () => {
+      try {
+        const documentsCollection = cloudStore.collection("documents");
+        const query = cloudStore.query
+          .where("owner", "EQUAL", authState.user.id)
+          .where("isStarred", "EQUAL", true)
+          .orderBy("timestamp.updatedAt", "DESCENDING")
+          .limit(10); // Limit to 10 starred documents
+
+        watcher = documentsCollection.watch(query, (result: any) => {
+          if (result?.collection) {
+            setStarredDocs(result.collection);
+          }
+        });
+      } catch (error) {
+        console.error("Failed to watch starred documents:", error);
+      }
+    };
+
+    startWatching();
+
+    return () => {
+      if (watcher && typeof watcher.stop === "function") {
+        watcher.stop();
+      }
+    };
+  }, [authState.user, authState.isLoading]);
+
+  if (starredDocs.length === 0) {
+    return (
+      <div className="text-xs text-muted-foreground px-2 py-1">
+        No starred documents
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {starredDocs.map((doc) => (
+        <SidebarMenuButton
+          key={doc._id}
+          asChild
+          className="w-full justify-start text-sm"
+        >
+          <a href={`/document/${doc._id}`}>
+            <Star className="w-3 h-3 text-yellow-500 fill-current" />
+            <span className="truncate">{doc.title}</span>
+          </a>
+        </SidebarMenuButton>
+      ))}
+    </div>
   );
 }
 
