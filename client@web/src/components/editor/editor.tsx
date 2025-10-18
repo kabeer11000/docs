@@ -1032,7 +1032,7 @@ const DocumentEditor = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "flex-1 overflow-y-auto p-8 transition-all bg-muted duration-300 ease-in-out relative",
+          "flex-1 overflow-y-auto p-1 transition-all bg-muted duration-300 ease-in-out relative",
           isAIPanelOpen && isCommentsSidebarOpen
             ? "mr-[640px]"
             : isAIPanelOpen
