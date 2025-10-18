@@ -78,7 +78,7 @@ export function EditorHeaderContent({
               setDocumentData(doc);
               onDocumentLoad?.(doc);
               // Update page title when document data loads/updates
-              document.title = `${doc.title} - Kabeer Docs`;
+              document.title = `${doc.title} - DocFlow`;
             }
           },
         );

@@ -44,13 +44,13 @@ export function Banner() {
       <div className="absolute z-20 p-4 sm:p-6 md:p-8 rounded-lg top-0 left-0">
         <h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 font-medium">
           <GradientText
-            text="Welcome to Kabeer Docs"
+            text="Welcome to DocFlow"
             gradient="linear-gradient(90deg, hsl(220, 98%, 61%) 0%, hsl(260, 80%, 56%) 50%, hsl(40, 100%, 50%) 100%)"
           />
         </h2>
         <p className="text-foreground dark:text-foreground text-xs sm:text-sm max-w-lg leading-relaxed">
-          Kabeer Docs provides comprehensive legal document management with 24/7 AI support for legal professionals
-          and students. Get started now!
+          DocFlow provides comprehensive document management with 24/7 AI support for teams and individuals.
+          Get started now!
         </p>
       </div>
     </div>
