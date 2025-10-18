@@ -195,8 +195,8 @@ export function AppSearch({
             variant="secondary"
             tabIndex={-1}
             className={cn(
-              "relative h-9 w-full justify-start text-sm items-center px-3 text-sm text-muted-foreground hover:shadow-lg border bg-white hover:bg-neutral-50 ring-1 ring-neutral-200 hover:ring-neutral-300 rounded-lg",
-              open ? "rounded-b-none border-b-0 shadow-xl" : "",
+              "relative h-11 w-full justify-start text-sm items-center px-4 py-2.5 text-sm text-muted-foreground hover:shadow-md border bg-card hover:bg-muted border-border hover:border-border/70 ring-0 rounded-xl hover:rounded-2xl transition-all duration-300",
+              open ? "rounded-b-none rounded-t-3xl border-b-0 shadow-lg" : "",
               className,
             )}
             type="button"
@@ -246,7 +246,14 @@ export function AppSearch({
       <PopoverContent
         align="center"
         sideOffset={0} // Removes the gap
-        className="overflow-hidden rounded-b-lg rounded-t-none border-t -border-border/50 m-0 top-0 p-0 w-[var(--radix-popover-trigger-width)] !animate-none"
+        className={cn(
+          "overflow-hidden rounded-t-none border-t border-border/30 m-0 top-0 p-0 w-[var(--radix-popover-trigger-width)] bg-card",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+          "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
+          "data-[state=open]:slide-in-from-top-0 duration-200",
+          "rounded-b-3xl"
+        )}
         // hideCloseButton
       >
         {/*  Search Results */}

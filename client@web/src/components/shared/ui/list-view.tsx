@@ -129,11 +129,8 @@ export interface IListViewProps {
   // Action enablers
   enableOpen?: boolean;
   enableOpenNewTab?: boolean;
-  enableDetails?: boolean;
   enableRename?: boolean;
-  enableShare?: boolean;
   enableCopy?: boolean;
-  enableDownload?: boolean;
   enableDelete?: boolean;
   // Sorting props
   enableSorting?: boolean;
@@ -168,11 +165,8 @@ export const ListView = React.memo(function ListView({
   collapsible = true,
   enableOpen = true,
   enableOpenNewTab = true,
-  enableDetails = true,
   enableRename = true,
-  enableShare = true,
   enableCopy = true,
-  enableDownload = true,
   enableDelete = true,
   enableSorting = true,
   defaultSortField = "name",
@@ -274,24 +268,11 @@ export const ListView = React.memo(function ListView({
               icon: ExternalLink,
               onClick: (item: IListItem) => {
                 if (item.itemType === "folder") {
-                  window.location.href = `/folder/${item.id}`;
+                  window.open(`/folder/${item.id}`, "_blank");
                 } else {
-                  window.location.href = `/document/${item.id}`;
+                  window.open(`/document/${item.id}`, "_blank");
                 }
               },
-            },
-          ]
-        : []),
-      ...(enableDetails
-        ? [
-            {
-              id: "showDetails",
-              label: (item: any) =>
-                item?.itemType === "folder"
-                  ? "Show folder details"
-                  : "Show details",
-              icon: PiInfo,
-              onClick: (_item: IListItem) => {},
             },
           ]
         : []),
@@ -304,87 +285,6 @@ export const ListView = React.memo(function ListView({
               separator: "before" as const,
               onClick: (item: IListItem) => {
                 setRenameDialog({ open: true, item });
-              },
-            },
-          ]
-        : []),
-      ...(enableShare
-        ? [
-            {
-              id: "share",
-              label: "Share",
-              icon: Share,
-              onClick: async (item: IListItem) => {
-                if (item.itemType === "folder") {
-                  // For folders, use the old inline sharing behavior
-                  setIsProcessing((prev) => new Set(prev).add(item.id));
-                  try {
-                    const updates: any = {
-                      permissions: {
-                        ...item.permissions,
-                        sharedWith: [
-                          {
-                            userId: "public",
-                            access: "read",
-                          },
-                        ],
-                      },
-                    };
-
-                    const success = await updateFolder(item.id, updates);
-
-                    if (
-                      success &&
-                      typeof navigator !== "undefined" &&
-                      navigator.clipboard
-                    ) {
-                      const shareUrl = `${window.location.origin}/folder/${item.id}/share`;
-                      await navigator.clipboard.writeText(shareUrl);
-                      alert(`Share link for ${item.name} copied to clipboard!`);
-                    } else if (success) {
-                      alert(`${item.name} is now shared publicly`);
-                    } else {
-                      alert("Failed to share folder");
-                    }
-                  } catch (error) {
-                    console.error("Share error:", error);
-                    alert("Failed to share folder");
-                  } finally {
-                    setIsProcessing((prev) => {
-                      const newSet = new Set(prev);
-                      newSet.delete(item.id);
-                      return newSet;
-                    });
-                  }
-                } else {
-                  // For documents, open the ShareDialog
-                  setIsProcessing((prev) => new Set(prev).add(item.id));
-                  try {
-                    const documentsCollection =
-                      cloudStore.collection("documents");
-                    const query = cloudStore.query
-                      .where("_id", "EQUAL", item.id)
-                      .limit(1);
-                    const result = (await documentsCollection.get(
-                      query,
-                    )) as Document[];
-
-                    if (result && result.length > 0) {
-                      setShareDialog({ open: true, document: result[0] });
-                    } else {
-                      alert("Failed to load document");
-                    }
-                  } catch (error) {
-                    console.error("Failed to load document:", error);
-                    alert("Failed to load document");
-                  } finally {
-                    setIsProcessing((prev) => {
-                      const newSet = new Set(prev);
-                      newSet.delete(item.id);
-                      return newSet;
-                    });
-                  }
-                }
               },
             },
           ]
@@ -423,22 +323,6 @@ export const ListView = React.memo(function ListView({
             },
           ]
         : []),
-      ...(enableDownload
-        ? [
-            {
-              id: "download",
-              label: "Download",
-              icon: Download,
-              onClick: (item: IListItem) => {
-                const downloadUrl =
-                  item.itemType === "folder"
-                    ? `/api/folders/${item.id}/download`
-                    : `/api/files/${item.id}/download`;
-                window.open(downloadUrl, "_blank");
-              },
-            },
-          ]
-        : []),
       ...(enableDelete
         ? [
             {
@@ -457,11 +341,8 @@ export const ListView = React.memo(function ListView({
     [
       enableOpen,
       enableOpenNewTab,
-      enableDetails,
       enableRename,
-      enableShare,
       enableCopy,
-      enableDownload,
       enableDelete,
       updateFolder,
       duplicateDocument,
@@ -961,7 +842,7 @@ export const ListView = React.memo(function ListView({
         className={`group border-t-border hover:bg-muted transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""}`}
       >
         <TableCell
-          className="p-0 sm:p-2 md:p-4 rounded-l-md"
+          className="p-0 sm:p-2 md:p-4 rounded-tl-md rounded-bl-md"
           onClick={() => handleItemClick(item)}
         >
           <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
@@ -1058,7 +939,7 @@ export const ListView = React.memo(function ListView({
           </Tooltip>
         </TableCell>
 
-        <TableCell className="text-center rounded-r-md p-2 md:p-4">
+        <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-4">
           {isMobile ? (
             <Button
               variant="ghost"
@@ -1118,23 +999,25 @@ export const ListView = React.memo(function ListView({
       const itemElement = (
         <TableRow
           key={item.id}
-          className={`group border-t-border hover:bg-muted transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""} ${isSelected ? "bg-primary/10" : ""}`}
+          className={`group border-t-border hover:bg-muted transition-colors cursor-pointer align-middle ${isItemProcessing ? "opacity-50 pointer-events-none" : ""} ${isSelected ? "bg-primary/10" : ""}`}
         >
           {enableBulkSelection && (
             <TableCell
-              className="w-12 p-2 md:p-4"
-              onClick={(e) => e.stopPropagation()}
+              className="w-16 p-1 sm:p-2 md:p-3 rounded-tl-md rounded-bl-md cursor-pointer flex items-center justify-start h-full [&>[role=checkbox]]:translate-y-0"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             >
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={() => toggleItemSelection(item.id)}
                 aria-label={`Select ${item.name}`}
-                className="border-2 border-border bg-background rounded-md data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-primary/50 bg-background/70 rounded-md data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
               />
             </TableCell>
           )}
           <TableCell
-            className="p-0 sm:p-2 md:p-3 rounded-l-md"
+            className={`p-0 sm:p-2 md:p-3 ${!enableBulkSelection ? "rounded-tl-md rounded-bl-md" : ""}`}
             onClick={() => handleItemClick(item)}
           >
             <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
@@ -1231,7 +1114,7 @@ export const ListView = React.memo(function ListView({
             </Tooltip>
           </TableCell>
 
-          <TableCell className="text-center rounded-r-md p-2 md:p-4">
+          <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-4">
             {isMobile ? (
               <Button
                 variant="ghost"
@@ -1321,28 +1204,6 @@ export const ListView = React.memo(function ListView({
         </span>
       </div>
       <div className="flex items-center gap-2">
-        {enableShare && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBulkShare}
-            disabled={selectedItems.size === 0}
-          >
-            <Share className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-        )}
-        {enableDownload && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBulkDownload}
-            disabled={selectedItems.size === 0}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
-        )}
         {enableDelete && (
           <Button
             variant="destructive"
@@ -1359,13 +1220,17 @@ export const ListView = React.memo(function ListView({
   );
 
   const content = (
-    <div className=" rounded-lg overflow-hidden">
-      {bulkActionToolbar}
+    <div className="rounded-lg overflow-hidden">
+      {enableBulkSelection && (
+        <div className={`${selectedItems.size > 0 ? "" : "h-14"}`}>
+          {bulkActionToolbar}
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             {enableBulkSelection && (
-              <TableHead className="w-12 p-2 md:p-4">
+              <TableHead className="w-16 p-1 sm:p-2 md:p-3 flex items-center justify-start">
                 <Checkbox
                   checked={
                     selectedItems.size === sortedItems.length &&
@@ -1373,7 +1238,7 @@ export const ListView = React.memo(function ListView({
                   }
                   onCheckedChange={toggleSelectAll}
                   aria-label="Select all"
-                  className="border-2 border-border bg-background rounded-md data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                  className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-primary/50 bg-background/70 rounded-md data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
                 />
               </TableHead>
             )}
@@ -1498,13 +1363,6 @@ export const ListView = React.memo(function ListView({
           />
         )}
 
-        {enableShare && shareDialog.document && (
-          <ShareDialog
-            open={shareDialog.open}
-            onOpenChange={(open) => setShareDialog({ open })}
-            document={shareDialog.document}
-          />
-        )}
 
         <Sheet
           open={sheetOpen.open}
@@ -1588,13 +1446,6 @@ export const ListView = React.memo(function ListView({
           />
         )}
 
-        {enableShare && shareDialog.document && (
-          <ShareDialog
-            open={shareDialog.open}
-            onOpenChange={(open) => setShareDialog({ open })}
-            document={shareDialog.document}
-          />
-        )}
 
         <Sheet
           open={sheetOpen.open}

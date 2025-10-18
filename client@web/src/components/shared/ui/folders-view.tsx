@@ -62,11 +62,8 @@ export interface IFolderViewProps {
   // Action enablers
   enableOpen?: boolean;
   enableOpenNewTab?: boolean;
-  enableDetails?: boolean;
   enableRename?: boolean;
-  enableShare?: boolean;
   enableCopy?: boolean;
-  enableDownload?: boolean;
   enableDelete?: boolean;
 }
 
@@ -86,11 +83,8 @@ export function FoldersView({
   collapsible = true,
   enableOpen = true,
   enableOpenNewTab = true,
-  enableDetails = true,
   enableRename = true,
-  enableShare = true,
   enableCopy = true,
-  enableDownload = true,
   enableDelete = true,
 }: IFolderViewProps) {
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -104,7 +98,7 @@ export function FoldersView({
   }>({ open: false });
   const [isProcessing, setIsProcessing] = useState<Set<string>>(new Set());
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const [isOpen, setIsOpen] = useState(folders.length > 0);
+  const [isOpen, setIsOpen] = useState(true);
   const { deleteFolder, updateFolder, duplicateFolder } = useCloudStore();
 
   const displayFolders = folders.slice(0, initialFolderCount);
@@ -131,19 +125,7 @@ export function FoldersView({
             label: "Open in new tab",
             icon: ExternalLink,
             onClick: (folder: IFolderItem) => {
-              window.open(generateFolderUrl(folder.name), "_blank");
-            },
-          },
-        ]
-      : []),
-    ...(enableDetails
-      ? [
-          {
-            id: "showDetails",
-            label: "Show folder details",
-            icon: PiInfo,
-            onClick: (_folder: IFolderItem) => {
-              // TODO: Implement folder details
+              window.open(`/folder/${folder.id}`, "_blank");
             },
           },
         ]
@@ -157,29 +139,6 @@ export function FoldersView({
             separator: "before" as const,
             onClick: (folder: IFolderItem) => {
               setRenameDialog({ open: true, folder });
-            },
-          },
-        ]
-      : []),
-    ...(enableShare
-      ? [
-          {
-            id: "share",
-            label: "Share",
-            icon: Share,
-            onClick: (folder: IFolderItem) => {
-              if (typeof navigator !== "undefined" && navigator.clipboard) {
-                navigator.clipboard
-                  .writeText(
-                    `${window.location.origin}/folder/${folder.id}/share`,
-                  )
-                  .then(() =>
-                    alert(`Share link for ${folder.name} copied to clipboard!`),
-                  )
-                  .catch(() => alert("Failed to copy share link"));
-              } else {
-                alert("Clipboard not supported");
-              }
             },
           },
         ]
@@ -210,18 +169,6 @@ export function FoldersView({
                   return newSet;
                 });
               }
-            },
-          },
-        ]
-      : []),
-    ...(enableDownload
-      ? [
-          {
-            id: "download",
-            label: "Download",
-            icon: Download,
-            onClick: (folder: IFolderItem) => {
-              window.open(`/api/folders/${folder.id}/download`, "_blank");
             },
           },
         ]
@@ -382,24 +329,32 @@ export function FoldersView({
     const isFolderProcessing = isProcessing.has(folder.id);
     const folderElement = (
       <div
+        role="button"
+        tabIndex={0}
         aria-label={`Open folder ${folder.name} containing ${folder.meta.fileCount} files`}
         aria-describedby={`folder-${folder.id}-description`}
-        className={`group cursor-pointer ${isFolderProcessing ? "opacity-50 pointer-events-none" : ""}`}
+        className={`group cursor-pointer focus:outline-none rounded-lg transition-all ${isFolderProcessing ? "opacity-50 pointer-events-none" : ""}`}
         onClick={(e) => handleFolderOpen(folder, e)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleFolderOpen(folder, e);
+          }
+        }}
       >
-        <div className="flex items-center px-2 py-2 md:px-4 md:pr-1 md:p-2 border border-border space-between bg-card dark:bg-card w-full rounded-md group-hover:rounded-xl transition-all group-hover:bg-muted dark:group-hover:bg-muted">
-          <div className="mr-4">
+        <div className="flex items-center px-3 py-3 sm:px-4 sm:py-3.5 lg:px-4 lg:pr-2 gap-3 sm:gap-4 border border-border bg-card dark:bg-card w-full rounded-lg group-hover:bg-muted dark:group-hover:bg-muted transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-inset">
+          <div className="flex-shrink-0">
             <FolderIcon
               folder={folder}
-              className="w-6 h-6"
+              className="w-5 sm:w-6 h-5 sm:h-6"
               aria-hidden="true"
             />
           </div>
-          <div className="w-full relative overflow-hidden">
-            <h3 className="whitespace-nowrap text-ellipsis font-semibold">
+          <div className="w-full min-w-0 flex-1">
+            <h3 className="truncate font-semibold text-sm sm:text-base lg:text-base text-foreground">
               {folder.name}
             </h3>
-            <p className="whitespace-nowrap text-ellipsis text-sm text-muted-foreground capitalize">
+            <p className="truncate text-xs sm:text-sm lg:text-sm text-muted-foreground capitalize">
               {folder.category} · {folder.meta.fileCount} Files
             </p>
           </div>
@@ -408,11 +363,12 @@ export function FoldersView({
               <DropdownMenuTrigger asChild>
                 <Button
                   variant={"ghost"}
-                  className="hidden md:flex group-hover:opacity-100 opacity-0 transition-all duration-150 rounded-full p-0 m-0"
-                  size={"icon"}
+                  className="flex-shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-150 rounded-full p-1 h-8 w-8"
+                  size={"sm"}
                   onClick={handleMenuClick}
+                  aria-label={`More options for folder ${folder.name}`}
                 >
-                  <EllipsisVertical className="p-0 m-0" />
+                  <EllipsisVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -452,7 +408,7 @@ export function FoldersView({
 
   if (isLoading) {
     const loadingContent = (
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
         {Array.from({ length: initialFolderCount }, (_, i) => (
           <FolderSkeleton key={i} />
         ))}
@@ -478,16 +434,18 @@ export function FoldersView({
     return (
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         {showHeadline && (
-          <div className="flex sticky top-2 z-[10] items-center justify-between mb-0">
-            <div className="flex-1">
-              <CollapsibleTrigger className="backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit">
-                <h2 className="text-lg font-semibold">{headlineText}</h2>
-                <ChevronDown
-                  className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                />
-              </CollapsibleTrigger>
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex-1 h-fit">
+              <div className="sticky top-2 z-[10] backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit bg-background/95">
+                <CollapsibleTrigger className="flex items-center gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors">
+                  <h2 className="text-lg font-semibold whitespace-nowrap">{headlineText}</h2>
+                  <ChevronDown
+                    className={`flex-shrink-0 w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </CollapsibleTrigger>
+              </div>
             </div>
-            {showViewMoreButton && <Skeleton className="h-8 w-20 rounded-full" />}
+            {showViewMoreButton && <Skeleton className="h-8 w-20 rounded-full flex-shrink-0" />}
           </div>
         )}
         <CollapsibleContent>{loadingContent}</CollapsibleContent>
@@ -535,14 +493,16 @@ export function FoldersView({
     return (
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         {showHeadline && (
-          <div className="flex sticky top-2 z-[10] items-center justify-between mb-0">
-            <div className="flex-1">
-              <CollapsibleTrigger className="backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit">
-                <h2 className="text-lg font-semibold">{headlineText}</h2>
-                <ChevronDown
-                  className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                />
-              </CollapsibleTrigger>
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex-1 h-fit">
+              <div className="sticky top-2 z-[10] backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit bg-background/95">
+                <CollapsibleTrigger className="flex items-center gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors">
+                  <h2 className="text-lg font-semibold whitespace-nowrap">{headlineText}</h2>
+                  <ChevronDown
+                    className={`flex-shrink-0 w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </CollapsibleTrigger>
+              </div>
             </div>
           </div>
         )}
@@ -558,7 +518,7 @@ export function FoldersView({
   const content = (
     <div>
       {/* Show display folders */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         {displayFolders.map(renderFolderItem)}
       </div>
     </div>
@@ -624,20 +584,22 @@ export function FoldersView({
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       {showHeadline && (
-        <div className="flex sticky top-2 z-[10] items-center justify-between mb-0">
-          <div className="flex-1">
-            <CollapsibleTrigger className="backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit">
-              <h2 className="text-lg font-semibold">{headlineText}</h2>
-              <ChevronDown
-                className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-              />
-            </CollapsibleTrigger>
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex-1 h-fit">
+            <div className="sticky top-2 z-[10] backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit bg-background/95">
+              <CollapsibleTrigger className="flex items-center gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors">
+                <h2 className="text-lg font-semibold whitespace-nowrap">{headlineText}</h2>
+                <ChevronDown
+                  className={`flex-shrink-0 w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                />
+              </CollapsibleTrigger>
+            </div>
           </div>
           {showViewMoreButton && hasMoreFolders && (
             <Button
               variant="ghost"
               size="sm"
-              className="text-primary font-medium hover:text-teal-700 transition-colors rounded-full"
+              className="text-primary font-medium hover:text-teal-700 transition-colors rounded-full flex-shrink-0"
               onClick={() => (window.location.href = "/vault")}
             >
               View More
@@ -645,7 +607,9 @@ export function FoldersView({
           )}
         </div>
       )}
-      <CollapsibleContent>{content}</CollapsibleContent>
+      <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+        {content}
+      </CollapsibleContent>
 
       {hasDestructiveActions && (
         <DeleteConfirmationDialog

@@ -55,9 +55,7 @@ export function LiveFoldersView({
       enableContextMenu={true}
       enableDropdownMenu={true}
       enableRename={true}
-      enableShare={true}
       enableCopy={false}
-      enableDownload={true}
       enableDelete={true}
     />
   );
