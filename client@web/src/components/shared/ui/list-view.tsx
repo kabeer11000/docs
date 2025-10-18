@@ -1129,7 +1129,7 @@ export const ListView = React.memo(function ListView({
                 checked={isSelected}
                 onCheckedChange={() => toggleItemSelection(item.id)}
                 aria-label={`Select ${item.name}`}
-                className="border-2 border-border bg-background"
+                className="border-2 border-border bg-background rounded-md data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
               />
             </TableCell>
           )}
@@ -1373,7 +1373,7 @@ export const ListView = React.memo(function ListView({
                   }
                   onCheckedChange={toggleSelectAll}
                   aria-label="Select all"
-                  className="border-2 border-border bg-background"
+                  className="border-2 border-border bg-background rounded-md data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
                 />
               </TableHead>
             )}
