@@ -30,6 +30,7 @@ export interface IFolderItem {
   meta: IFolderMetadata;
   permissions: IFolderPermissions;
   timestamp: ITimestamp;
+  isStarred?: boolean;
 }
 
 export interface IFilePreview {

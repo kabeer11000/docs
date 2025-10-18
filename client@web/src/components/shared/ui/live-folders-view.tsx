@@ -30,15 +30,26 @@ export function LiveFoldersView({
   const handleCreateFolder = async () => {
     if (!user) return;
 
-    const parentFolder = parent || user.id;
-    const folderId = await createFolder({
-      folderId: parentFolder,
-      name: "Untitled Folder",
-    });
+    // Add a simple flag to prevent rapid consecutive calls
+    if (window.__isCreatingFolder) return;
+    window.__isCreatingFolder = true;
+    
+    try {
+      const parentFolder = parent || user.id;
+      const folderId = await createFolder({
+        folderId: parentFolder,
+        name: "Untitled Folder",
+      });
 
-    if (folderId) {
-      // Navigate to the newly created folder
-      window.location.href = `/folder/${folderId}`;
+      if (folderId) {
+        // Navigate to the newly created folder
+        window.location.href = `/folder/${folderId}`;
+      }
+    } finally {
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        window.__isCreatingFolder = false;
+      }, 500);
     }
   };
 

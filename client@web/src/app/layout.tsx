@@ -3,9 +3,9 @@ import "@/styles/global.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Kabeer Docs - Legal Document Management",
+  title: "DocFlow - Document Management & Collaboration",
   description:
-    "Professional legal document management and collaboration platform",
+    "Professional document management and collaboration platform",
 };
 
 export default function RootLayout({

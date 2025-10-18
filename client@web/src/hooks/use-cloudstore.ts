@@ -59,6 +59,7 @@ export function useCloudStore() {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
+          isStarred: false,
         };
 
         const folders = cloudStore.collection("folders");
@@ -230,10 +231,29 @@ export function useCloudStore() {
 
     try {
       console.log("Attempting to delete folder with ID:", id);
+      
+      // First, recursively delete all subfolders
       const foldersCollection = cloudStore.collection("folders");
-
-      // CloudStore uses remove() with a query, not delete() with an ID
-      const query = cloudStore.query.where("id", "EQUAL", id);
+      const subfoldersQuery = cloudStore.query.where("parents", "CONTAINS", id);
+      const subfolders = (await foldersCollection.get(subfoldersQuery)) as IFolderItem[];
+      
+      // Delete each subfolder recursively
+      for (const subfolder of subfolders) {
+        await deleteFolder(subfolder.id); // Recursive call
+      }
+      
+      // Next, delete all documents in this folder
+      // Documents can be in a folder via location field or parents array
+      const documentsCollection = cloudStore.collection("documents");
+      const documentsQuery = cloudStore.query.where("parents", "CONTAINS", id);
+      const documents = (await documentsCollection.get(documentsQuery)) as Document[];
+      
+      for (const document of documents) {
+        await deleteDocument(document._id);
+      }
+      
+      // Finally, delete the main folder
+      const query = cloudStore.query.where("_id", "EQUAL", id);
       const result = await foldersCollection.remove(query);
 
       console.log("Folder delete result:", result);
@@ -243,7 +263,7 @@ export function useCloudStore() {
       console.error("Error details:", error);
       return false;
     }
-  }, []);
+  }, [deleteDocument]);
 
   const updateDocument = useCallback(
     async (id: string, updates: Partial<Document>): Promise<boolean> => {
@@ -295,8 +315,8 @@ export function useCloudStore() {
         );
         const foldersCollection = cloudStore.collection("folders");
 
-        // CloudStore uses update() with a query, not an ID
-        const query = cloudStore.query.where("id", "EQUAL", id);
+        // CloudStore uses update() with a query, not an ID - use _id for database lookup
+        const query = cloudStore.query.where("_id", "EQUAL", id);
         const result = await foldersCollection.update(query, {
           ...updates,
           timestamp: {
@@ -351,7 +371,7 @@ export function useCloudStore() {
 
       try {
         const foldersCollection = cloudStore.collection("folders");
-        const query = cloudStore.query.where("id", "EQUAL", originalId);
+        const query = cloudStore.query.where("_id", "EQUAL", originalId);
         const results = (await foldersCollection.get(query)) as IFolderItem[];
 
         if (results.length === 0) return null;
@@ -362,6 +382,7 @@ export function useCloudStore() {
           ...original,
           id: newId,
           name: `${original.name} (Copy)`,
+          isStarred: false, // New duplicated folders should not be starred by default
           timestamp: {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

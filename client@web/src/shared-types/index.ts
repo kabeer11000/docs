@@ -148,6 +148,7 @@ export interface Document {
     requestedAt: Date | string;
     message?: string;
   }>;
+  isStarred?: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
   lastSaved: Date | string;

@@ -1,10 +1,10 @@
-# Kabeer Docs
+# DocFlow
 
-A modern legal document collaboration platform built with Next.js 15, React 19, and TypeScript. Kabeer Docs enables legal professionals to draft, review, and sign documents with real-time collaboration capabilities.
+A modern document collaboration platform built with Next.js 15, React 19, and TypeScript. DocFlow enables teams to draft, review, and manage documents with real-time collaboration capabilities.
 
 ## Overview
 
-Kabeer Docs is a comprehensive legal document management system designed for law firms and legal departments. The platform provides real-time collaborative editing, secure e-signature workflows, and comprehensive document organization tools.
+DocFlow is a comprehensive document management system designed for teams of all types. The platform provides real-time collaborative editing, secure document workflows, and comprehensive document organization tools.
 
 ## Tech Stack
 
@@ -92,7 +92,7 @@ The development server will be available at `http://localhost:4321`.
 
 ### Document Editor
 - Real-time collaborative editing with live cursors
-- Rich text formatting with legal document templates
+- Rich text formatting with document templates
 - Multi-page document structure with pagination
 - Comment and suggestion system
 - Auto-save functionality
@@ -111,7 +111,7 @@ The development server will be available at `http://localhost:4321`.
 - Data encryption and GDPR compliance
 
 ### E-Signature Workflow
-- Legally compliant electronic signatures
+- Secure electronic signatures
 - Audit trail and document tracking
 - Multi-party signature workflows
 - Document versioning

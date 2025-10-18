@@ -115,6 +115,7 @@ export function AppSidebar({
     )
       return;
 
+    // Additional protection against rapid calls
     setIsCreating(true);
     try {
       const parentFolder = folderId || authState.user.id;
@@ -136,7 +137,10 @@ export function AppSidebar({
         "An unexpected error occurred",
       );
     } finally {
-      setIsCreating(false);
+      // Small delay to ensure UI updates properly before allowing new calls
+      setTimeout(() => {
+        setIsCreating(false);
+      }, 300); // 300ms delay to prevent rapid consecutive calls
     }
   };
 
@@ -158,7 +162,7 @@ export function AppSidebar({
           <SidebarMenuItem className="px-2">
             <SidebarMenuButton asChild>
               <a href="/home" className="flex items-center gap-2">
-              <h2 className="p-2 text-md font-mono font-bold">KN / Libre Docs</h2>
+              <h2 className="p-2 text-md font-mono font-bold">KN / DocFlow</h2>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -358,11 +362,11 @@ function StarredDocuments() {
     <div className="space-y-1">
       {starredDocs.map((doc) => (
         <SidebarMenuButton
-          key={doc._id}
+          key={doc._id || doc.id}
           asChild
           className="w-full justify-start text-sm"
         >
-          <a href={`/document/${doc._id}`}>
+          <a href={`/document/${doc._id || doc.id}`}>
             <Star className="w-3 h-3 text-yellow-500 fill-current" />
             <span className="truncate">{doc.title}</span>
           </a>
@@ -421,13 +425,13 @@ function StarredFolders() {
     <div className="space-y-1">
       {starredFolders.map((folder) => (
         <SidebarMenuButton
-          key={folder._id}
+          key={folder._id || folder.id}
           asChild
           className="w-full justify-start text-sm"
         >
-          <a href={`/folder/${folder._id}`} className="flex items-center gap-2 w-full">
+          <a href={`/folder/${folder._id || folder.id}`} className="flex items-center gap-2 w-full">
             <Star className="w-3 h-3 text-yellow-500 fill-current flex-shrink-0" />
-            <span className="truncate flex-1">{folder.name || "Folder"}</span>
+            <span className="truncate flex-1">{folder.name || folder.title || "Folder"}</span>
           </a>
         </SidebarMenuButton>
       ))}
@@ -458,13 +462,15 @@ export function AccountStorage() {
         <span className="text-xs font-medium text-muted-foreground">
           Account Storage
         </span>
-        <span className="text-neutral-800 text-sm font-medium">{size}</span>
+        <span className="text-sm font-medium text-foreground">{size}</span>
       </div>
-      <Progress
-        value={100 * (Math.min(size, 20) / 20)}
-        className="mb-1.5 h-1.5 bg-neutral-300"
-      />
-      <p className="text-[#727272] text-[11px] font-medium">
+      <div className="relative mb-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div 
+          className="h-full bg-primary transition-all"
+          style={{ width: `${100 * (Math.min(size, 20) / 20)}%` }}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground font-medium">
         {size} out of 20 free files used
       </p>
     </div>

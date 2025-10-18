@@ -375,7 +375,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
     >
       <CardContent className="p-4">
         <div className="aspect-[3/4] group-hover:shadow-xl group-hover:border duration-150 transition-all rounded-md bg-white mb-3 overflow-hidden relative">
-          <div className="absolute inset-0 p-2 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {isInView && previewEditor ? (
               <EditorContent
                 editor={previewEditor}

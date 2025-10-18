@@ -80,7 +80,7 @@ export default function DocumentPage({
       if (encodedTitle) {
         try {
           const decodedTitle = atob(encodedTitle);
-          document.title = `${decodedTitle} - Kabeer Docs`;
+          document.title = `${decodedTitle} - DocFlow`;
         } catch (e) {
           console.error('Failed to decode title parameter:', e);
         }

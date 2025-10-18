@@ -37,7 +37,7 @@ export function FolderOptions({ folderId }: FolderOptionsProps) {
         if (result && result.length > 0) {
           const folder = result[0];
           setFolderName(folder.name || "Folder");
-          setIsStarred(folder.isStarred || false);
+          setIsStarred(folder.isStarred || folder.starred || false);
         }
       } catch (error) {
         console.error("Failed to load folder:", error);
@@ -60,16 +60,10 @@ export function FolderOptions({ folderId }: FolderOptionsProps) {
       });
 
       setIsStarred(newStarredStatus);
-      showToast({
-        title: newStarredStatus ? "Added to starred" : "Removed from starred",
-        type: "success",
-      });
+      showToast.success(newStarredStatus ? "Added to starred" : "Removed from starred");
     } catch (error) {
       console.error("Failed to update star status:", error);
-      showToast({
-        title: "Failed to update star status",
-        type: "error",
-      });
+      showToast.error("Failed to update star status");
     } finally {
       setIsLoading(false);
     }
@@ -87,16 +81,10 @@ export function FolderOptions({ folderId }: FolderOptionsProps) {
       });
 
       setFolderName(newName);
-      showToast({
-        title: `Folder renamed to "${newName}"`,
-        type: "success",
-      });
+      showToast.success(`Folder renamed to "${newName}"`);
     } catch (error) {
       console.error("Failed to rename folder:", error);
-      showToast({
-        title: "Failed to rename folder",
-        type: "error",
-      });
+      showToast.error("Failed to rename folder");
     } finally {
       setIsLoading(false);
     }
