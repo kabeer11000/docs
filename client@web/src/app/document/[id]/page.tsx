@@ -71,7 +71,21 @@ export default function DocumentPage({
   const [isChecking, setIsChecking] = React.useState(true);
 
   React.useEffect(() => {
-    params.then((p) => setDocumentId(p.id));
+    params.then((p) => {
+      setDocumentId(p.id);
+      
+      // Check URL for title parameter and set initial page title for SSR/social previews
+      const urlParams = new URLSearchParams(window.location.search);
+      const encodedTitle = urlParams.get('title');
+      if (encodedTitle) {
+        try {
+          const decodedTitle = atob(encodedTitle);
+          document.title = `${decodedTitle} - Kabeer Docs`;
+        } catch (e) {
+          console.error('Failed to decode title parameter:', e);
+        }
+      }
+    });
   }, [params]);
 
   React.useEffect(() => {
