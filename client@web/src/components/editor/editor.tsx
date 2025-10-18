@@ -868,7 +868,7 @@ const DocumentEditor = ({
           )}
         >
           <div className="max-w-4xl mx-auto relative">
-            <div className="bg-background w-full min-h-[calc(100vh-10rem)] rounded-lg p-8">
+            <div className="bg-background w-full min-h-[calc(100vh-10rem)] rounded-lg p-2 md:lg:p-8">
               <div className="space-y-4">
                 <div className="h-8 bg-muted/50 rounded w-3/4 animate-pulse"></div>
                 <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
