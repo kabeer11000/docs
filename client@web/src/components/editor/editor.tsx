@@ -73,10 +73,10 @@ const PAGINATION_CONFIG = {
   footerLeft: "",
   headerRight: "",
   headerLeft: "",
-  marginTop: 72, // 1" margins (1" × 72pt)
-  marginBottom: 72,
-  marginLeft: 72,
-  marginRight: 72,
+  marginTop: 50, //72, // 1" margins (1" × 72pt)
+  marginBottom:  50 ,
+  marginLeft: 50,
+  marginRight: 50,
   contentMarginTop: 0,
   contentMarginBottom: 0,
 };
@@ -1032,7 +1032,7 @@ const DocumentEditor = ({
       <div
         ref={editorContainerRef}
         className={cn(
-          "flex-1 overflow-y-auto p-1 transition-all bg-muted duration-300 ease-in-out relative",
+          "flex-1 overflow-y-auto md:lg:p-8 p-2 transition-all bg-muted duration-300 ease-in-out relative",
           isAIPanelOpen && isCommentsSidebarOpen
             ? "mr-[640px]"
             : isAIPanelOpen
