@@ -36,6 +36,7 @@ export function SignupForm() {
 
   const formSchema = z
     .object({
+      tenantId: z.string(),
       displayName: z.string().min(1, { message: "Full name is required" }),
       email: z.string().email({ message: "Please enter a valid email" }),
       password: z
@@ -54,6 +55,7 @@ export function SignupForm() {
       displayName: "",
       email: "",
       password: "",
+      tenantId: '1234', // lexa-s users
       confirmPassword: "",
     },
   });
@@ -63,6 +65,7 @@ export function SignupForm() {
     auth.handleOnboardFormChange("email", values.email);
     auth.handleOnboardFormChange("password", values.password);
     auth.handleOnboardFormChange("confirmPassword", values.confirmPassword);
+    auth.handleOnboardFormChange("tenantId", values.tenantId);
     const success = await auth.signUp();
     if (success) {
       router.push("/home");
