@@ -250,8 +250,15 @@ export function AppSidebar({
               <AccordionTrigger className="text-sm font-medium text-muted-foreground py-2 px-0 hover:no-underline">
                 Starred
               </AccordionTrigger>
-              <AccordionContent className="px-0 pb-2">
-                <StarredDocuments />
+              <AccordionContent className="px-0 pb-2 space-y-3">
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground px-2 py-1">Files</div>
+                  <StarredDocuments />
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground px-2 py-1">Folders</div>
+                  <StarredFolders />
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -358,6 +365,69 @@ function StarredDocuments() {
           <a href={`/document/${doc._id}`}>
             <Star className="w-3 h-3 text-yellow-500 fill-current" />
             <span className="truncate">{doc.title}</span>
+          </a>
+        </SidebarMenuButton>
+      ))}
+    </div>
+  );
+}
+
+function StarredFolders() {
+  const [starredFolders, setStarredFolders] = useState<any[]>([]);
+  const authState = useStore($auth);
+
+  useEffect(() => {
+    if (!authState.user || authState.isLoading) return;
+
+    let watcher: any = null;
+
+    const startWatching = async () => {
+      try {
+        const foldersCollection = cloudStore.collection("folders");
+        const query = cloudStore.query
+          .where("owner", "EQUAL", authState.user.id)
+          .where("isStarred", "EQUAL", true)
+          .orderBy("timestamp.updatedAt", "DESCENDING")
+          .limit(10); // Limit to 10 starred folders
+
+        watcher = foldersCollection.watch(query, (result: any) => {
+          if (result?.collection) {
+            setStarredFolders(result.collection);
+          }
+        });
+      } catch (error) {
+        console.error("Failed to watch starred folders:", error);
+      }
+    };
+
+    startWatching();
+
+    return () => {
+      if (watcher && typeof watcher.stop === "function") {
+        watcher.stop();
+      }
+    };
+  }, [authState.user, authState.isLoading]);
+
+  if (starredFolders.length === 0) {
+    return (
+      <div className="text-xs text-muted-foreground px-2 py-1">
+        No starred folders
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {starredFolders.map((folder) => (
+        <SidebarMenuButton
+          key={folder._id}
+          asChild
+          className="w-full justify-start text-sm"
+        >
+          <a href={`/folder/${folder._id}`} className="flex items-center gap-2 w-full">
+            <Star className="w-3 h-3 text-yellow-500 fill-current flex-shrink-0" />
+            <span className="truncate flex-1">{folder.name || "Folder"}</span>
           </a>
         </SidebarMenuButton>
       ))}
