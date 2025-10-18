@@ -261,7 +261,7 @@ export function EditorHeaderContent({
                 <TooltipTrigger asChild>
                   <div
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border cursor-help bg-transparent h-8",
+                      "hidden md:lg:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border cursor-help bg-transparent h-8",
                       permissions.accessLevel === "owner" &&
                         "text-purple-300 border-purple-500/50",
                       permissions.accessLevel === "editor" &&
