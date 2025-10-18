@@ -214,7 +214,7 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="mx-auto max-w-7xl flex flex-col gap-y-10 md:gap-y-12">
+        <div className="w-full flex flex-col gap-y-10 md:gap-y-12">
           {/* {showBanner && <Banner />} */}
 
           <LiveFoldersView

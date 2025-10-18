@@ -27,6 +27,7 @@ import {
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useComments } from "@/hooks/use-comments";
 import { useDocumentPermissions } from "@/hooks/use-document-permissions";
+import { showToast } from "@/lib/toast";
 import cloudStore from "@/lib/cloudstore";
 import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
@@ -125,17 +126,25 @@ export function EditorHeaderContent({
 
   const handleCopy = useCallback(async () => {
     if (!documentData) return;
+    
     try {
+      showToast.info("Creating a copy...");
+      
       const newId = await duplicateDocument(documentData._id);
       if (newId) {
-        window.location.href = `/document/${newId}`;
+        // Open the copy in a new tab/window, keep the original in current tab
+        window.open(`/document/${newId}`, '_blank');
+        showToast.success("Copy created successfully!");
+      } else {
+        showToast.error("Failed to create copy");
       }
     } catch (error) {
       console.error("Failed to copy document:", error);
+      showToast.error("Failed to create copy");
     }
   }, [documentData, duplicateDocument]);
 
-  // Listen for copy and print events from toolbar
+  // Listen for copy, print, and star events from toolbar
   useEffect(() => {
     const handleCopyEvent = () => {
       handleCopy();
@@ -143,13 +152,37 @@ export function EditorHeaderContent({
     const handlePrintEvent = () => {
       printButtonRef.current?.click();
     };
+    const handleStarEvent = async () => {
+      if (!documentData) return;
+      
+      try {
+        // Toggle the starred status
+        const newStarredStatus = !documentData.isStarred;
+        const success = await updateDocument(documentData._id, { 
+          isStarred: newStarredStatus,
+          updatedAt: new Date().toISOString()
+        });
+        
+        if (success) {
+          showToast.success(newStarredStatus ? "Added to starred" : "Removed from starred");
+        } else {
+          showToast.error("Failed to update document");
+        }
+      } catch (error) {
+        console.error("Error updating starred status:", error);
+        showToast.error("Failed to update document");
+      }
+    };
+    
     window.addEventListener("document-copy-requested", handleCopyEvent);
     window.addEventListener("document-print-requested", handlePrintEvent);
+    window.addEventListener("document-star-requested", handleStarEvent);
     return () => {
       window.removeEventListener("document-copy-requested", handleCopyEvent);
       window.removeEventListener("document-print-requested", handlePrintEvent);
+      window.removeEventListener("document-star-requested", handleStarEvent);
     };
-  }, [handleCopy]);
+  }, [handleCopy, documentData, updateDocument]);
 
   if (!documentData) {
     return (

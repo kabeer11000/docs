@@ -162,7 +162,7 @@ const _SummarizeButton = () => {
     </Button>
   );
 };
-export function EditorControls({ canEdit = true }: { canEdit?: boolean }) {
+export function EditorControls({ canEdit = true, isStarred = false }: { canEdit?: boolean; isStarred?: boolean }) {
   const formatState = useStore(editorFormatState);
   // const canUndoAction = useStore(canUndo);
   // const canRedoAction = useStore(canRedo);
@@ -366,13 +366,15 @@ export function EditorControls({ canEdit = true }: { canEdit?: boolean }) {
             variant="ghost"
             size="sm"
             onClick={() => {
-              // TODO: Implement starred functionality
-              console.log("Add to starred");
+              // Trigger star event via custom event
+              window.dispatchEvent(new CustomEvent("document-star-requested"));
             }}
             className="h-8 w-8 p-0"
-            aria-label="Add to starred"
+            aria-label={isStarred ? "Remove from starred" : "Add to starred"}
           >
-            <Star className="h-4 w-4" />
+            <Star 
+              className={`h-4 w-4 ${isStarred ? "fill-current text-yellow-500" : ""}`} 
+            />
           </Button>
         </div>
       </div>
