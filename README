@@ -1,22 +1,36 @@
 Docs by Kabeer's Network (kabeers.network)
 Service available for free at https://docs.kabeers.network
--------------------------------------------------------------
+------------------------------------------------------------
 
-Mono-repo contains source-code for Libre Docs / Kabeer's Docs
-Next.js application available in `client@web`. 
+This mono-repo contains the source code for
+Libre Docs / Kabeer's Docs. The Next.js application is
+available in the `client@web` directory.
 
-Docs depends on Kabeer's Network's cloudstore service for data
--> (https://github.com/Kabeers-Network/cloudstore-release/)
+Docs depends on Kabeer's Network's Cloudstore service
+for data:
+-> https://github.com/Kabeers-Network/cloudstore-release/
 
-Other microservices like those responsible for authentication
-will be added to this repository. 
+It will eventually depend on the Kabeer Cloud SDK for blob
+and raw file storage (https://docs.cloud.kabeers.network).
+A sample implementation is available in the Kabeer's
+Chats source code:
+-> https://github.com/kabeer11000/chats
 
-Project is open to external contributors, We currently do not
-have a fancy CI/CD pipeline or moderation, leave me a PR here
-and I will manually merge. 
+The next steps for this project are performance
+optimizations and a major refactoring to improve code 
+quality and structuring.
 
-If you find any bug or issue, kindly open a new issue in this
-repository, with steps to reproduce and imagery.
+Other microservices, such as those responsible for
+authentication, will be added to this repository.
 
--------------------------------------------------------------
-Copyright (c) Kabeer's Network - Released under GPL-3 License
+This project is open to external contributors. We 
+currently do not have a CI/CD pipeline, so please submit
+a pull request and I will merge it manually.
+
+If you find any bug or issue, kindly open a new issue
+in this repository with steps to reproduce and any
+relevant images.
+
+------------------------------------------------------------
+Copyright (c) Kabeer's Network
+Released under the GPL-3.0 License
