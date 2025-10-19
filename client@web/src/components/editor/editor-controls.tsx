@@ -11,10 +11,12 @@ import {
   MessageSquare,
   Printer,
   Quote,
+  Redo,
   ShipWheel,
   Star,
   Strikethrough,
   Underline as UnderlineIcon,
+  Undo,
 } from "lucide-react";
 import { computed } from "nanostores";
 import React from "react";
@@ -22,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { showToast } from "@/lib/toast";
 import {
+  canRedo,
+  canUndo,
   editorActions,
   editorFormatState,
   editorInstance,
@@ -165,14 +169,14 @@ const _SummarizeButton = () => {
 };
 export function EditorControls({ canEdit = true, isStarred = false }: { canEdit?: boolean; isStarred?: boolean }) {
   const formatState = useStore(editorFormatState);
-  // const canUndoAction = useStore(canUndo);
-  // const canRedoAction = useStore(canRedo);
+  const canUndoAction = useStore(canUndo);
+  const canRedoAction = useStore(canRedo);
 
   return (
     <ScrollArea className="w-full toolbar-scroll">
       <div className="flex items-center justify-center gap-2 w-full">
         {/* Undo/Redo */}
-        {/* <div className="flex items-center gap-0.5 flex-shrink-0">
+        <div className="flex items-center gap-0.5 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
@@ -193,7 +197,7 @@ export function EditorControls({ canEdit = true, isStarred = false }: { canEdit?
             >
               <Redo className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
-          </div> */}
+          </div>
 
         {/* <div className="w-px h-4 sm:h-5 bg-border mx-1 sm:mx-2 flex-shrink-0" /> */}
 
@@ -384,8 +388,8 @@ export function EditorControls({ canEdit = true, isStarred = false }: { canEdit?
             className="h-8 w-8 p-0"
             aria-label={isStarred ? "Remove from starred" : "Add to starred"}
           >
-            <Star
-              className={`h-4 w-4 ${isStarred ? "fill-current text-yellow-500" : ""}`}
+            <Star color={isStarred ? "var(--color-yellow-500)" : undefined}
+              className={`h-4 w-4`}
             />
           </Button>
         </div>
