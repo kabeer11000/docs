@@ -210,7 +210,7 @@ export function EditorHeaderContent({
         />
         
         {/* Mobile: Owner tag and share button below input */}
-        <div className="md:hidden flex items-center gap-2 mt-1.5">
+        <div className="md:hidden flex items-center gap-2 mt-1">
           {/* Owner Role as simple text tag */}
           {permissions?.accessLevel && (
             <span
