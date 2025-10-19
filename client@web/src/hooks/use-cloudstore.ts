@@ -83,7 +83,7 @@ export function useCloudStore() {
       }
 
       try {
-        const docId = input._id || nanoid();
+        const docId = input.id || nanoid();
         const defaultPageSettings = {
           pageSize: "Letter" as const,
           orientation: "portrait" as const,
@@ -249,7 +249,7 @@ export function useCloudStore() {
       const documents = (await documentsCollection.get(documentsQuery)) as Document[];
       
       for (const document of documents) {
-        await deleteDocument(document._id);
+        await deleteDocument(document.id);
       }
       
       // Finally, delete the main folder

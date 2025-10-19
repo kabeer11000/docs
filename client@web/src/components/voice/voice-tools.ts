@@ -248,7 +248,7 @@ export const voiceTools: ToolConfig[] = [
         };
 
         console.log("📊 [VOICE TOOL] Document object created:", {
-          id: newDocument._id,
+          id: newDocument.id,
           title: newDocument.title,
           owner: newDocument.owner,
           contentLength: firContent.length,

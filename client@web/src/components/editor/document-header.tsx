@@ -93,7 +93,7 @@ export function DocumentHeader({
 
   const handleCopy = async () => {
     try {
-      const newId = await duplicateDocument(document._id);
+      const newId = await duplicateDocument(document.id);
       if (newId) {
         // Open copied document in same tab
         window.location.href = `/document/${newId}`;

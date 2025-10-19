@@ -48,7 +48,7 @@ export function useDocuments(
     // Handle shared-with-me mode
     if (mode === "shared-with-me") {
       const sharedItems: IListItem[] = sharedDocuments.map((doc) => ({
-        id: doc._id,
+        id: doc.id,
         name: doc.title,
         location: doc.parents?.at(-1) || doc.location,
         parents: doc.parents || [],
@@ -86,7 +86,7 @@ export function useDocuments(
 
     // Handle regular modes
     const documentItems: IListItem[] = documentsData.map((doc) => ({
-      id: doc._id,
+      id: doc.id,
       name: doc.title,
       location: doc.parents?.at(-1) || doc.location,
       parents: doc.parents || [],

@@ -147,7 +147,7 @@ export function EditorWithHeader({
       <EditableTitle
         title={documentData.title}
         onTitleChange={handleTitleChange}
-        documentId={documentData._id}
+        documentId={documentData.id}
         onTemplateSelect={handleTemplateSelect}
         canRename={permissions.canRename && !isDocumentLocked}
       />

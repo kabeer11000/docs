@@ -132,7 +132,7 @@ export function EditorHeaderContent({
     try {
       showToast.info("Creating a copy...");
       
-      const newId = await duplicateDocument(documentData._id);
+      const newId = await duplicateDocument(documentData.id);
       if (newId) {
         // Open the copy in a new tab/window, keep the original in current tab
         window.open(`/document/${newId}`, '_blank');
@@ -160,7 +160,7 @@ export function EditorHeaderContent({
       try {
         // Toggle the starred status
         const newStarredStatus = !documentData.isStarred;
-        const success = await updateDocument(documentData._id, { 
+        const success = await updateDocument(documentData.id, { 
           isStarred: newStarredStatus,
           updatedAt: new Date().toISOString()
         });
@@ -204,7 +204,7 @@ export function EditorHeaderContent({
         <EditableTitle
           title={documentData.title}
           onTitleChange={handleTitleChange}
-          documentId={documentData._id}
+          documentId={documentData.id}
           onTemplateSelect={handleTemplateSelect}
           canRename={permissions.canRename && !isDocumentLocked}
         />

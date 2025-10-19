@@ -357,7 +357,7 @@ class AuthService {
   private transformBackendUserToUser(backendUser: any): IUser {
     // This is a simplified transformation - in reality, this would be imported from shared types
     return {
-      id: backendUser.id || backendUser._id,
+      id: backendUser.id || backendUser.id,
       email: backendUser.email,
       displayName: backendUser.name || backendUser.displayName,
       tenant_id: backendUser.tenant_id || '1234',

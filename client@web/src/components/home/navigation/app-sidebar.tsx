@@ -363,11 +363,11 @@ function StarredDocuments() {
     <div className="space-y-1">
       {starredDocs.map((doc) => (
         <SidebarMenuButton
-          key={doc._id || doc.id}
+          key={doc.id || doc.id}
           asChild
           className="w-full justify-start text-sm"
         >
-          <a href={`/document/${doc._id || doc.id}`}>
+          <a href={`/document/${doc.id || doc.id}`}>
             <Star className="w-3 h-3 text-yellow-500 fill-current" />
             <span className="truncate">{doc.title}</span>
           </a>
@@ -426,11 +426,11 @@ function StarredFolders() {
     <div className="space-y-1">
       {starredFolders.map((folder) => (
         <SidebarMenuButton
-          key={folder._id || folder.id}
+          key={folder.id || folder.id}
           asChild
           className="w-full justify-start text-sm"
         >
-          <a href={`/folder/${folder._id || folder.id}`} className="flex items-center gap-2 w-full">
+          <a href={`/folder/${folder.id || folder.id}`} className="flex items-center gap-2 w-full">
             <Star className="w-3 h-3 text-yellow-500 fill-current flex-shrink-0" />
             <span className="truncate flex-1">{folder.name || folder.title || "Folder"}</span>
           </a>

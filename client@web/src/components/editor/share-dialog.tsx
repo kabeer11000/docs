@@ -122,7 +122,7 @@ export function ShareDialog({
   const { user } = useStore($auth);
 
   const isOwner = user && document.owner === user.id;
-  const shareableLink = `${window.location.origin}/document/${document._id}?title=${btoa(document.title)}`;
+  const shareableLink = `${window.location.origin}/document/${document.id}?title=${btoa(document.title)}`;
 
   // Security check
   useEffect(() => {
@@ -185,7 +185,7 @@ export function ShareDialog({
 
         const dbUsers: UserSearchResult[] = (result?.collection || []).map(
           (u: any) => ({
-            id: u.id || u._id,
+            id: u.id || u.id,
             email: u.email,
             displayName: u.displayName || u.name,
           }),
@@ -326,7 +326,7 @@ export function ShareDialog({
   };
 
   const handleDone = useCallback(async () => {
-    if (!document?._id || !user || !isOwner) return;
+    if (!document?.id || !user || !isOwner) return;
 
     setIsSaving(true);
     try {
@@ -355,7 +355,7 @@ export function ShareDialog({
           requestedAt: new Date().toISOString(),
         }));
 
-      const success = await updateDocument(document._id, {
+      const success = await updateDocument(document.id, {
         sharing: {
           isShared: sharedWithOwner.length > 1,
           sharedWith: sharedWithOwner,
