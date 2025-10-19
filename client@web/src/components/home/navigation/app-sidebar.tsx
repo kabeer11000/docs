@@ -159,7 +159,7 @@ export function AppSidebar({
     <Sidebar collapsible="offcanvas" {...props} className="border-r-0 ">
       <SidebarHeader className="p-0">
         <SidebarMenu className="p-0">
-          <SidebarMenuItem className="px-2">
+          <SidebarMenuItem className="py-2">
             <SidebarMenuButton asChild>
               <a href="/home" className="flex items-center gap-2">
               <img src="/assets/icon-192.png" className="w-10 h-auto"/>
