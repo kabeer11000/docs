@@ -365,7 +365,7 @@ export function EditorHeaderContent({
               variant="default"
               size="sm"
               onClick={() => setShowShareDialog(true)}
-              className="h-8 px-3"
+              className="h-8 min-h-8 px-3"
             >
               <Share className="w-3.5 h-3.5 mr-1.5" />
               Share

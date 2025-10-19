@@ -10,7 +10,7 @@ import { searchActions } from "@/state/search";
 
 // Lazy load heavy components
 const Editor = dynamic(() => import("@/components/editor/editor"), {
-  ssr: false,
+  ssr: true,
   loading: () => (
     <>
       {/* Editor toolbar skeleton */}
@@ -56,7 +56,7 @@ const EditorHeaderContent = dynamic(
 );
 
 const ReactHome = dynamic(() => import("@/components/home"), {
-  ssr: false,
+  ssr: true,
   loading: () => null,
 });
 
@@ -160,7 +160,7 @@ export default function DocumentPage({
           
           {/* Editor content skeleton */}
           <div className="flex-1 overflow-y-auto bg-muted">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto p-8">
               <div className="bg-background w-full min-h-[calc(100vh-10rem)] rounded-lg">
                 <div className="space-y-4">
                   <div className="h-8 bg-muted/50 rounded w-3/4 animate-pulse"></div>

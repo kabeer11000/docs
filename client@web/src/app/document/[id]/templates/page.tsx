@@ -7,7 +7,7 @@ import { searchActions } from "@/state/search";
 
 // Lazy load heavy components
 const ReactHome = dynamic(() => import("@/components/home"), {
-  ssr: false,
+  ssr: true,
   loading: () => (
     <div className="flex items-center justify-center h-screen">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -21,7 +21,7 @@ const Templates = dynamic(
       default: m.Templates,
     })),
   {
-    ssr: false,
+    ssr: true,
     loading: () => (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />

@@ -9,7 +9,7 @@ import { searchActions } from "@/state/search";
 
 // Lazy load heavy components
 const AI = dynamic(() => import("@/components/ai/ai"), {
-  ssr: false,
+  ssr: true,
   loading: () => (
     <div className="flex items-center justify-center h-full">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
@@ -18,7 +18,7 @@ const AI = dynamic(() => import("@/components/ai/ai"), {
 });
 
 const ReactHome = dynamic(() => import("@/components/ai"), {
-  ssr: false,
+  ssr: true,
   loading: () => null,
 });
 

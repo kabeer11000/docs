@@ -89,7 +89,7 @@ export const MessageItem = memo<MessageItemProps>(
             {message.isThinking && message.content === "" ? (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader size={16} />
-                <span>Judging...</span>
+                <span>Thinking...</span>
               </div>
             ) : (
               <>

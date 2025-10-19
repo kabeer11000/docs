@@ -26,7 +26,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Docs" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
-        {cookieStore.get('kn.docs.debug-env') && <Fragment>
+        {await cookieStore.get('kn.docs.debug-env') && <Fragment>
           <script
             crossOrigin="anonymous"
             src="//unpkg.com/react-scan/dist/auto.global.js"
