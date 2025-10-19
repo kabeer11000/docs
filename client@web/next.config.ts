@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
     reactCompiler: true,
-    useLightningcss: true,
     viewTransition: true,
     optimizePackageImports: [
       "lucide-react",
