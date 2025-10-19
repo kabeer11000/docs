@@ -395,7 +395,7 @@ export function FoldersView({
   };
 
   const FolderSkeleton = () => (
-    <div className="flex items-center px-2 py-2 md:px-4 md:pr-1 md:p-2 border border-border bg-card dark:bg-card w-full rounded-md">
+    <div className="flex items-center px-2 py-4 md:px-4 md:pr-1 md:p-4 border border-border bg-card dark:bg-card w-full rounded-md">
       <div className="mr-4">
         <Skeleton className="w-6 h-6 rounded" />
       </div>
