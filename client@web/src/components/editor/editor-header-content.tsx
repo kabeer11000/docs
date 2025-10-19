@@ -261,7 +261,7 @@ export function EditorHeaderContent({
                   Saving...
                 </span>
               )}
-            </div>
+            </div> 
           )}
         </div>
       </div>
