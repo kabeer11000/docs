@@ -79,7 +79,7 @@ export function TypographySelector({
       disabled={disabled}
     >
       <SelectTrigger
-        className="w-28 sm:w-40 h-7 sm:h-8 text-xs sm:text-sm border-input bg-background hover:bg-muted/50 transition-colors"
+        className="w-full max-w-[180px] sm:w-40 h-7 sm:h-8 text-xs sm:text-sm border-input bg-background hover:bg-muted/50 transition-colors"
         disabled={disabled}
       >
         <SelectValue>

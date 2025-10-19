@@ -278,6 +278,11 @@ export function EditorAIChatPanel({
         .replace(/\n/g, "<br>");
 
       editor.chain().focus().insertContent(html).run();
+
+      // Close AI panel on mobile after inserting
+      if (window.innerWidth < 768) {
+        editorActions.setAIPanelOpen(false);
+      }
     }
   }, []);
 
@@ -296,12 +301,22 @@ export function EditorAIChatPanel({
   }, [isOpen]);
 
   return (
-    <div
-      className={cn(
-        "fixed top-0 right-0 h-full w-80 bg-background border-l transition-transform duration-300 ease-in-out z-50 flex flex-col",
-        isOpen ? "translate-x-0" : "translate-x-full"
+    <>
+      {/* Mobile backdrop overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={handleCloseAIPanel}
+        />
       )}
-    >
+      {/* AI Panel */}
+      <div
+        className={cn(
+          "fixed top-0 right-0 h-full w-full md:w-80 bg-background border-l transition-transform duration-300 ease-in-out z-50 flex flex-col",
+          "md:translate-x-0",
+          isOpen ? "translate-x-0" : "translate-x-full md:translate-x-full"
+        )}
+      >
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
@@ -419,6 +434,7 @@ export function EditorAIChatPanel({
           </p>
         </form>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -65,7 +65,7 @@ export function FontSelector({ disabled = false }: { disabled?: boolean }) {
       disabled={disabled}
     >
       <SelectTrigger
-        className="w-32 sm:w-36 h-7 sm:h-8 text-xs sm:text-sm border-input bg-background hover:bg-muted/50 transition-colors"
+        className="w-full max-w-[200px] sm:w-36 h-7 sm:h-8 text-xs sm:text-sm border-input bg-background hover:bg-muted/50 transition-colors"
         disabled={disabled}
       >
         <SelectValue>

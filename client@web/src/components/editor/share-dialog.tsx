@@ -391,7 +391,7 @@ export function ShareDialog({
   if (viewState === "main") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent showCloseButton={false} className="sm:max-w-[550px] p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:rounded-lg">
+        <DialogContent showCloseButton={false} className="p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl">
@@ -436,7 +436,7 @@ export function ShareDialog({
             </div>
           </DialogHeader>
 
-          <div className="px-6 space-y-4 max-h-[320px] overflow-y-auto">
+          <div className="px-6 pb-6 space-y-4 max-h-[calc(100vh-280px)] sm:max-h-[320px] overflow-y-auto">
             {/* Search input with autocomplete */}
             <Popover open={searchOpen} onOpenChange={setSearchOpen}>
               <PopoverTrigger asChild>
@@ -666,7 +666,7 @@ export function ShareDialog({
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 px-6 py-4 border-t mt-4">
+          <div className="flex justify-end gap-2 px-6 py-4 border-t">
             <Button onClick={handleDone} disabled={isSaving}>
               {isSaving ? (
                 <>
@@ -696,7 +696,7 @@ export function ShareDialog({
           onOpenChange(isOpen);
         }}
       >
-        <DialogContent className="sm:max-w-[550px] p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:rounded-lg">
+        <DialogContent className="p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <Button
               variant="ghost"
@@ -787,7 +787,7 @@ export function ShareDialog({
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 px-6 py-4 border-t mt-4">
+          <div className="flex justify-end gap-2 px-6 py-4 border-t">
             <Button variant="outline" onClick={copyLink}>
               <Link2 className="h-4 w-4 mr-2" />
               Copy link
@@ -818,7 +818,7 @@ export function ShareDialog({
           onOpenChange(isOpen);
         }}
       >
-        <DialogContent className="sm:max-w-[550px] p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:rounded-lg">
+        <DialogContent className="p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <Button
               variant="ghost"
@@ -834,7 +834,7 @@ export function ShareDialog({
             </DialogTitle>
           </DialogHeader>
 
-          <div className="px-6 space-y-6">
+          <div className="px-6 pb-6 space-y-6 max-h-[calc(100vh-280px)] sm:max-h-[360px] overflow-y-auto">
             <div className="space-y-3">
               <h3 className="text-sm font-medium">Access</h3>
               <div className="flex items-start gap-3">
@@ -892,7 +892,7 @@ export function ShareDialog({
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-2 px-6 py-4 border-t mt-6">
+          <div className="flex justify-end gap-2 px-6 py-4 border-t">
             <Button onClick={() => setViewState("main")}>Done</Button>
           </div>
         </DialogContent>

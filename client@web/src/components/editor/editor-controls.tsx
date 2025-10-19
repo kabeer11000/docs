@@ -8,6 +8,7 @@ import {
   Code,
   Copy,
   Italic,
+  MessageSquare,
   Printer,
   Quote,
   ShipWheel,
@@ -341,6 +342,17 @@ export function EditorControls({ canEdit = true, isStarred = false }: { canEdit?
             variant="ghost"
             size="sm"
             onClick={() => {
+              editorActions.setCommentsSidebarOpen(!editorUIState.get().isCommentsSidebarOpen);
+            }}
+            className="h-8 w-8 p-0"
+            aria-label="Open comments"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
               // Trigger print via custom event
               window.dispatchEvent(new CustomEvent("document-print-requested"));
             }}
@@ -372,8 +384,8 @@ export function EditorControls({ canEdit = true, isStarred = false }: { canEdit?
             className="h-8 w-8 p-0"
             aria-label={isStarred ? "Remove from starred" : "Add to starred"}
           >
-            <Star 
-              className={`h-4 w-4 ${isStarred ? "fill-current text-yellow-500" : ""}`} 
+            <Star
+              className={`h-4 w-4 ${isStarred ? "fill-current text-yellow-500" : ""}`}
             />
           </Button>
         </div>

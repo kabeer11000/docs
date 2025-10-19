@@ -66,19 +66,19 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] bg-background">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] bg-background text-left">
+        <DialogHeader className="text-left">
           <DialogTitle className="text-lg font-semibold">Add Comment</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-2">
           {/* Selected text preview */}
           {selectedText && (
-            <div className="text-sm bg-muted p-3 rounded-lg w-full border-l-4 border-primary">
+            <div className="text-sm bg-muted p-3 rounded-lg w-full border-l-4 border-primary overflow-hidden">
               <div className="font-medium mb-1">Selected text:</div>
-              <div 
-                className="italic truncate max-w-full inline-block align-bottom"
-                title={selectedText} // Optional: Show full text on hover
+              <div
+                className="italic line-clamp-2 overflow-hidden text-ellipsis"
+                title={selectedText}
               >
                 "{selectedText}"
               </div>

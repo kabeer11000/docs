@@ -187,6 +187,7 @@ const DocumentEditor = ({
 
   // Optimize state updates with refs for non-render-critical values
   const selectionRangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
+  const showCommentDialogRef = useRef(false);
   const [selectionMenuPosition, setSelectionMenuPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [showSelectionMenu, setShowSelectionMenu] = useState(false);
   const [showCommentDialog, setShowCommentDialog] = useState(false);
@@ -194,6 +195,11 @@ const DocumentEditor = ({
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [flagTooltip, setFlagTooltip] = useState<any>(null);
   const editorContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Keep ref in sync with state for use in callbacks
+  useEffect(() => {
+    showCommentDialogRef.current = showCommentDialog;
+  }, [showCommentDialog]);
 
   // Use computed store values more efficiently
   const isCommentsSidebarOpen = useStore(
@@ -377,18 +383,18 @@ const DocumentEditor = ({
   const debouncedSelectionUpdate = useMemo(
     () => debounce(({ editor }: any) => {
       const { from, to } = editor.state.selection;
-      
-      if (showCommentDialog) return;
-      
+
+      if (showCommentDialogRef.current) return;
+
       if (from !== to) {
         const selectedText = editor.state.doc.textBetween(from, to, "");
         if (selectedText.trim()) {
           editorActions.setSelectedText(selectedText);
           selectionRangeRef.current = { from, to, text: selectedText };
-          
+
           setTimeout(() => {
             const domSelection = window.getSelection();
-            if (domSelection && domSelection.rangeCount > 0 && !showCommentDialog) {
+            if (domSelection && domSelection.rangeCount > 0 && !showCommentDialogRef.current) {
               const range = domSelection.getRangeAt(0);
               const rect = range.getBoundingClientRect();
               setSelectionMenuPosition({
@@ -405,7 +411,7 @@ const DocumentEditor = ({
         selectionRangeRef.current = null;
       }
     }, 300),
-    [showCommentDialog]
+    []
   );
 
   const editor = useEditor({
@@ -468,7 +474,10 @@ const DocumentEditor = ({
   const handleCommentClick = useCallback(() => {
     setShowSelectionMenu(false);
     setShowCommentDialog(true);
-    editorActions.setCommentsSidebarOpen(true);
+    // Only open sidebar on desktop, not on mobile
+    if (window.innerWidth >= 768) {
+      editorActions.setCommentsSidebarOpen(true);
+    }
   }, []);
 
   const handleCreateComment = useCallback(
@@ -488,7 +497,10 @@ const DocumentEditor = ({
           setShowCommentDialog(false);
           selectionRangeRef.current = null;
           setActiveCommentId(commentId);
-          editorActions.setCommentsSidebarOpen(true);
+          // Only open sidebar on desktop after creating comment
+          if (window.innerWidth >= 768) {
+            editorActions.setCommentsSidebarOpen(true);
+          }
         }
       } catch (error) {
         console.error("Failed to create comment:", error);
@@ -504,15 +516,15 @@ const DocumentEditor = ({
     (commentId: string) => {
       setActiveCommentId(commentId);
       const comment = getComment(commentId);
-      
+
       if (!comment || !editor) return;
-      
+
       setShowSelectionMenu(false);
-      
+
       // Navigate to comment with retry logic
       const navigateToComment = () => {
         if (!editor || editor.isDestroyed || !editor.view) return;
-        
+
         try {
           const docSize = editor.state.doc.content.size;
           if (comment.range.from >= 0 && comment.range.to <= docSize && comment.range.from < comment.range.to) {
@@ -528,10 +540,17 @@ const DocumentEditor = ({
           showToast.error("Failed to navigate to comment location.");
         }
       };
-      
+
       navigateToComment();
       // Retry once if needed
       setTimeout(navigateToComment, 200);
+
+      // Close sidebar on mobile after navigation
+      setTimeout(() => {
+        if (window.innerWidth < 768) {
+          editorActions.setCommentsSidebarOpen(false);
+        }
+      }, 250);
     },
     [getComment, editor]
   );
@@ -544,6 +563,10 @@ const DocumentEditor = ({
           setActiveCommentId(null);
           selectionRangeRef.current = null;
           setShowCommentDialog(false);
+          // Close sidebar on mobile after resolving
+          if (window.innerWidth < 768) {
+            editorActions.setCommentsSidebarOpen(false);
+          }
         } else {
           showToast.error("Failed to resolve comment.");
         }
@@ -563,6 +586,10 @@ const DocumentEditor = ({
           setActiveCommentId(null);
           selectionRangeRef.current = null;
           setShowCommentDialog(false);
+          // Close sidebar on mobile after deleting
+          if (window.innerWidth < 768) {
+            editorActions.setCommentsSidebarOpen(false);
+          }
         } else {
           showToast.error("Failed to delete comment.");
         }
@@ -645,17 +672,18 @@ const DocumentEditor = ({
     };
   }, []);
 
-  // Compute responsive margins
-  const responsiveMargins = useMemo(() => 
+  // Compute responsive margins - no margins on mobile, only on desktop
+  const responsiveMargins = useMemo(() =>
     cn(
       "transition-all duration-300 ease-in-out",
+      "md:transition-all md:duration-300",
       isAIPanelOpen && isCommentsSidebarOpen
-        ? "mr-[640px]"
+        ? "md:mr-[640px]"
         : isAIPanelOpen
-          ? "mr-80"
+          ? "md:mr-80"
           : isCommentsSidebarOpen
-            ? "mr-80"
-            : "mr-0"
+            ? "md:mr-80"
+            : "md:mr-0"
     ),
     [isAIPanelOpen, isCommentsSidebarOpen]
   );
