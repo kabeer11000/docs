@@ -3,6 +3,7 @@ import "@/styles/global.css";
 import { cookies } from 'next/headers';
 import { Providers } from "./providers";
 import { Fragment } from "react";
+import { PWASupport } from "@/components/PWASupport";
 
 export const metadata: Metadata = {
   title: "Kabeer's Docs - Document Management & Collaboration",
@@ -38,6 +39,7 @@ export default async function RootLayout({
         </Fragment>}
       </head>
       <body>
+        <PWASupport/>
         <Providers>{children}</Providers>
       </body>
     </html>
