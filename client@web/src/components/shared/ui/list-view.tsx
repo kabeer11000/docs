@@ -748,7 +748,7 @@ export const ListView = React.memo(function ListView({
 
   const ItemRowSkeleton = () => (
     <TableRow className="group border-t-border hover:bg-muted transition-colors">
-      <TableCell className="p-0 sm:p-2 md:p-4 rounded-l-md">
+      <TableCell className="p-0 sm:p-4 md:p-6 rounded-l-md">
         <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
           <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
             <Skeleton className="h-6 w-6 rounded" />
@@ -764,25 +764,25 @@ export const ListView = React.memo(function ListView({
         </div>
       </TableCell>
 
-      <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-4">
+      <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
         <Skeleton className="h-3 w-28 rounded" />
       </TableCell>
 
-      <TableCell className="hidden md:table-cell p-2 md:p-4">
+      <TableCell className="hidden md:table-cell p-2 md:p-2">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Skeleton className="h-6 w-6 rounded-full" />
           <Skeleton className="h-3 w-6 rounded" />
         </div>
       </TableCell>
 
-      <TableCell className="hidden lg:table-cell p-2 md:p-4">
+      <TableCell className="hidden lg:table-cell p-2 md:p-2">
         <div className="flex items-center transition-colors rounded-full">
           <Skeleton className="h-3 w-3 rounded-full mr-1" />
           <Skeleton className="h-3 w-16 rounded" />
         </div>
       </TableCell>
 
-      <TableCell className="text-center rounded-r-md p-2 md:p-4">
+      <TableCell className="text-center rounded-r-md p-2 md:p-2">
         <Skeleton className="h-4 w-4 rounded mx-auto" />
       </TableCell>
     </TableRow>
@@ -842,7 +842,7 @@ export const ListView = React.memo(function ListView({
         className={`group border-t-border hover:bg-muted transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""}`}
       >
         <TableCell
-          className="p-0 sm:p-2 md:p-4 rounded-tl-md rounded-bl-md"
+          className="p-0 sm:p-2 md:p-2 rounded-tl-md rounded-bl-md"
           onClick={() => handleItemClick(item)}
         >
           <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
@@ -879,13 +879,13 @@ export const ListView = React.memo(function ListView({
           </div>
         </TableCell>
 
-        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-4">
+        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
           {item.itemType === "folder"
             ? `${item.category} • ${item.meta?.fileCount || 0} Files`
             : `You edited • ${formatDistanceToNow(new Date(item.timestamp.createdAt), { addSuffix: true })}`}
         </TableCell>
 
-        <TableCell className="hidden md:table-cell p-2 md:p-4">
+        <TableCell className="hidden md:table-cell p-2 md:p-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Tooltip>
               <TooltipTrigger>
@@ -901,7 +901,7 @@ export const ListView = React.memo(function ListView({
           </div>
         </TableCell>
 
-        <TableCell className="hidden lg:table-cell p-2 md:p-4">
+        <TableCell className="hidden lg:table-cell p-2 md:p-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -939,7 +939,7 @@ export const ListView = React.memo(function ListView({
           </Tooltip>
         </TableCell>
 
-        <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-4">
+        <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-2">
           {isMobile ? (
             <Button
               variant="ghost"
@@ -1054,7 +1054,7 @@ export const ListView = React.memo(function ListView({
             </div>
           </TableCell>
 
-          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-4">
+          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
             {item.itemType === "folder"
               ? `${item.category} • ${item.meta?.fileCount || 0} Files`
               : `You edited • ${(item as any).formattedDate}`}
@@ -1114,7 +1114,7 @@ export const ListView = React.memo(function ListView({
             </Tooltip>
           </TableCell>
 
-          <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-4">
+          <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-2">
             {isMobile ? (
               <Button
                 variant="ghost"
@@ -1222,7 +1222,7 @@ export const ListView = React.memo(function ListView({
   const content = (
     <div className="rounded-lg overflow-hidden">
       {enableBulkSelection && (
-        <div className={`${selectedItems.size > 0 ? "" : "h-16"}`}>
+        <div className={`${selectedItems.size > 0 ? "" : "scale-y-0 -h-16"}`}>
           {bulkActionToolbar}
         </div>
       )}
@@ -1230,7 +1230,7 @@ export const ListView = React.memo(function ListView({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             {enableBulkSelection && (
-              <TableHead className="w-16 p-1 sm:p-2 md:p-3 ">
+              <TableHead className="w-16 p-1 sm:p-2 md:p-3">
                 <Checkbox
                   checked={
                     selectedItems.size === sortedItems.length &&
@@ -1242,7 +1242,7 @@ export const ListView = React.memo(function ListView({
                 />
               </TableHead>
             )}
-            <TableHead className="text-muted-foreground font-medium p-2 md:p-4">
+            <TableHead className="text-muted-foreground font-medium p-2 md:p-2">
               {enableSorting ? (
                 <Button
                   variant="ghost"
@@ -1257,7 +1257,7 @@ export const ListView = React.memo(function ListView({
                 "Name"
               )}
             </TableHead>
-            <TableHead className="text-muted-foreground font-medium hidden sm:table-cell p-2 md:p-4">
+            <TableHead className="text-muted-foreground font-medium hidden sm:table-cell p-2 md:p-2">
               {enableSorting ? (
                 <Button
                   variant="ghost"
@@ -1272,7 +1272,7 @@ export const ListView = React.memo(function ListView({
                 "Details"
               )}
             </TableHead>
-            <TableHead className="text-muted-foreground font-medium hidden md:table-cell p-2 md:p-4">
+            <TableHead className="text-muted-foreground font-medium hidden md:table-cell p-2 md:p-2">
               {enableSorting ? (
                 <Button
                   variant="ghost"
@@ -1287,7 +1287,7 @@ export const ListView = React.memo(function ListView({
                 "Owner"
               )}
             </TableHead>
-            <TableHead className="text-muted-foreground font-medium hidden lg:table-cell p-2 md:p-4">
+            <TableHead className="text-muted-foreground font-medium hidden lg:table-cell p-2 md:p-2">
               {enableSorting ? (
                 <Button
                   variant="ghost"
@@ -1302,7 +1302,7 @@ export const ListView = React.memo(function ListView({
                 "Location"
               )}
             </TableHead>
-            <TableHead className="w-12 p-2 md:p-4"></TableHead>
+            <TableHead className="w-12 p-2 md:p-2"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
