@@ -8,61 +8,58 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import type { IconType } from "react-icons";
 import {
-  PiAirplane,
-  PiArticle,
-  PiBookOpen,
-  PiBriefcase,
-  PiBuilding,
-  PiBuildings,
-  PiCalendar,
-  PiCamera,
-  PiCaretLeft,
-  PiCaretRight,
-  PiCertificate,
-  PiChartLineUp,
-  PiCheckCircle,
-  PiClock,
-  PiCode,
-  PiCurrencyDollar,
-  PiDesk,
-  PiFactory,
-  PiFileText,
-  PiFilmSlate,
-  PiFlask,
-  PiGavel,
-  PiGear,
-  PiGift,
-  PiGlobe,
-  PiGraduationCap,
-  PiHandshake,
-  PiHouse,
-  PiLock,
-  PiMegaphone,
-  PiNote,
-  PiPackage,
-  PiPalette,
-  PiPlus,
-  PiProhibit,
-  PiReceipt,
-  PiSeal,
-  PiShareNetwork,
-  PiShield,
-  PiShieldCheck,
-  PiShoppingCart,
-  PiSpinner,
-  PiStamp,
-  PiStorefront,
-  PiTruck,
-  PiUser,
-  PiUsers,
-  PiUsersThree,
-  PiWarehouse,
-  PiWarning,
-  PiWrench,
-  PiX,
-} from "react-icons/pi";
+  Plane as Airplane,
+  BookOpen,
+  Briefcase,
+  Building,
+  Building2 as Buildings,
+  Calendar,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  Award as Certificate,
+  ChartLine as ChartLineUp,
+  CheckCircle,
+  Clock,
+  Code,
+  DollarSign,
+  Table as Desk,
+  Factory,
+  FileText,
+  Film as FilmSlate,
+  FlaskConical as Flask,
+  Gavel,
+  Settings,
+  Gift,
+  Globe,
+  GraduationCap,
+  Handshake,
+  Home,
+  Lock,
+  Megaphone,
+  File as Note,
+  Package,
+  Palette,
+  Plus,
+  // Prohibit,
+  Receipt,
+  StampIcon as  Seal,
+  Network as ShareNetwork,
+  Shield,
+  ShieldCheck,
+  ShoppingCart,
+  Stamp,
+  // Storefront,
+  Truck,
+  User,
+  Users,
+  User2 as UsersThree,
+  Warehouse,
+  FileWarning as Warning,
+  Wrench,
+  X,
+} from "lucide-react";
 import {
   TableCellPlus,
   TableHeaderPlus,
@@ -106,37 +103,37 @@ interface Template {
 }
 
 // Map template categories to appropriate icons
-const _getTemplateIcon = (category: string, title: string): IconType => {
+const _getTemplateIcon = (category: string, title: string): React.ComponentType => {
   const categoryLower = category.toLowerCase();
   const _titleLower = title.toLowerCase();
 
   // Specific category matches (most specific first)
-  if (categoryLower.includes("assignment of shares")) return PiUsersThree;
-  if (categoryLower.includes("child travel consent")) return PiAirplane;
+  if (categoryLower.includes("assignment of shares")) return UsersThree;
+  if (categoryLower.includes("child travel consent")) return Airplane;
   if (
     categoryLower.includes("warehouse lease") ||
     categoryLower.includes("warehouse")
   )
-    return PiWarehouse;
-  if (categoryLower.includes("commercial lease")) return PiBuildings;
-  if (categoryLower.includes("coworking space")) return PiDesk;
+    return Warehouse;
+  if (categoryLower.includes("commercial lease")) return Buildings;
+  if (categoryLower.includes("coworking space")) return Desk;
   if (
     categoryLower.includes("bill of sale") ||
     categoryLower.includes("sale deed")
   )
-    return PiReceipt;
-  if (categoryLower.includes("deed of trust")) return PiSeal;
+    return Receipt;
+  if (categoryLower.includes("deed of trust")) return Seal;
   if (
     categoryLower.includes("power of attorney") ||
     categoryLower.includes("guarantee")
   )
-    return PiStamp;
-  if (categoryLower.includes("indemnity")) return PiShield;
+    return Stamp;
+  if (categoryLower.includes("indemnity")) return Shield;
   if (
     categoryLower.includes("release of liability") ||
     categoryLower.includes("waiver")
   )
-    return PiWarning;
+    return Warning;
 
   // Legal & IP
   if (
@@ -144,23 +141,23 @@ const _getTemplateIcon = (category: string, title: string): IconType => {
     categoryLower.includes("patent") ||
     categoryLower.includes("ip agreement")
   )
-    return PiGavel;
+    return Gavel;
   if (categoryLower.includes("nda") || categoryLower.includes("confidential"))
-    return PiShieldCheck;
-  if (categoryLower.includes("non-compete")) return PiProhibit;
+    return ShieldCheck;
+  // if (categoryLower.includes("non-compete")) return Prohibit;
 
   // Financial & Business
   if (
     categoryLower.includes("fixed price") ||
     categoryLower.includes("lump sum")
   )
-    return PiCurrencyDollar;
-  if (categoryLower.includes("time & materials")) return PiClock;
-  if (categoryLower.includes("investor")) return PiChartLineUp;
-  if (categoryLower.includes("shareholder")) return PiChartLineUp;
-  if (categoryLower.includes("franchise")) return PiStorefront;
-  if (categoryLower.includes("buy-sell")) return PiHandshake;
-  if (categoryLower.includes("business transfer")) return PiHandshake;
+    return DollarSign;
+  if (categoryLower.includes("time & materials")) return Clock;
+  if (categoryLower.includes("investor")) return ChartLineUp;
+  if (categoryLower.includes("shareholder")) return ChartLineUp;
+  // if (categoryLower.includes("franchise")) return Storefront;
+  if (categoryLower.includes("buy-sell")) return Handshake;
+  if (categoryLower.includes("business transfer")) return Handshake;
 
   // Licensing & Certification
   if (
@@ -168,135 +165,135 @@ const _getTemplateIcon = (category: string, title: string): IconType => {
     categoryLower.includes("license") ||
     categoryLower.includes("eula")
   )
-    return PiCertificate;
+    return Certificate;
   if (categoryLower.includes("beta") || categoryLower.includes("testing"))
-    return PiFlask;
+    return Flask;
 
   // People & Groups
   if (
     categoryLower.includes("ambassador") ||
     categoryLower.includes("influencer")
   )
-    return PiUsers;
-  if (categoryLower.includes("referral")) return PiUsers;
+    return Users;
+  if (categoryLower.includes("referral")) return Users;
   if (categoryLower.includes("board") || categoryLower.includes("director"))
-    return PiUsersThree;
+    return UsersThree;
 
   // Contracts & Agreements
-  if (categoryLower.includes("booking")) return PiCalendar;
+  if (categoryLower.includes("booking")) return Calendar;
   if (
     categoryLower.includes("contract amendment") ||
     categoryLower.includes("renewal")
   )
-    return PiNote;
+    return Note;
   if (
     categoryLower.includes("terms of use") ||
     categoryLower.includes("rfp") ||
     categoryLower.includes("request for proposal")
   )
-    return PiArticle;
-  if (categoryLower.includes("master services")) return PiBriefcase;
+    return FileText;
+  if (categoryLower.includes("master services")) return Briefcase;
 
   // Industry Specific
-  if (categoryLower.includes("cybersecurity")) return PiLock;
+  if (categoryLower.includes("cybersecurity")) return Lock;
   if (
     categoryLower.includes("software") ||
     categoryLower.includes("technology transfer") ||
     categoryLower.includes("web development")
   )
-    return PiCode;
-  if (categoryLower.includes("photography")) return PiCamera;
+    return Code;
+  if (categoryLower.includes("photography")) return Camera;
   if (
     categoryLower.includes("stunt performer") ||
     categoryLower.includes("film")
   )
-    return PiFilmSlate;
-  if (categoryLower.includes("exhibition")) return PiCamera;
+    return FilmSlate;
+  if (categoryLower.includes("exhibition")) return Camera;
 
   // General categories
   if (categoryLower.includes("share") || categoryLower.includes("stock"))
-    return PiShareNetwork;
+    return ShareNetwork;
   if (
     categoryLower.includes("copyright") ||
     categoryLower.includes("author") ||
     categoryLower.includes("publisher")
   )
-    return PiBookOpen;
+    return BookOpen;
   if (categoryLower.includes("lease") || categoryLower.includes("rental"))
-    return PiHouse;
+    return Home;
   if (
     categoryLower.includes("consulting") ||
     categoryLower.includes("freelancer")
   )
-    return PiBriefcase;
-  if (categoryLower.includes("design")) return PiPalette;
+    return Briefcase;
+  if (categoryLower.includes("design")) return Palette;
   if (
     categoryLower.includes("domain") ||
     categoryLower.includes("online course")
   )
-    return PiGlobe;
+    return Globe;
   if (
     categoryLower.includes("employee") ||
     categoryLower.includes("employment")
   )
-    return PiUser;
+    return User;
   if (
     categoryLower.includes("equipment") ||
     categoryLower.includes("fleet maintenance")
   )
-    return PiWrench;
+    return Wrench;
   if (categoryLower.includes("freight") || categoryLower.includes("logistics"))
-    return PiTruck;
+    return Truck;
   if (
     categoryLower.includes("partnership") ||
     categoryLower.includes("joint venture")
   )
-    return PiHandshake;
+    return Handshake;
   if (categoryLower.includes("llc") || categoryLower.includes("llp"))
-    return PiBuilding;
+    return Building;
   if (
     categoryLower.includes("manufacturing") ||
     categoryLower.includes("distributor")
   )
-    return PiFactory;
+    return Factory;
   if (
     categoryLower.includes("teacher") ||
     categoryLower.includes("course") ||
     categoryLower.includes("education")
   )
-    return PiGraduationCap;
+    return GraduationCap;
   if (
     categoryLower.includes("vendor") ||
     categoryLower.includes("supplier") ||
     categoryLower.includes("supply")
   )
-    return PiPackage;
+    return Package;
   if (categoryLower.includes("wedding") || categoryLower.includes("event"))
-    return PiGift;
+    return Gift;
   if (
     categoryLower.includes("marketing") ||
     categoryLower.includes("advertising")
   )
-    return PiMegaphone;
+    return Megaphone;
   if (
     categoryLower.includes("service") ||
     categoryLower.includes("maintenance")
   )
-    return PiGear;
+    return Settings;
   if (
     categoryLower.includes("subcontract") ||
     categoryLower.includes("handyman")
   )
-    return PiWrench;
-  if (categoryLower.includes("quality")) return PiCheckCircle;
+    return Wrench;
+  if (categoryLower.includes("quality")) return CheckCircle;
   if (
     categoryLower.includes("merchandise") ||
     categoryLower.includes("purchasing")
   )
-    return PiShoppingCart;
+    return ShoppingCart;
 
   // Default icon
-  return PiFileText;
+  return FileText;
 };
 
 const TemplateCard: React.FC<TemplateCardProps> = ({
@@ -367,19 +364,19 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   return (
     <Card
       ref={cardRef}
-      className="w-full group cursor-pointer transition-all border-none duration-200 hover:shadow-md hover:border-accent disabled:opacity-50"
+      className="w-full group  bg-transparent border-none  cursor-pointer transition-all border-none-duration-200-hover:shadow-md hover:border-accent disabled:opacity-50"
       style={{
         animation: "fade-in 0.25s ease-in-out",
       }}
       onClick={onClick}
     >
-      <CardContent className="p-4">
-        <div className="aspect-[3/4] group-hover:shadow-xl group-hover:border duration-150 transition-all rounded-md bg-white mb-3 overflow-hidden relative">
+      <CardContent className="p-0">
+        <div className="aspect-[3/4] group-hover:shadow-xl group-hover:bg-muted group-hover:outline outline-muted  bg-transparent duration-150 transition-all rounded-md mb-3 overflow-hidden relative">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {isInView && previewEditor ? (
               <EditorContent
                 editor={previewEditor}
-                className="text-[0.5rem] leading-tight line-clamp-[20] opacity-70 [&_h1]:text-[0.65rem] [&_h1]:font-semibold [&_h1]:mb-1 [&_h2]:text-[0.55rem] [&_h2]:font-medium [&_h2]:mb-0.5 [&_h3]:text-[0.5rem] [&_h3]:font-medium"
+                className="px-4 text-[0.5rem] leading-tight line-clamp-[20] opacity-70 [&_h1]:text-[0.65rem] [&_h1]:font-semibold [&_h1]:mb-1 [&_h2]:text-[0.55rem] [&_h2]:font-medium [&_h2]:mb-0.5 [&_h3]:text-[0.5rem] [&_h3]:font-medium"
               />
             ) : (
               <div className="text-[0.5rem] leading-tight opacity-30 text-muted-foreground">
@@ -595,7 +592,7 @@ export function Templates({ folderId }: TemplatesProps) {
             <SelectContent>
               <SelectItem value="all">All tags</SelectItem>
               {allTags.map((tag) => (
-                <SelectItem key={tag} value={tag}>
+                <SelectItem key={tag} value={tag} className="capitalize">
                   {tag}
                 </SelectItem>
               ))}
@@ -608,7 +605,7 @@ export function Templates({ folderId }: TemplatesProps) {
               onClick={() => handleTagSelect(null)}
               className="h-8"
             >
-              <PiX className="h-4 w-4 mr-1" />
+              <X className="h-4 w-4 mr-1" />
               Clear
             </Button>
           )}
@@ -622,7 +619,7 @@ export function Templates({ folderId }: TemplatesProps) {
           ))}
         {!isLoadingTemplates && (
           <Card
-            className="w-full group cursor-pointer transition-all border-none duration-200 hover:shadow-md hover:border-accent disabled:opacity-50"
+            className="w-full bg-transparent border-none group cursor-pointer transition-all border-none duration-200 hover:shadow-md hover:border-accent disabled:opacity-50"
             style={{
               animation: "fade-in 0.25s ease-in-out",
             }}
@@ -632,13 +629,14 @@ export function Templates({ folderId }: TemplatesProps) {
                 : handleBlankDocumentClick
             }
           >
-            <CardContent className="p-4">
+            <CardContent className="p-0">
               {/* Template Preview */}
               <div className="aspect-[3/4] group-hover:shadow-xl group-hover:border duration-300 transition-all rounded-md bg-muted mb-3 flex items-center justify-center overflow-hidden">
                 {loadingTemplateId === "blank" ? (
-                  <PiSpinner className="h-6 w-6 text-muted-foreground animate-spin" />
+                  <div>Loading ... </div>
+                  // <Spinner className="h-6 w-6 text-muted-foreground animate-spin" />
                 ) : (
-                  <PiPlus className="h-8 w-8 text-muted-foreground" />
+                  <Plus className="h-8 w-8 text-muted-foreground" />
                 )}
               </div>
 
@@ -678,7 +676,7 @@ export function Templates({ folderId }: TemplatesProps) {
             onClick={handlePrevPage}
             disabled={currentPage === 1}
           >
-            <PiCaretLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
 
@@ -732,7 +730,7 @@ export function Templates({ folderId }: TemplatesProps) {
             disabled={currentPage === totalPages}
           >
             Next
-            <PiCaretRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       )}
