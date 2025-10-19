@@ -356,7 +356,8 @@ export function FoldersView({
               {folder.name}
             </h3>
             <p className="truncate text-xs sm:text-sm lg:text-sm text-muted-foreground capitalize">
-              {folder.category} · {folder.meta.fileCount} Files
+              {/* {folder.category} ·  */}
+              {folder.meta.fileCount} Files
             </p>
           </div>
           {enableDropdownMenu && menuActions.length > 0 && (

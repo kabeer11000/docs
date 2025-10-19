@@ -874,7 +874,8 @@ export const ListView = React.memo(function ListView({
               </div>
               <div className="sm:hidden text-sm text-muted-foreground mt-1">
                 {item.itemType === "folder"
-                  ? `${item.category} • ${item.meta?.fileCount || 0} Files`
+                // ${item.category} • 
+                  ? `${item.meta?.fileCount || 0} Files`
                   : `You edited • ${formatDistanceToNow(new Date(item.timestamp.createdAt), { addSuffix: true })}`}
               </div>
             </div>
@@ -883,7 +884,8 @@ export const ListView = React.memo(function ListView({
 
         <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
           {item.itemType === "folder"
-            ? `${item.category} • ${item.meta?.fileCount || 0} Files`
+          // ${item.category} • 
+            ? `${item.meta?.fileCount || 0} Files`
             : `You edited • ${formatDistanceToNow(new Date(item.timestamp.createdAt), { addSuffix: true })}`}
         </TableCell>
 
@@ -1049,7 +1051,8 @@ export const ListView = React.memo(function ListView({
                 </div>
                 <div className="sm:hidden text-sm text-muted-foreground mt-1">
                   {item.itemType === "folder"
-                    ? `${item.category} • ${item.meta?.fileCount || 0} Files`
+                  // ${item.category} • 
+                    ? `${item.meta?.fileCount || 0} Files`
                     : `You edited • ${(item as any).formattedDate}`}
                 </div>
               </div>
@@ -1058,7 +1061,8 @@ export const ListView = React.memo(function ListView({
 
           <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
             {item.itemType === "folder"
-              ? `${item.category} • ${item.meta?.fileCount || 0} Files`
+            // ${item.category} • 
+              ? `${item.meta?.fileCount || 0} Files`
               : `You edited • ${(item as any).formattedDate}`}
           </TableCell>
 
