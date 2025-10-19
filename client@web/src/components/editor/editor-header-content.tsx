@@ -208,10 +208,66 @@ export function EditorHeaderContent({
           onTemplateSelect={handleTemplateSelect}
           canRename={permissions.canRename && !isDocumentLocked}
         />
+        
+        {/* Mobile: Owner tag and share button below input */}
+        <div className="md:hidden flex items-center gap-2 mt-1.5">
+          {/* Owner Role as simple text tag */}
+          {permissions?.accessLevel && (
+            <span
+              className={cn(
+                "text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap",
+                permissions.accessLevel === "owner" && "bg-purple-100 text-purple-800",
+                permissions.accessLevel === "editor" && "bg-blue-100 text-blue-800", 
+                permissions.accessLevel === "viewer" && "bg-gray-100 text-gray-800",
+                permissions.accessLevel === "signer" && "bg-signer/10 text-signer/80",
+              )}
+            >
+              {permissions.accessLevel === "owner" && "Owner"}
+              {permissions.accessLevel === "editor" && "Editor"}
+              {permissions.accessLevel === "viewer" && "Viewer"}
+              {permissions.accessLevel === "signer" && "Signer"}
+            </span>
+          )}
+          
+          {/* Share as simple link button */}
+          {permissions?.canShare && (
+            <button
+              onClick={() => setShowShareDialog(true)}
+              className="text-xs text-primary hover:underline underline-offset-4 font-medium whitespace-nowrap"
+            >
+              Share
+            </button>
+          )}
+        </div>
+        
+        {/* Mobile: Save status indicator below everything else */}
+        <div className="md:hidden">
+          {saveStatus && (
+            <div className="text-xs text-muted-foreground mt-1">
+              {saveStatus === "saved" && lastSaved && (
+                <span>
+                  Saved {lastSaved.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              )}
+              {saveStatus === "error" && (
+                <span className="text-destructive">Save failed</span>
+              )}
+              {saveStatus === "saving" && (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Right: Save Status + Owner Label + Actions */}
-      <div className="flex items-center gap-3">
+      {/* Right: Desktop Actions (hidden on mobile) */}
+      <div className="hidden md:flex items-center gap-3">
         {/* Save Status Indicator */}
         {saveStatus && (
           <div className="flex items-center gap-2 text-sm">
@@ -252,7 +308,7 @@ export function EditorHeaderContent({
           </div>
         )}
 
-        {/* Owner Label + Actions */}
+        {/* Desktop Actions */}
         <div className="flex items-center gap-2">
           {/* Owner Role Badge */}
           {permissions?.accessLevel && (
@@ -261,7 +317,7 @@ export function EditorHeaderContent({
                 <TooltipTrigger asChild>
                   <div
                     className={cn(
-                      "hidden md:lg:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border cursor-help bg-transparent h-8",
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border cursor-help bg-transparent h-8",
                       permissions.accessLevel === "owner" &&
                         "text-purple-300 border-purple-500/50",
                       permissions.accessLevel === "editor" &&

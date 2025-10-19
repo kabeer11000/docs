@@ -391,7 +391,7 @@ export function ShareDialog({
   if (viewState === "main") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[550px] p-0 bg-background" showCloseButton={false}>
+        <DialogContent showCloseButton={false} className="sm:max-w-[550px] p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl">
@@ -696,7 +696,7 @@ export function ShareDialog({
           onOpenChange(isOpen);
         }}
       >
-        <DialogContent className="sm:max-w-[550px] p-0 bg-background">
+        <DialogContent className="sm:max-w-[550px] p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <Button
               variant="ghost"
@@ -818,7 +818,7 @@ export function ShareDialog({
           onOpenChange(isOpen);
         }}
       >
-        <DialogContent className="sm:max-w-[550px] p-0 bg-background">
+        <DialogContent className="sm:max-w-[550px] p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <Button
               variant="ghost"

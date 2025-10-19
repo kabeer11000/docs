@@ -20,7 +20,7 @@ export function AIFab({ hasUnreadMessages = false, className }: AIFabProps) {
     <div
       onClick={() => editorActions.setAIPanelOpen(true)}
       className={cn(
-        "fixed bottom-[56px] right-6 h-12 w-12 cursor-pointer z-[90] group",
+        "fixed bottom-[56px] right-6 h-12 w-12 cursor-pointer z-[3] group",
         "transition-all duration-300 ease-in-out shadow-sm",
         isOpen && "opacity-0 scale-75 pointer-events-none",
         className,
