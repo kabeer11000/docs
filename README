@@ -1,0 +1,22 @@
+Docs by Kabeer's Network (kabeers.network)
+Service available for free at https://docs.kabeers.network
+-------------------------------------------------------------
+
+Mono-repo contains source-code for Libre Docs / Kabeer's Docs
+Next.js application available in `client@web`. 
+
+Docs depends on Kabeer's Network's cloudstore service for data
+-> (https://github.com/Kabeers-Network/cloudstore-release/)
+
+Other microservices like those responsible for authentication
+will be added to this repository. 
+
+Project is open to external contributors, We currently do not
+have a fancy CI/CD pipeline or moderation, leave me a PR here
+and I will manually merge. 
+
+If you find any bug or issue, kindly open a new issue in this
+repository, with steps to reproduce and imagery.
+
+-------------------------------------------------------------
+Copyright (c) Kabeer's Network - Released under GPL-3 License
