@@ -86,6 +86,7 @@ export function FoldersView({
   enableRename = true,
   enableCopy = true,
   enableDelete = true,
+  creationParent,
 }: IFolderViewProps) {
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;

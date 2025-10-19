@@ -9,14 +9,15 @@ interface LiveListViewProps {
   showHeadline?: boolean;
   defaultSortField?: "name" | "modified" | "size" | "created";
   collapsible?: boolean;
-  parent?: string; // parent-folder.id
+  parent?: string; // parent-folder.id 
   sortable?: boolean;
+  creationParent?: string, // parent folder when creating
   mode?: "recent-folders" | "folder-contents";
 }
 
 export function LiveFoldersView({
   headlineText = "Quick Access",
-  parent,
+  parent, creationParent,
   showHeadline = true,
   defaultSortField = "modified",
   collapsible = true,

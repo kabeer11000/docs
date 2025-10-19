@@ -123,6 +123,7 @@ export interface IListViewProps {
   isLoading?: boolean;
   mode?: "recent-files" | "folder-contents" | "shared-with-me";
   parent?: string; // parent folder ID for context
+  creationParent?: string, // parent folder when creating
   enableContextMenu?: boolean;
   enableDropdownMenu?: boolean;
   collapsible?: boolean;
@@ -171,6 +172,7 @@ export const ListView = React.memo(function ListView({
   enableSorting = true,
   defaultSortField = "name",
   defaultSortDirection = "asc",
+  creationParent,
   enableBulkSelection = false,
 }: IListViewProps) {
   const { user } = useStore($auth);
@@ -246,96 +248,96 @@ export const ListView = React.memo(function ListView({
     () => [
       ...(enableOpen
         ? [
-            {
-              id: "open",
-              label: "Open",
-              icon: ExternalLink,
-              onClick: (item: IListItem) => {
-                if (item.itemType === "folder") {
-                  window.location.href = `/folder/${item.id}`;
-                } else {
-                  window.location.href = `/document/${item.id}`;
-                }
-              },
+          {
+            id: "open",
+            label: "Open",
+            icon: ExternalLink,
+            onClick: (item: IListItem) => {
+              if (item.itemType === "folder") {
+                window.location.href = `/folder/${item.id}`;
+              } else {
+                window.location.href = `/document/${item.id}`;
+              }
             },
-          ]
+          },
+        ]
         : []),
       ...(enableOpenNewTab
         ? [
-            {
-              id: "openInNewTab",
-              label: "Open in new tab",
-              icon: ExternalLink,
-              onClick: (item: IListItem) => {
-                if (item.itemType === "folder") {
-                  window.open(`/folder/${item.id}`, "_blank");
-                } else {
-                  window.open(`/document/${item.id}`, "_blank");
-                }
-              },
+          {
+            id: "openInNewTab",
+            label: "Open in new tab",
+            icon: ExternalLink,
+            onClick: (item: IListItem) => {
+              if (item.itemType === "folder") {
+                window.open(`/folder/${item.id}`, "_blank");
+              } else {
+                window.open(`/document/${item.id}`, "_blank");
+              }
             },
-          ]
+          },
+        ]
         : []),
       ...(enableRename
         ? [
-            {
-              id: "rename",
-              label: "Rename",
-              icon: Edit,
-              separator: "before" as const,
-              onClick: (item: IListItem) => {
-                setRenameDialog({ open: true, item });
-              },
+          {
+            id: "rename",
+            label: "Rename",
+            icon: Edit,
+            separator: "before" as const,
+            onClick: (item: IListItem) => {
+              setRenameDialog({ open: true, item });
             },
-          ]
+          },
+        ]
         : []),
       ...(enableCopy
         ? [
-            {
-              id: "copy",
-              label: "Make a copy",
-              icon: Copy,
-              onClick: async (item: IListItem) => {
-                setIsProcessing((prev) => new Set(prev).add(item.id));
-                try {
-                  const newId =
-                    item.itemType === "folder"
-                      ? await duplicateFolder(item.id)
-                      : await duplicateDocument(item.id);
+          {
+            id: "copy",
+            label: "Make a copy",
+            icon: Copy,
+            onClick: async (item: IListItem) => {
+              setIsProcessing((prev) => new Set(prev).add(item.id));
+              try {
+                const newId =
+                  item.itemType === "folder"
+                    ? await duplicateFolder(item.id)
+                    : await duplicateDocument(item.id);
 
-                  if (newId) {
-                    // Show success message
-                    console.log(`${item.itemType} copied successfully`);
-                  } else {
-                    alert(`Failed to copy ${item.name}`);
-                  }
-                } catch (error) {
-                  console.error("Copy error:", error);
+                if (newId) {
+                  // Show success message
+                  console.log(`${item.itemType} copied successfully`);
+                } else {
                   alert(`Failed to copy ${item.name}`);
-                } finally {
-                  setIsProcessing((prev) => {
-                    const newSet = new Set(prev);
-                    newSet.delete(item.id);
-                    return newSet;
-                  });
                 }
-              },
+              } catch (error) {
+                console.error("Copy error:", error);
+                alert(`Failed to copy ${item.name}`);
+              } finally {
+                setIsProcessing((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(item.id);
+                  return newSet;
+                });
+              }
             },
-          ]
+          },
+        ]
         : []),
       ...(enableDelete
         ? [
-            {
-              id: "delete",
-              label: "Delete",
-              icon: Trash,
-              variant: "destructive" as const,
-              separator: "before" as const,
-              onClick: (item: IListItem) => {
-                setDeleteDialog({ open: true, item });
-              },
+          {
+            id: "delete",
+            label: "Delete",
+            icon: Trash,
+            variant: "destructive" as const,
+            separator: "before" as const,
+            onClick: (item: IListItem) => {
+              setDeleteDialog({ open: true, item });
             },
-          ]
+          },
+        ]
         : []),
     ],
     [
@@ -666,27 +668,27 @@ export const ListView = React.memo(function ListView({
         const updates: any =
           item.itemType === "folder"
             ? {
-                permissions: {
-                  ...item.permissions,
-                  sharedWith: [
-                    {
-                      userId: "public",
-                      access: "read",
-                    },
-                  ],
-                },
-              }
+              permissions: {
+                ...item.permissions,
+                sharedWith: [
+                  {
+                    userId: "public",
+                    access: "read",
+                  },
+                ],
+              },
+            }
             : {
-                sharing: {
-                  isShared: true,
-                  sharedWith: [
-                    {
-                      userId: "public",
-                      access: "read",
-                    },
-                  ],
-                },
-              };
+              sharing: {
+                isShared: true,
+                sharedWith: [
+                  {
+                    userId: "public",
+                    access: "read",
+                  },
+                ],
+              },
+            };
 
         return item.itemType === "folder"
           ? updateFolder(item.id, updates)
@@ -790,7 +792,7 @@ export const ListView = React.memo(function ListView({
 
   const EmptyState = () => {
     const getEmptyStateContent = () => {
-      const folderId = parent || "root";
+      const folderId = creationParent || parent || "root";
       if (mode === "recent-files") {
         return {
           icon: FileText,

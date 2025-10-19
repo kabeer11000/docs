@@ -222,12 +222,12 @@ export default function HomePage() {
             headlineText="Recent Folders"
             mode="recent-folders"
             defaultSortField="modified"
-            collapsible={true}
+            collapsible={true} creationParent={authState.user.id}
             sortable={true}
           />
           <LiveListView
             headlineText="Quick Access"
-            showHeadline={true}
+            showHeadline={true} creationParent={authState.user.id}
             defaultSortField="modified"
             collapsible={true}
             sortable={true}
