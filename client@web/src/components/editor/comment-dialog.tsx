@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { MessagesSquare } from "lucide-react";
+import { showToast } from '@/lib/toast';
 
 interface CommentDialogProps {
   isOpen: boolean;
@@ -29,8 +30,17 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
 
   const handleSubmit = () => {
     if (content.trim() && !isSubmitting) {
-      onSubmit(content.trim());
-      setContent("");
+      try {
+        onSubmit(content.trim());
+        setContent("");
+      } catch (error) {
+        // Show error toast if submission fails
+        showToast.error("Failed to submit comment. Please try again.");
+        console.error("Comment submission error:", error);
+      }
+    } else if (!content.trim()) {
+      // Show error toast if content is empty
+      showToast.error("Comment content cannot be empty.");
     }
   };
 
@@ -64,9 +74,14 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
         <div className="space-y-4 py-2">
           {/* Selected text preview */}
           {selectedText && (
-            <div className="text-sm bg-muted p-3 rounded-lg border-l-4 border-primary">
+            <div className="text-sm bg-muted p-3 rounded-lg w-full border-l-4 border-primary">
               <div className="font-medium mb-1">Selected text:</div>
-              <div className="italic line-clamp-3">"{selectedText}"</div>
+              <div 
+                className="italic truncate max-w-full inline-block align-bottom"
+                title={selectedText} // Optional: Show full text on hover
+              >
+                "{selectedText}"
+              </div>
             </div>
           )}
           

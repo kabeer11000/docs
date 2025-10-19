@@ -113,19 +113,56 @@ textarea,
 select,
 [role="button"] {
   transition: all var(--transition-fast);
+  /* Ensure minimum touch target for mobile */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Specific enhancements for smaller elements */
+button:not(.size-\*, .w-\*, .h-\*),
+a:not(.size-\*, .w-\*, .h-\*),
+[role="button"]:not(.size-\*, .w-\*, .h-\*) {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Adjust for different sizes on mobile */
+@media (max-width: 640px) {
+  button, a, input, textarea, select, [role="button"] {
+    min-height: 52px;
+    min-width: 52px;
+  }
+  
+  /* More specific mobile enhancements */
+  .btn-sm, .text-sm, .text-xs {
+    min-height: 48px !important;
+    min-width: 48px !important;
+  }
+  
+  /* Ensure adequate spacing on mobile */
+  button, a, [role="button"] {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+  
+  input, textarea, select {
+    height: 52px !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
 }
 
 /* Hover and focus states with micro-animations */
 button:hover:not(:disabled),
 [role="button"]:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 button:active:not(:disabled),
 [role="button"]:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 button:focus-visible,
@@ -139,29 +176,75 @@ input:focus,
 textarea:focus,
 select:focus {
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
-  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1), 0 0 0 1px hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15), 0 0 0 1px hsl(var(--primary));
 }
 
 /* Smooth scale on interactive elements */
 @media (prefers-reduced-motion: no-preference) {
   button:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: scale(0.96);
   }
 }
 
-/* Card and container elevation effects */
+/* Card and container elevation effects - MUI 3 inspired */
 [role="dialog"],
 [role="menu"],
 [role="listbox"],
 .card,
 .popover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: box-shadow var(--transition-base), transform var(--transition-base);
+  border: 1px solid hsl(var(--border) / 0.6);
 }
 
 [role="dialog"]:hover,
 .card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16), 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Enhanced dropdown menu item hitboxes */
+.dropdown-menu-item,
+[role="menuitem"],
+[role="option"] {
+  min-height: 48px;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+/* Mobile responsive dropdown items */
+@media (max-width: 640px) {
+  .dropdown-menu-item,
+  [role="menuitem"],
+  [role="option"] {
+    min-height: 52px;
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+}
+
+/* Material UI 3 style ripple effect simulation */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+  pointer-events: none;
+}
+
+.ripple:active::after {
+  width: 300px;
+  height: 300px;
 }
 
 /* Smooth opacity transitions for visibility changes */
@@ -383,4 +466,133 @@ tr:not([role="presentation"]):hover {
 /* Focus mode enhancement */
 .prose:focus {
   outline: none;
+}
+
+/* Additional MUI 3 style enhancements */
+:root {
+  /* Extended color palette for more MUI 3 style options */
+  --mui-primary-main: 220 98% 61%;
+  --mui-primary-light: 220 90% 75%;
+  --mui-primary-dark: 220 100% 45%;
+  
+  --mui-secondary-main: 260 80% 56%;
+  --mui-secondary-light: 260 70% 70%;
+  --mui-secondary-dark: 260 90% 42%;
+  
+  --mui-success-main: 142 76% 36%;
+  --mui-success-light: 142 70% 50%;
+  --mui-success-dark: 142 83% 31%;
+  
+  --mui-warning-main: 40 100% 50%;
+  --mui-warning-light: 40 90% 65%;
+  --mui-warning-dark: 40 100% 40%;
+  
+  --mui-error-main: 0 84% 60%;
+  --mui-error-light: 0 75% 75%;
+  --mui-error-dark: 0 88% 50%;
+  
+  --mui-info-main: 200 98% 61%;
+  --mui-info-light: 200 90% 75%;
+  --mui-info-dark: 200 100% 45%;
+  
+  /* Enhanced elevation levels similar to MUI 3 */
+  --elevation-0: 0 0 0 0 rgba(0, 0, 0, 0.2);
+  --elevation-1: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12);
+  --elevation-2: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12);
+  --elevation-3: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  --elevation-4: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 8px 0 rgba(0, 0, 0, 0.14), 0 1px 12px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* MUI 3 style buttons with enhanced mobile hitboxes */
+.mui-button {
+  border-radius: var(--radius);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 48px;
+  padding: 0.75rem 1.5rem;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.mui-button:active::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 0.6s linear;
+}
+
+@keyframes ripple {
+  to {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+/* Mobile responsive button enhancements */
+@media (max-width: 640px) {
+  .mui-button {
+    min-height: 52px;
+    padding: 0.875rem 1.75rem;
+  }
+}
+
+/* Enhanced form controls for better mobile experience */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="color"],
+select,
+textarea {
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: 2px solid hsl(var(--input));
+  transition: all var(--transition-fast);
+}
+
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"],
+  input[type="color"],
+  select,
+  textarea {
+    min-height: 52px;
+    padding: 0.875rem 1.125rem;
+  }
+}
+
+/* Enhanced focus states with MUI 3 style */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
 }

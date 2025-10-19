@@ -14,6 +14,8 @@ import {
   Mail,
   Settings,
   X,
+  XCircle,
+  XIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -389,7 +391,7 @@ export function ShareDialog({
   if (viewState === "main") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[550px] p-0 bg-background">
+        <DialogContent className="sm:max-w-[550px] p-0 bg-background" showCloseButton={false}>
           <DialogHeader className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl">
@@ -421,6 +423,15 @@ export function ShareDialog({
                     <p>Settings</p>
                   </TooltipContent>
                 </Tooltip>
+                <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => onOpenChange(false)}
+                    >
+                      <XIcon className="h-4 w-4" />
+                    </Button>
+
               </div>
             </div>
           </DialogHeader>
@@ -432,7 +443,7 @@ export function ShareDialog({
                 <div className="relative">
                   <Input
                     placeholder="Add people, groups, spaces, and calendar events"
-                    value={searchQuery}
+                    value={searchQuery} autoFocus={true}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
                       setSearchOpen(true);

@@ -23,6 +23,15 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Docs" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
+
+        <script
+          crossOrigin="anonymous"
+          src="//unpkg.com/react-scan/dist/auto.global.js"
+        />
+        <script
+          crossOrigin="anonymous"
+          src="/__dev/stats.js"
+        />
       </head>
       <body>
         <Providers>{children}</Providers>
