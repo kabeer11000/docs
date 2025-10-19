@@ -4,32 +4,8 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { searchActions } from "@/state/search";
-
-// Lazy load heavy components
-const ReactHome = dynamic(() => import("@/components/home"), {
-  ssr: true,
-  loading: () => (
-    <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-    </div>
-  ),
-});
-
-const Templates = dynamic(
-  () =>
-    import("@/components/create/app-templates").then((m) => ({
-      default: m.Templates,
-    })),
-  {
-    ssr: true,
-    loading: () => (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    ),
-  },
-);
-
+import ReactHome from "@/components/home"
+import { Templates } from "@/components/create/app-templates"
 export default function DocumentTemplatesPage({
   params,
 }: {

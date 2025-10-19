@@ -7,7 +7,7 @@ console.log("cl: ", CloudStore);
 // console.log('Adapters:', CloudStore, Adapters);
 // Environment configuration
 const CLOUDSTORE_CONFIG = {
-  URI: "https://lxcloudstore.deployments.otherdev.com",
+  URI: "http://localhost:5000",// "https://lxcloudstore.deployments.otherdev.com",
   DATABASE_NAME: "kabeers-docs-cl",
 };
 
@@ -30,6 +30,13 @@ function createCloudStore(
         upgradeToBackgroundSync: true,
       },
     },
+    lifecycle: {
+      onConfigCallback: () => console.log('CL Config Callback'),
+      onOpenConnection: () => {
+        console.log('cloudstore.connect()', window);
+        // cl.connect();
+      }
+    },
     cache: {
       storage: {
         adapter: new Adapters.IndexedDB(`cloudstore.lexa.collection:1`),
@@ -40,6 +47,11 @@ function createCloudStore(
     },
   });
   cl.connect();
+  // cl.info.socket.on('connect', () => cl.connect());
+  // window.addEventListener('L')
+  // requestAnimationFrame(() => cl.connect());
+  // console.log(cl, cl.connect());
+  // cl.connect();
   return cl;
 }
 
@@ -54,7 +66,6 @@ function initializeCloudStore(): typeof CloudStore | null {
     authState.tokens?.accessToken,
     authState.user?.tenant_id,
   );
-
   return cloudStore;
 }
 
