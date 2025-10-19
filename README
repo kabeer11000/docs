@@ -8,13 +8,13 @@ available in the `client@web` directory.
 
 Docs depends on Kabeer's Network's Cloudstore service
 for data:
--> https://github.com/Kabeers-Network/cloudstore-release/
+https://github.com/Kabeers-Network/cloudstore-release/
 
 It will eventually depend on the Kabeer Cloud SDK for blob
 and raw file storage (https://docs.cloud.kabeers.network).
 A sample implementation is available in the Kabeer's
 Chats source code:
--> https://github.com/kabeer11000/chats
+https://github.com/kabeer11000/chats
 
 The next steps for this project are performance
 optimizations and a major refactoring to improve code 
@@ -23,7 +23,8 @@ quality and structuring.
 Other microservices, such as those responsible for
 authentication, will be added to this repository.
 
-This project is open to external contributors. We 
+This project is open source and open to external 
+contributors. See CONTRIBUTING for how to help. We 
 currently do not have a CI/CD pipeline, so please submit
 a pull request and I will merge it manually.
 

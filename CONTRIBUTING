@@ -1,0 +1,57 @@
+CONTRIBUTING to Kabeer's Docs
+=============================
+
+Thank you for your interest in contributing to Kabeer's Docs!
+This is an open source project under GPL-3.0 license.
+
+SETUP
+-----
+1. Fork the repository on GitHub
+2. Clone your fork: git clone <your-fork-url>
+3. Navigate to client@web directory
+4. Install Bun runtime: https://bun.sh
+5. Install dependencies: bun install
+6. Start development: bun dev
+
+CODE STYLE
+----------
+- Use TypeScript for type safety
+- Follow existing code patterns
+- Write clear, descriptive comments
+- Keep functions and components small
+- Use meaningful variable names
+
+GIT WORKFLOW
+------------
+- Create feature branches from main
+- Write clear commit messages
+- Keep PRs focused on one feature
+- Update documentation as needed
+- Add tests for new features
+
+ISSUES
+------
+- Report bugs with detailed steps
+- Suggest features via GitHub issues
+- Check existing issues first
+- Include environment details
+- Add screenshots if relevant
+
+PULL REQUESTS
+-------------
+- Follow the template if provided
+- Describe changes clearly
+- Update README if needed
+- Pass all tests before submitting
+- Be responsive to feedback
+
+COMMUNITY
+---------
+- Be respectful and inclusive
+- Help other contributors
+- Ask questions in issues
+- Share your improvements
+- Follow code of conduct
+
+=============================
+Copyright (c) Kabeer's Network

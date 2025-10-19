@@ -3,18 +3,9 @@
 import { useStore } from "@nanostores/react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { use } from "react";
 import { $auth } from "@/state/auth";
-
-// Lazy load heavy components
-const ReactHome = dynamic(() => import("@/components/home"), {
-  ssr: true,
-  loading: () => (
-    <div className="flex items-center justify-center h-screen">
-      {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /> */}
-    </div>
-  ),
-});
+import ReactHome from "@/components/home"
 
 const LiveListView = dynamic(
   () =>
@@ -47,10 +38,10 @@ export default function FolderPage({
 }) {
   const router = useRouter();
   const authState = useStore($auth);
+  const p = use(params);
   const [folderId, setFolderId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    params.then((p) => {
       const id = p.id;
       // Redirect root folders to vault
       if (id === "root" || id === "home" || !id) {
@@ -63,7 +54,6 @@ export default function FolderPage({
         return;
       }
       setFolderId(id);
-    });
   }, [params, authState.user, router]);
 
   // Show loading while auth is initializing

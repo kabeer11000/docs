@@ -1,1 +1,5 @@
 .claude
+.idea
+.vscode
+**.ignored/
+**node_modules/

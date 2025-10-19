@@ -8,7 +8,7 @@ import { PWASupport } from "@/components/PWASupport";
 export const metadata: Metadata = {
   title: "Kabeer's Docs - Document Management & Collaboration",
   description:
-    "Professional document management and collaboration platform",
+    "Document management and collaboration platform",
 };
 
 export default async function RootLayout({

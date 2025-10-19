@@ -1,0 +1,28 @@
+SECURITY POLICY
+===============
+
+Reporting Security Issues
+-------------------------
+If you discover a security vulnerability, please report it to:
+kabeer@otherdev.com or open a issue in this repository.
+
+Do not report security vulnerabilities through public GitHub
+issues. Please allow 90 days for a response before public
+disclosure.
+
+Security Updates
+----------------
+- Security updates are released as soon as possible
+- Subscribe to our release notifications to stay informed
+- Check the releases page regularly for updates
+
+Security Best Practices
+-----------------------
+For users deploying this software:
+- Keep dependencies updated
+- Use environment variables for secrets
+- Follow secure coding practices
+- Regular security audits recommended
+
+=======
+Copyright (c) Kabeer's Network

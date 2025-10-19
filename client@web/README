@@ -1,0 +1,49 @@
+Docs by Kabeer's Network (kabeers.network)
+Service available for free at https://docs.kabeers.network
+------------------------------------------------------------
+
+This directory contains the Next.js 15 web application
+for Kabeer's Docs. The client provides real-time document
+collaboration with rich editing capabilities.
+
+BUILDING
+--------
+- Install Bun runtime (https://bun.sh)
+- Run: bun install
+- For development: bun dev (runs on port 4321)
+- For production: bun run build
+
+DEPLOYMENT
+----------
+- Built with Next.js 15 using App Router
+- Deploy to Vercel for optimal performance
+- Alternative: Netlify, or self-hosted Node.js
+- Set environment vars in .env.production
+
+ARCHITECTURE
+------------
+- Next.js 15 with Turbopack (dev)
+- React 19 with TypeScript
+- Tailwind CSS 4 for styling
+- TipTap + YJS for real-time editing
+- Hocuspocus for WebSocket sync
+- Nanostores for state management
+- Radix UI for accessible components
+
+PATTERNS
+--------
+- Client-side collaboration via Yjs
+- Server Actions for mutations
+- App Router with nested layouts
+- Component-based architecture
+
+CLOUDSTORE
+----------
+- Data persistence via Kabeer's Cloudstore
+- API integration at /src/services/api
+- Real-time sync through WebSocket
+- https://github.com/Kabeers-Network/cloudstore
+
+------------------------------------------------------------
+Copyright (c) Kabeer's Network
+Released under the GPL-3.0 License

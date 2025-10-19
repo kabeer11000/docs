@@ -5,16 +5,7 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
-
-// Lazy load heavy components
-const ReactHome = dynamic(() => import("@/components/home"), {
-  ssr: true,
-  loading: () => (
-    <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-    </div>
-  ),
-});
+import ReactHome from "@/components/home";
 
 const LiveListView = dynamic(
   () =>
@@ -37,7 +28,6 @@ export default function SharedPage() {
   if (!authState.isInitialized || !authState.user) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
@@ -48,7 +38,7 @@ export default function SharedPage() {
         <div className="mx-auto max-w-7xl flex flex-col gap-y-8">
           <LiveListView
             headlineText="Shared with me"
-            showHeadline={true}
+            showHeadline={true} creationParent={authState.user.id}
             defaultSortField="modified"
             collapsible={true}
             mode="shared-with-me"

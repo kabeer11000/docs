@@ -75,6 +75,7 @@
     "@upliftai/assistants-react": "^0.0.3",
     "ai": "^5.0.25",
     "autoprefixer": "^10.4.21",
+    "babel-plugin-react-compiler": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "cloudstore": "https://github.com/Kabeers-Network/cloudstore-release/releases/download/default-client/cloudstore-1.0.0.tgz",
     "clsx": "^2.1.1",

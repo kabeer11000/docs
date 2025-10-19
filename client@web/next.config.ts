@@ -11,8 +11,12 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
+    reactCompiler: true,
+    useLightningcss: true,
+    viewTransition: true,
     optimizePackageImports: [
       "lucide-react",
+      "cloudstore",
       "@radix-ui/react-icons",
       "date-fns",
       "recharts",
