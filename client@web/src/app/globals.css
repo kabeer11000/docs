@@ -503,6 +503,62 @@ tr:not([role="presentation"]):hover {
   --elevation-4: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 8px 0 rgba(0, 0, 0, 0.14), 0 1px 12px 0 rgba(0, 0, 0, 0.12);
 }
 
+/* Mobile UI scaling - Scale up the entire UI on mobile devices */
+@media (max-width: 640px) {
+  html {
+    /* Increase base font size for better readability */
+    font-size: 18px;
+  }
+  
+  /* Scale up text sizes for better mobile readability */
+  .text-xs { font-size: 0.75rem !important; } /* 12px */
+  .text-sm { font-size: 0.875rem !important; } /* 14px */
+  .text-base { font-size: 1rem !important; } /* 16px */
+  .text-lg { font-size: 1.125rem !important; } /* 18px */
+  .text-xl { font-size: 1.25rem !important; } /* 20px */
+  
+  /* Scale up padding and margins for better mobile spacing */
+  .p-1 { padding: 0.375rem !important; } /* 6px instead of 4px */
+  .p-2 { padding: 0.5rem !important; } /* 8px instead of 8px -> keep same */
+  .p-3 { padding: 0.75rem !important; } /* 12px instead of 12px -> keep same */
+  .p-4 { padding: 1rem !important; } /* 16px instead of 16px -> keep same */
+  
+  .py-1 { padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; }
+  .py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+  .py-3 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+  
+  .px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+  .px-3 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+  .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  
+  /* Enhanced mobile touch targets */
+  .min-h-12 { min-height: 3rem !important; } /* 48px */
+  .min-w-12 { min-width: 3rem !important; } /* 48px */
+  .h-12 { height: 3rem !important; } /* 48px */
+  .w-12 { width: 3rem !important; } /* 48px */
+  
+  /* More aggressive scaling for critical elements */
+  .btn-sm, .text-sm, .text-xs {
+    min-height: 3.25rem !important; /* 52px */
+    padding-top: 0.875rem !important;
+    padding-bottom: 0.875rem !important;
+  }
+}
+
+/* Even more aggressive scaling for small mobile screens */
+@media (max-width: 480px) {
+  html {
+    font-size: 20px; /* Larger base font size */
+  }
+  
+  /* Ensure key interactive elements are even larger on small screens */
+  button, a, input, textarea, select, [role="button"], .btn {
+    min-height: 3.5rem !important; /* 56px */
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+}
+
 /* MUI 3 style buttons with enhanced mobile hitboxes */
 .mui-button {
   border-radius: var(--radius);

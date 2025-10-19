@@ -415,7 +415,7 @@ export function SettingsDialog() {
 
   return (
     <Dialog open={dialogState.isOpen} onOpenChange={closeSettingsDialog}>
-      <DialogContent className="w-full max-w-[95vw] max-h-[70vh] h-[70vh] md:max-w-[1200px] md:w-auto md:min-w-[900px] md:h-[600px] md:max-h-[80vh] p-0 bg-background border border-border shadow-2xl">
+      <DialogContent className="w-full h-full max-w-full max-h-full p-0 bg-background border border-border shadow-2xl md:max-w-[1200px] md:w-auto md:min-w-[900px] md:h-[600px] md:max-h-[80vh] md:rounded-xl rounded-none top-0 md:top-[50%] left-0 md:left-[50%] translate-x-0 md:translate-x-[-50%] translate-y-0 md:translate-y-[-50%]">
         <VisuallyHidden>
           <DialogTitle>{activeSection?.label}</DialogTitle>
         </VisuallyHidden>
