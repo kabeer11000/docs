@@ -344,7 +344,7 @@ export function EditorControls({ canEdit = true, isStarred = false }: { canEdit?
             onClick={() => {
               editorActions.setCommentsSidebarOpen(!editorUIState.get().isCommentsSidebarOpen);
             }}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 md:hidden"
             aria-label="Open comments"
           >
             <MessageSquare className="h-4 w-4" />

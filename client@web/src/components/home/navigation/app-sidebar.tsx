@@ -162,7 +162,8 @@ export function AppSidebar({
           <SidebarMenuItem className="px-2">
             <SidebarMenuButton asChild>
               <a href="/home" className="flex items-center gap-2">
-              <h2 className="p-2 text-md font-mono font-bold">KN / Libre Docs</h2>
+              <img src="/assets/icon-192.png" className="w-10 h-auto"/>
+              <h2 className="p-2 text-lg font-bold gap-y-0 flex flex-col"><span>Docs</span></h2>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -389,7 +390,7 @@ function StarredFolders() {
       try {
         const foldersCollection = cloudStore.collection("folders");
         const query = cloudStore.query
-          .where("owner", "EQUAL", authState.user.id)
+          .where("permissions.owner", "EQUAL", authState.user.id)
           .where("isStarred", "EQUAL", true)
           .orderBy("timestamp.updatedAt", "DESCENDING")
           .limit(10); // Limit to 10 starred folders
@@ -457,22 +458,29 @@ export function AccountStorage() {
       );
   }, [authState.user, authState.isLoading]);
   return (
-    <div className="px-2 py-3 border-t">
-      <div className="flex items-center justify-between mb-1.5">
+    <div className="py-0 border-t">
+      <div className="px-2 flex items-center py-2 justify-between">
         <span className="text-xs font-medium text-muted-foreground">
           Account Storage
         </span>
         <span className="text-sm font-medium text-foreground">{size}</span>
       </div>
-      <div className="relative mb-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+      <div className="px-2">
+
+      <div className="relative mb-2 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div 
           className="h-full bg-primary transition-all"
           style={{ width: `${100 * (Math.min(size, 20) / 20)}%` }}
         />
       </div>
-      <p className="text-xs text-muted-foreground font-medium">
+      </div>
+      <p className="px-2 text-xs text-muted-foreground pb-2 font-medium">
         {size} out of 20 free files used
       </p>
+      <div className="border-t px-2- mt-2 border-border pt-2 text-xs text-muted-foreground">
+              <span>(c) Libre Docs by Kabeer's Network</span>
+            </div>
+
     </div>
   );
 }

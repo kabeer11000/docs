@@ -31,7 +31,7 @@ export function FolderOptions({ folderId }: FolderOptionsProps) {
     const loadFolderData = async () => {
       try {
         const foldersCollection = cloudStore.collection("folders");
-        const query = cloudStore.query.where("_id", "EQUAL", folderId).limit(1);
+        const query = cloudStore.query.where("id", "EQUAL", folderId).limit(1);
         const result = (await foldersCollection.get(query)) as any[];
 
         if (result && result.length > 0) {
@@ -55,7 +55,7 @@ export function FolderOptions({ folderId }: FolderOptionsProps) {
       const foldersCollection = cloudStore.collection("folders");
       const newStarredStatus = !isStarred;
 
-      await foldersCollection.update(folderId, {
+      await foldersCollection.update(cloudStore.query.where('id', 'EQUAL', folderId), {
         isStarred: newStarredStatus,
       });
 
@@ -76,7 +76,7 @@ export function FolderOptions({ folderId }: FolderOptionsProps) {
     try {
       const foldersCollection = cloudStore.collection("folders");
 
-      await foldersCollection.update(folderId, {
+      await foldersCollection.update(cloudStore.query.where('id', 'EQUAL', folderId), {
         name: newName,
       });
 
@@ -86,6 +86,7 @@ export function FolderOptions({ folderId }: FolderOptionsProps) {
       console.error("Failed to rename folder:", error);
       showToast.error("Failed to rename folder");
     } finally {
+      setRenameOpen(false);
       setIsLoading(false);
     }
   };

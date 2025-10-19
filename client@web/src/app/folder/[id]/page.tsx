@@ -11,7 +11,7 @@ const ReactHome = dynamic(() => import("@/components/home"), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /> */}
     </div>
   ),
 });
@@ -70,7 +70,7 @@ export default function FolderPage({
   if (!authState.isInitialized || !authState.user || !folderId) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+        {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /> */}
       </div>
     );
   }

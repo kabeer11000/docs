@@ -78,7 +78,7 @@ export type {
 
 // CloudStore Document type
 export interface Document {
-  _id: string;
+  id: string;
   title: string;
   pages: Array<{
     id: string;

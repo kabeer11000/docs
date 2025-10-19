@@ -64,7 +64,7 @@ export function EditorWithHeader({
     const startWatching = async () => {
       try {
         const documentsCollection = cloudStore.collection("documents");
-        const query = cloudStore.query.where("_id", "EQUAL", documentId);
+        const query = cloudStore.query.where("id", "EQUAL", documentId);
 
         watcher = documentsCollection.watch(
           query,

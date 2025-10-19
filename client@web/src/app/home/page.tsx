@@ -14,8 +14,8 @@ import { searchActions } from "@/state/search";
 const ReactHome = dynamic(() => import("@/components/home"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+    <div className="flex items-center justify-center h-full">
+      {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /> */}
     </div>
   ),
 });
@@ -134,8 +134,8 @@ export default function HomePage() {
   // Show loading while checking auth
   if (isChecking || authState.isLoading || !authState.user) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      <div className="flex items-center justify-center h-full">
+        {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /> */}
       </div>
     );
   }

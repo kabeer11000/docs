@@ -97,7 +97,7 @@ export function useCloudStore() {
         const parentLocation = input.folderId || user.id;
 
         const newDocument: Document = {
-          _id: docId,
+          id: docId,
           title: input.title || "Untitled Document",
           pages: [
             {
@@ -174,7 +174,7 @@ export function useCloudStore() {
           id,
         );
         const documentsCollection = cloudStore.collection("documents");
-        const query = cloudStore.query.where("_id", "EQUAL", id);
+        const query = cloudStore.query.where("id", "EQUAL", id);
 
         console.log("CloudStore getDocument - Executing query...");
         const results = (await documentsCollection.get(query)) as Document[];
@@ -211,7 +211,7 @@ export function useCloudStore() {
       const documentsCollection = cloudStore.collection("documents");
 
       // CloudStore uses remove() with a query, not delete() with an ID
-      const query = cloudStore.query.where("_id", "EQUAL", id);
+      const query = cloudStore.query.where("id", "EQUAL", id);
       const result = await documentsCollection.remove(query);
 
       console.log("Document delete result:", result);
@@ -253,7 +253,7 @@ export function useCloudStore() {
       }
       
       // Finally, delete the main folder
-      const query = cloudStore.query.where("_id", "EQUAL", id);
+      const query = cloudStore.query.where("id", "EQUAL", id);
       const result = await foldersCollection.remove(query);
 
       console.log("Folder delete result:", result);
@@ -282,7 +282,7 @@ export function useCloudStore() {
         const documentsCollection = cloudStore.collection("documents");
 
         // CloudStore uses update() with a query, not an ID
-        const query = cloudStore.query.where("_id", "EQUAL", id);
+        const query = cloudStore.query.where("id", "EQUAL", id);
         const result = await documentsCollection.update(query, {
           ...updates,
           updatedAt: new Date(),
@@ -316,7 +316,7 @@ export function useCloudStore() {
         const foldersCollection = cloudStore.collection("folders");
 
         // CloudStore uses update() with a query, not an ID - use _id for database lookup
-        const query = cloudStore.query.where("_id", "EQUAL", id);
+        const query = cloudStore.query.where("id", "EQUAL", id);
         const result = await foldersCollection.update(query, {
           ...updates,
           timestamp: {
@@ -347,7 +347,7 @@ export function useCloudStore() {
         const newId = nanoid();
         const duplicated: Document = {
           ...original,
-          _id: newId,
+          id: newId,
           title: `${original.title} (Copy)`,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -371,7 +371,7 @@ export function useCloudStore() {
 
       try {
         const foldersCollection = cloudStore.collection("folders");
-        const query = cloudStore.query.where("_id", "EQUAL", originalId);
+        const query = cloudStore.query.where("id", "EQUAL", originalId);
         const results = (await foldersCollection.get(query)) as IFolderItem[];
 
         if (results.length === 0) return null;

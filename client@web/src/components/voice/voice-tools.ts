@@ -203,7 +203,7 @@ export const voiceTools: ToolConfig[] = [
         };
 
         const newDocument: Document = {
-          _id: docId,
+          id: docId,
           title: title,
           pages: [
             {
