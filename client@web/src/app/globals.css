@@ -113,17 +113,23 @@ textarea,
 select,
 [role="button"] {
   transition: all var(--transition-fast);
-  /* Ensure minimum touch target for mobile */
-  min-height: 44px;
-  min-width: 44px;
 }
 
-/* Specific enhancements for smaller elements */
-button:not(.size-\*, .w-\*, .h-\*),
-a:not(.size-\*, .w-\*, .h-\*),
-[role="button"]:not(.size-\*, .w-\*, .h-\*) {
-  min-height: 48px;
-  min-width: 48px;
+/* Set minimum touch targets but respect explicit sizes */
+button[class*="h-"],
+button[class*="w-"],
+button[class*="size-"],
+[role="button"][class*="h-"],
+[role="button"][class*="w-"],
+[role="button"][class*="size-"] {
+  /* Respect explicit sizing classes */
+}
+
+button:not([class*="h-"]):not([class*="w-"]):not([class*="size-"]),
+a:not([class*="h-"]):not([class*="w-"]):not([class*="size-"]),
+[role="button"]:not([class*="h-"]):not([class*="w-"]):not([class*="size-"]) {
+  min-height: auto;
+  min-width: auto;
 }
 
 /* Adjust for different sizes on mobile */

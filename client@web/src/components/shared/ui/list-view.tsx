@@ -1003,7 +1003,7 @@ export const ListView = React.memo(function ListView({
         >
           {enableBulkSelection && (
             <TableCell
-              className="w-16 p-1 sm:p-2 md:p-3 rounded-tl-md rounded-bl-md cursor-pointer flex items-center justify-start h-full [&>[role=checkbox]]:translate-y-0"
+              className="w-16 p-1 sm:p-2 md:p-3 rounded-tl-md rounded-bl-md cursor-pointer [&>[role=checkbox]]:translate-y-0"
               onClick={(e) => {
                 e.stopPropagation();
               }}
@@ -1189,8 +1189,8 @@ export const ListView = React.memo(function ListView({
 
   // Bulk action toolbar
   const bulkActionToolbar = enableBulkSelection && selectedItems.size > 0 && (
-    <div className="sticky top-0 z-20 bg-background border-b border-border px-4 py-3 flex items-center justify-between shadow-sm">
-      <div className="flex items-center gap-3">
+    <div className="sticky top-0 z-10 bg-background outline-b outline outline-muted md:lg:px-2 py-2 flex items-center justify-between shadow-sm">
+      <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
@@ -1222,7 +1222,7 @@ export const ListView = React.memo(function ListView({
   const content = (
     <div className="rounded-lg overflow-hidden">
       {enableBulkSelection && (
-        <div className={`${selectedItems.size > 0 ? "" : "h-14"}`}>
+        <div className={`${selectedItems.size > 0 ? "" : "h-16"}`}>
           {bulkActionToolbar}
         </div>
       )}
@@ -1230,7 +1230,7 @@ export const ListView = React.memo(function ListView({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             {enableBulkSelection && (
-              <TableHead className="w-16 p-1 sm:p-2 md:p-3 flex items-center justify-start">
+              <TableHead className="w-16 p-1 sm:p-2 md:p-3 ">
                 <Checkbox
                   checked={
                     selectedItems.size === sortedItems.length &&
