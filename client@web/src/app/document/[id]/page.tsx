@@ -116,12 +116,13 @@ export default function DocumentPage({
       searchActions.setCurrentPage(`document/${documentId}`);
     }
 
-    // Listen for AI panel and comments sidebar state changes and update header
+    // Listen for AI panel and comments sidebar state changes and update header (desktop only)
     const unsubscribe = editorUIState.subscribe((state) => {
       const header = document.querySelector("header");
 
-      const isSidebarOpen = state.isAIPanelOpen || state.isCommentsSidebarOpen;
-      const totalSidebarWidth = (state.isAIPanelOpen ? 320 : 0) + (state.isCommentsSidebarOpen ? 320 : 0);
+      // Only apply padding on desktop (md breakpoint = 768px)
+      const isDesktop = window.innerWidth >= 768;
+      const totalSidebarWidth = isDesktop ? (state.isAIPanelOpen ? 320 : 0) + (state.isCommentsSidebarOpen ? 320 : 0) : 0;
 
       if (header) {
         header.style.paddingRight = `${totalSidebarWidth}px`;
