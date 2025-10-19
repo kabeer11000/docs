@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "@/styles/global.css";
+import { cookies } from 'next/headers';
 import { Providers } from "./providers";
+import { Fragment } from "react";
 
 export const metadata: Metadata = {
   title: "Kabeer's Docs - Document Management & Collaboration",
@@ -8,11 +10,12 @@ export const metadata: Metadata = {
     "Professional document management and collaboration platform",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
   return (
     <html lang="en">
       <head>
@@ -23,15 +26,16 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Docs" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
-
-        <script
-          crossOrigin="anonymous"
-          src="//unpkg.com/react-scan/dist/auto.global.js"
-        />
-        <script
-          crossOrigin="anonymous"
-          src="/__dev/stats.js"
-        />
+        {cookieStore.get('kn.docs.debug-env') && <Fragment>
+          <script
+            crossOrigin="anonymous"
+            src="//unpkg.com/react-scan/dist/auto.global.js"
+          />
+          <script
+            crossOrigin="anonymous"
+            src="/__dev/stats.js"
+          />
+        </Fragment>}
       </head>
       <body>
         <Providers>{children}</Providers>
