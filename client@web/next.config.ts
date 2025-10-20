@@ -13,13 +13,12 @@ const nextConfig: NextConfig = {
     },
     // reactCompiler: true,
 
-    reactCompiler: {
-      compilationMode: 'annotation',
-    },
+    // reactCompiler: {
+    //   compilationMode: 'annotation',
+    // },
     viewTransition: true,
     optimizePackageImports: [
       "lucide-react",
-      "cloudstore",
       "@radix-ui/react-icons",
       "date-fns",
       "recharts",
