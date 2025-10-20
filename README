@@ -2,6 +2,12 @@ Docs by Kabeer's Network (kabeers.network)
 Service available for free at https://docs.kabeers.network
 ------------------------------------------------------------
 
+Docs is a fully fledged Google Docs + Google Drive combo 
+alternative, supports similar feataures like file-mangement,
+paged, realtime editor interface with viewing, commenting &
+editing capablities plus AI capabilites with bring-your-own-
+key model, 
+
 This mono-repo contains the source code for
 Libre Docs / Kabeer's Docs. The Next.js application is
 available in the `client@web` directory.
