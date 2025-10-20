@@ -210,6 +210,8 @@ export const auth = {
 
     try {
       const response = await authService.login(credentials);
+      
+      console.log(response);
       saveAuth(response.user, {
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
@@ -219,6 +221,7 @@ export const auth = {
       });
       return true;
     } catch (error) {
+      console.log(error);
       $auth.set({
         ...$auth.get(),
         error: error instanceof Error ? error.message : "Login failed",
