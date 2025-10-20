@@ -11,7 +11,11 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
-    reactCompiler: true,
+    // reactCompiler: true,
+
+    reactCompiler: {
+      compilationMode: 'annotation',
+    },
     viewTransition: true,
     optimizePackageImports: [
       "lucide-react",
