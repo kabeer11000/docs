@@ -1,41 +1,60 @@
-import * as cl from "cloudstore";
+// cloudstore.ts
 import { $auth } from "@/state/auth";
 
-const { default: CloudStore, Adapters } = cl;
-let cloudStore: typeof CloudStore | null = null;
-console.log("cl: ", CloudStore);
-// console.log('Adapters:', CloudStore, Adapters);
-// Environment configuration
-const CLOUDSTORE_CONFIG = {
-  URI: "http://localhost:5000",// "https://lxcloudstore.deployments.otherdev.com",
-  DATABASE_NAME: "kabeers-docs-cl",
+// Only import cloudstore on the client
+let CloudStore: any = null;
+let Adapters: any = null;
+
+// Lazy-loaded instance
+let cloudStore: any = null;
+
+// Track auth state to avoid unnecessary reinitializations
+let previousAuthState = {
+  isAuthenticated: false,
+  accessToken: undefined as string | undefined,
 };
 
-function createCloudStore(
-  accessToken?: string,
-  tenant_id?: string,
-): typeof CloudStore | null {
-  if (!accessToken || !tenant_id) {
+// Lazy initializer
+function ensureCloudStoreIsLoaded() {
+  if (typeof window === "undefined") return; // 🛑 SSR guard
+
+  if (!CloudStore || !Adapters) {
+    // Dynamically import only on client
+    const cl = require("cloudstore");
+    CloudStore = cl.default;
+    Adapters = cl.Adapters;
+  }
+}
+
+function createCloudStore(accessToken?: string, tenant_id?: string): any {
+  if (typeof window === "undefined") return null;
+  ensureCloudStoreIsLoaded();
+  if (!CloudStore || !accessToken || !tenant_id) {
     console.log("CloudStore: Skipping initialization - missing credentials");
     return null;
   }
-  const cl = new CloudStore({
+
+  const CLOUDSTORE_CONFIG = {
+    URI: "http://localhost:5000",
+    DATABASE_NAME: "kabeers-docs-cl",
+  };
+
+  const instance = new CloudStore({
     server: {
       uri: CLOUDSTORE_CONFIG.URI,
       access: {
-        key: accessToken || "",
-        tenant_id: tenant_id || "default",
+        key: accessToken,
+        tenant_id: tenant_id,
       },
       config: {
         upgradeToBackgroundSync: true,
       },
     },
     lifecycle: {
-      onConfigCallback: () => console.log('CL Config Callback'),
+      onConfigCallback: () => console.log("CL Config Callback"),
       onOpenConnection: () => {
-        console.log('cloudstore.connect()', window);
-        // cl.connect();
-      }
+        console.log("cloudstore.connect()", window);
+      },
     },
     cache: {
       storage: {
@@ -46,125 +65,97 @@ function createCloudStore(
       name: CLOUDSTORE_CONFIG.DATABASE_NAME,
     },
   });
-  cl.connect();
-  // cl.info.socket.on('connect', () => cl.connect());
-  // window.addEventListener('L')
-  // requestAnimationFrame(() => cl.connect());
-  // console.log(cl, cl.connect());
-  // cl.connect();
-  return cl;
+
+  instance.connect();
+  return instance;
 }
 
-function initializeCloudStore(): typeof CloudStore | null {
-  const authState = $auth.get();
+// Reinitialize when auth changes — but only on client
+function setupAuthListener() {
+  if (typeof window === "undefined") return;
 
-  if (cloudStore) {
-    cloudStore.destroy();
-  }
+  $auth.subscribe((authState) => {
+    const currentAccessToken = authState.tokens?.accessToken;
+    const isAuthStatusChanged =
+      previousAuthState.isAuthenticated !== authState.isAuthenticated;
+    const isTokenChanged = previousAuthState.accessToken !== currentAccessToken;
 
-  cloudStore = createCloudStore(
-    authState.tokens?.accessToken,
-    authState.user?.tenant_id,
-  );
-  return cloudStore;
-}
+    console.log("CloudStore: Auth subscription triggered", {
+      previous: {
+        isAuthenticated: previousAuthState.isAuthenticated,
+        hasToken: !!previousAuthState.accessToken,
+      },
+      current: {
+        isAuthenticated: authState.isAuthenticated,
+        hasTokens: !!authState.tokens,
+        hasUser: !!authState.user,
+        tokenPreview: currentAccessToken?.substring(0, 20),
+      },
+      changes: { statusChanged: isAuthStatusChanged, tokenChanged: isTokenChanged },
+    });
 
-// Don't initialize immediately - wait for auth to be ready
-cloudStore = null;
+    if (isAuthStatusChanged || isTokenChanged) {
+      console.log("CloudStore: Reinitializing due to auth change");
 
-// Track previous auth state to avoid unnecessary reinitializations
-let previousAuthState: { isAuthenticated: boolean; accessToken?: string } = {
-  isAuthenticated: false,
-  accessToken: undefined,
-};
-
-// Subscribe to auth changes
-$auth.subscribe((authState) => {
-  const currentAccessToken = authState.tokens?.accessToken;
-  const isAuthStatusChanged =
-    previousAuthState.isAuthenticated !== authState.isAuthenticated;
-  const isTokenChanged = previousAuthState.accessToken !== currentAccessToken;
-
-  console.log("CloudStore: Auth subscription triggered", {
-    previous: {
-      isAuthenticated: previousAuthState.isAuthenticated,
-      hasToken: !!previousAuthState.accessToken,
-      tokenPreview: previousAuthState.accessToken?.substring(0, 20),
-    },
-    current: {
-      isAuthenticated: authState.isAuthenticated,
-      hasTokens: !!authState.tokens,
-      hasUser: !!authState.user,
-      tokenPreview: currentAccessToken?.substring(0, 20),
-      userId: authState.user?.id,
-      userEmail: authState.user?.email,
-    },
-    changes: {
-      statusChanged: isAuthStatusChanged,
-      tokenChanged: isTokenChanged,
-    },
-  });
-
-  // Only reinitialize if:
-  // 1. User logged in/out (auth status changed), OR
-  // 2. Access token changed (token refresh or new login)
-  if (isAuthStatusChanged || isTokenChanged) {
-    console.log("CloudStore: Reinitializing due to auth change");
-
-    if (cloudStore) {
-      console.log("CloudStore: Destroying previous instance");
-      try {
-        cloudStore.destroy();
-      } catch (error) {
-        console.warn("CloudStore: Error destroying instance", error);
+      if (cloudStore) {
+        try {
+          cloudStore.destroy();
+        } catch (error) {
+          console.warn("CloudStore: Error destroying instance", error);
+        }
       }
+
+      cloudStore = createCloudStore(
+        authState.tokens?.accessToken,
+        authState.user?.tenant_id
+      );
+
+      previousAuthState = {
+        isAuthenticated: authState.isAuthenticated,
+        accessToken: currentAccessToken,
+      };
     }
+  });
+}
 
-    cloudStore = createCloudStore(
-      authState.tokens?.accessToken,
-      authState.user?.tenant_id,
-    );
+// 👇 This is key: don't run setup immediately!
+// Instead, defer to first access or manual init
+let authListenerSetup = false;
 
-    console.log(
-      "CloudStore: New instance created",
-      cloudStore ? "SUCCESS" : "NULL",
-    );
-
-    // Update tracking
-    previousAuthState = {
-      isAuthenticated: authState.isAuthenticated,
-      accessToken: currentAccessToken,
-    };
-  } else {
-    console.log("CloudStore: No changes detected, skipping reinit");
+function ensureInitialized() {
+  if (typeof window === "undefined") return;
+  ensureCloudStoreIsLoaded();
+  if (!authListenerSetup) {
+    setupAuthListener();
+    authListenerSetup = true;
   }
-});
+}
 
-// Create a proxy that always returns the current cloudStore
-const cloudStoreProxy = new Proxy({} as typeof CloudStore, {
-  get(_target, prop, _receiver) {
-    if (!cloudStore) {
-      return undefined;
-    }
-    const value = cloudStore[prop];
-    // Bind methods to the current cloudStore instance
-    return typeof value === "function" ? value.bind(cloudStore) : value;
-  },
-
-  has(_target, prop) {
-    return cloudStore ? prop in cloudStore : false;
-  },
-
-  ownKeys(_target) {
-    return cloudStore ? Reflect.ownKeys(cloudStore) : [];
-  },
-
-  getOwnPropertyDescriptor(_target, prop) {
-    return cloudStore
-      ? Reflect.getOwnPropertyDescriptor(cloudStore, prop)
-      : undefined;
-  },
-});
+// Proxy that lazily initializes on first access (client-only)
+const cloudStoreProxy = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      ensureInitialized(); // safe: no-op on server
+      if (!cloudStore) return undefined;
+      const value = cloudStore[prop];
+      return typeof value === "function" ? value.bind(cloudStore) : value;
+    },
+    has(_target, prop) {
+      ensureInitialized();
+      return cloudStore ? prop in cloudStore : false;
+    },
+    ownKeys(_target) {
+      ensureInitialized();
+      return cloudStore ? Reflect.ownKeys(cloudStore) : [];
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      ensureInitialized();
+      return cloudStore
+        ? Reflect.getOwnPropertyDescriptor(cloudStore, prop)
+        : undefined;
+    },
+  }
+);
 
 export default cloudStoreProxy;
-export { initializeCloudStore };
