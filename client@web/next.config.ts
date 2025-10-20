@@ -11,12 +11,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
-    // reactCompiler: true,
-
-    // reactCompiler: {
-    //   compilationMode: 'annotation',
-    // },
-    // viewTransition: true,
+    reactCompiler: true,
+    viewTransition: true,
     optimizePackageImports: [
       "lucide-react",
       "@radix-ui/react-icons",
