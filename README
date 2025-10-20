@@ -16,6 +16,14 @@ Docs depends on Kabeer's Network's Cloudstore service
 for data:
 https://github.com/Kabeers-Network/cloudstore-release/
 
+Currently files and folder creation in Docs is its own 
+standalone implementation, but plans are that Docs will
+eventually save / retrieve from Kabeer's Drive account via
+Kabeer Identity Platform:
+(https://research.kabeers.network/blog/identity/kabeeridp/)
+This service is currently not open-source completely, but 
+some key features of the service are shared.
+
 It will eventually depend on the Kabeer Cloud SDK for blob
 and raw file storage (https://docs.cloud.kabeers.network).
 A sample implementation is available in the Kabeer's
