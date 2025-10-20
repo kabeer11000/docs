@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     // reactCompiler: {
     //   compilationMode: 'annotation',
     // },
-    viewTransition: true,
+    // viewTransition: true,
     optimizePackageImports: [
       "lucide-react",
       "@radix-ui/react-icons",
