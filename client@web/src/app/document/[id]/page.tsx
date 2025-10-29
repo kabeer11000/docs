@@ -194,7 +194,7 @@ export default function DocumentPage({
       >
         <Editor
           documentId={documentId}
-          hocusPocusHost="http://localhost:4321"
+          hocusPocusHost="https://client5.otherdev.com/hocuspocus/v1"
         />
       </div>
     </ReactHome>
