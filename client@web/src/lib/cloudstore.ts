@@ -7,7 +7,7 @@ console.log("cl: ", CloudStore);
 // console.log('Adapters:', CloudStore, Adapters);
 // Environment configuration
 const CLOUDSTORE_CONFIG = {
-  URI: "https://lxcloudstore.deployments.otherdev.com",
+  URI: process.env.CLOUDSTORE_URI ?? "https://client5.otherdev.com" ?? "https://lxcloudstore.deployments.otherdev.com",
   DATABASE_NAME: "kabeers-docs-cl",
 };
 
