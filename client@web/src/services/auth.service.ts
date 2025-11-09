@@ -204,7 +204,7 @@ export class AuthService {
     try {
       const backendResponse = await this.http.post<IBackendAuthResponse>(
         AUTH_ENDPOINTS.LOGIN,
-        credentials,
+        {...credentials, tenant_id: "1234"},
         { timeout: 8000, retries: 0 }, // 8 seconds for auth requests, no retries (fail fast)
       );
 
@@ -246,7 +246,7 @@ export class AuthService {
     try {
       const backendResponse = await this.http.post<IBackendAuthResponse>(
         AUTH_ENDPOINTS.REGISTER,
-        userData,
+        {...userData, tenant_id: "1234"},
         { timeout: 8000, retries: 0 }, // No retries for auth requests
       );
 
