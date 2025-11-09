@@ -7,7 +7,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
-  cacheComponents: true,
+  cacheComponents: false,
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
