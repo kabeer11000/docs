@@ -94,7 +94,7 @@
     "next": "16.0.1",
     "next-themes": "^0.4.6",
     "ogl": "^1.0.11",
-    "pdf-parse": "^2.2.16",
+    "pdf-parse": "^2.4.5",
     "postcss": "^8.4.49",
     "postcss-obfuscator": "^1.6.1",
     "react": "19.1.0",
