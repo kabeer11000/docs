@@ -9,5 +9,5 @@ export const paragraphPhrases = [
 export const mobilePhrases = ['Reclaim your', 'documents. Collaborate.'];
 export const mobileParagraphPhrases = [
   'An open-source alternative to Google Docs.',
-  'No vendor lock-in. Just collaboration.',
+  'No vendor lock-in. Just collaboration.', 
 ];
