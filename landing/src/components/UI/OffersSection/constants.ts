@@ -1,4 +1,4 @@
-import seamless_payments from '../../../../public/images/seamless_payments.png';
+import seamless_payments from '../../../../public/images/comments_desktop.png';
 import smart_investing from '../../../../public/images/smart_investing.png';
 import wealth_management from '../../../../public/images/wealth_management.png';
 import financial_planning from '../../../../public/images/financial_planning.png';

@@ -36,12 +36,12 @@ const Featured = () => {
           >
             {isMobile ? (
               <Image
-                src={featured_mobile_banner}
-                alt="featured_mobile_banner"
+                src={big_banner}
+                alt="featured_mobile_banner" objectFit='contain'
                 fill
               />
             ) : (
-              <Image src={big_banner} alt="big_banner" fill />
+              <Image src={big_banner} alt="big_banner" objectFit='contain' fill />
             )}
           </Div>
         </ImageContainer>

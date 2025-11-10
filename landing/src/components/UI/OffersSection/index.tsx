@@ -36,7 +36,7 @@ const OffersSection = () => {
           {offers.slice(0, 2).map((offer, i) => (
             <OfferCard key={i}>
               <ImageCtn>
-                <Image src={offer.illustration} alt="illustration" />
+                <Image src={offer.illustration} objectFit='contain' style={{height: "100%", borderRadius: '1rem', zIndex: 0, paddingLeft: '1rem', paddingRight: '1rem'}} alt="illustration" />
               </ImageCtn>
               <TextCtn>
                 <MaskText phrases={new Array(offer.title)} tag="h2" />

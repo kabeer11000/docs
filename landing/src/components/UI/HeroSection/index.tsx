@@ -11,6 +11,7 @@ import {
   paragraphPhrases,
   phrases,
 } from './constants';
+import AnimatedLink from '@/components/Common/AnimatedLink';
 
 const HeroSection = () => {
   const isMobile = useIsMobile();
@@ -34,7 +35,12 @@ const HeroSection = () => {
             </>
           )}
         </HeroTextContainer>
-        <GetStartedButton padding="1rem 2rem" />
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'space-between', alignItems: 'center' }}>
+          <GetStartedButton padding="1rem 2rem" />
+          <div style={{display: 'flex', alignItems: 'center'}}>
+            <AnimatedLink title={'Self-host'}></AnimatedLink>
+          </div>
+        </div>
       </Inner>
     </Wrapper>
   );
