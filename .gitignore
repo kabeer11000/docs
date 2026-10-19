@@ -3,3 +3,5 @@
 .vscode
 **.ignored/
 **node_modules/
+.vercel
+.playwright-cli

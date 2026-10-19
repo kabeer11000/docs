@@ -1,0 +1,97 @@
+services:
+  - type: web
+    name: docs-auth-service
+    runtime: docker
+    rootDir: services/auth-service
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: oregon
+    buildFilter:
+      paths:
+        - services/auth-service/**
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: JWT_ISSUER
+        value: lexa-auth-service
+      - key: JWT_ACCESS_TOKEN_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_TOKEN_EXPIRES
+        value: 7d
+      - key: JWT_ID_TOKEN_EXPIRES
+        value: 1h
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: FROM_EMAIL
+        sync: false
+      - key: FROM_NAME
+        value: Lexa Auth
+      - key: FRONTEND_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URL
+        sync: false
+      - key: WEBAUTHN_DISPLAY_NAME
+        value: Docs
+      - key: WEBAUTHN_RPID
+        sync: false
+      - key: WEBAUTHN_ORIGIN
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: RATE_LIMIT_REQUESTS_PER_MINUTE
+        value: "60"
+      - key: BCRYPT_COST
+        value: "12"
+      - key: LOG_LEVEL
+        value: info
+      - key: ENABLE_METRICS
+        value: "true"
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+
+  - type: web
+    name: docs-cloudstore-backend
+    runtime: docker
+    rootDir: services/cloudstore-backend
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: oregon
+    buildFilter:
+      paths:
+        - services/cloudstore-backend/**
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URI
+        sync: false
+      - key: NODE_ENV
+        value: production
+
+  - type: web
+    name: docs-yjs-host
+    runtime: docker
+    rootDir: services/yjs-host
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: oregon
+    buildFilter:
+      paths:
+        - services/yjs-host/**
