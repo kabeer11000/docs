@@ -19,12 +19,12 @@ const buttonVariants = cva(
         link: "text-foreground underline-offset-4 hover:underline active:scale-100",
       },
       size: {
-        default: "h-12 px-5 has-[>svg]:px-4",
-        sm: "h-10 gap-1.5 px-4 has-[>svg]:px-3",
-        lg: "h-14 px-7 text-base has-[>svg]:px-6",
-        icon: "size-12",
-        "icon-sm": "size-10",
-        "icon-lg": "size-14",
+        default: "h-9 px-4 has-[>svg]:px-3",
+        sm: "h-8 gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 px-5 has-[>svg]:px-4",
+        icon: "size-9",
+        "icon-sm": "size-8",
+        "icon-lg": "size-10",
       },
     },
     defaultVariants: {

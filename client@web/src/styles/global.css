@@ -71,7 +71,7 @@
 /* Monotone Dark Color Palette */
 :root {
   color-scheme: dark;
-  --radius: 1rem; /* Kept this for a very rounded look */
+  --radius: 0.75rem;
 /* var(--color-neutral-900); oklch(0.07 0 0)*/
   /* Dark background with light text */
   --background: oklch(0.115 0 0); /* #0a0a0a canvas */
