@@ -10,7 +10,7 @@ interface AuthState {
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
-  loginForm: { email: ""; password: "" };
+  loginForm: { email: ""; password: ""; tenant_id: "1234" };
   onboardForm: {
     displayName: "";
     email: "";
@@ -27,7 +27,7 @@ const initialState: AuthState = {
   isLoading: false,
   isInitialized: false,
   error: null,
-  loginForm: { email: "", password: "" },
+  loginForm: { email: "", password: "", tenant_id: "1234" },
   onboardForm: {
     displayName: "",
     email: "",

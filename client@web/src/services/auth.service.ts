@@ -19,6 +19,7 @@ export type {
 export interface LoginRequest {
   email: string;
   password: string;
+  tenant_id: string;
 }
 
 export interface TokenRefreshRequest {
