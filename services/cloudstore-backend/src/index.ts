@@ -12,7 +12,8 @@ const io = new Server(parseInt(process.env.PORT || "8080"), {
     path: "/WListen.CloudStore.WebSockChannel",
     cors: {
         origin: "*",
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST"],
+        allowedHeaders: ["authorization"]
     }
 });
 io.use(Authorization);
