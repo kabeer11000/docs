@@ -1,0 +1,52 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "preserveConstEnums": true,
+    "outDir": "bundled",
+    "declaration": true,
+    "sourceMap": true,
+    "declarationMap": false,
+    "paths": {
+      "@/types": [
+        "./src/types"
+      ],
+      "@/events": [
+        "./src/events"
+      ],
+      "@/config": [
+        "./src/config"
+      ],
+      "@/controllers/*": [
+        "./src/controllers/*"
+      ],
+      "@/classes/*": [
+        "./src/classes/*"
+      ],
+      "@/db-internals/*": [
+        "./src/db-internals/*"
+      ],
+      "@/auth/*": [
+        "./src/auth/*"
+      ]
+    },
+    "removeComments": true,
+    "allowJs": true,
+    "plugins": [
+      // Transform paths in output .js files
+      {
+        "transform": "typescript-transform-paths"
+      }
+      // Transform paths in output .d.ts files (Include this line if you output declarations files)
+    ]
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ],
+  "hooks": [
+    "copy-files"
+  ]
+}

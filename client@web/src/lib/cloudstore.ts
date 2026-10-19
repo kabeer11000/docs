@@ -4,12 +4,10 @@ import { $auth } from "@/state/auth";
 
 const { default: CloudStore, Adapters } = cl;
 let cloudStore: typeof CloudStore | null = null;
-console.log("cl: ", cl);
-// console.log('Adapters:', CloudStore, Adapters);
 // Environment configuration
 const CLOUDSTORE_CONFIG = {
-  URI: "http://localhost:5000",// "https://lxcloudstore.deployments.otherdev.com",
-  DATABASE_NAME: "kabeers-docs-cl",
+  URI: process.env.NEXT_PUBLIC_CLOUDSTORE_URI || "https://lxcloudstore.deployments.otherdev.com",
+  DATABASE_NAME: process.env.NEXT_PUBLIC_CLOUDSTORE_DB || "kabeers-docs-cl",
 };
 
 function createCloudStore(
