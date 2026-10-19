@@ -3,8 +3,10 @@
 @import "tailwindcss/utilities";
 @import "./voice.css";
 
+/* Dark-only app: dark: utilities follow the .dark class on <html>, not the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Reference directive for Tailwind v4 - makes utilities available in CSS */
-@reference;
 
 * {
   /* outline: red solid 1px; */
@@ -68,17 +70,18 @@
 
 /* Monotone Dark Color Palette */
 :root {
+  color-scheme: dark;
   --radius: 1rem; /* Kept this for a very rounded look */
 /* var(--color-neutral-900); oklch(0.07 0 0)*/
   /* Dark background with light text */
-  --background: var(--color-neutral-950); /* Near black */
+  --background: oklch(0.115 0 0); /* #0a0a0a canvas */
   --foreground: oklch(0.98 0 0); /* Near white text */ 
 
   /* Cards & Popovers: slightly lighter than the background */
-  --card: oklch(0.11 0.003 240); /* Dark gray, subtle blue hue */
+  --card: oklch(0.155 0 0);
   --card-foreground: oklch(0.98 0 0);
 
-  --popover: oklch(0.11 0.003 240);
+  --popover: oklch(0.17 0 0 / 0.78); /* translucent: paired with backdrop blur */
   --popover-foreground: oklch(0.98 0 0);
 
   /* Primary action: Inverted for high contrast */
@@ -86,15 +89,15 @@
   --primary-foreground: oklch(0.07 0 0); /* Dark text on button */
 
   /* Secondary action: a subtler dark button */
-  --secondary: oklch(0.2 0.003 240); /* Medium gray */
+  --secondary: oklch(1 0 0 / 0.07);
   --secondary-foreground: oklch(0.98 0 0); /* Light text */
 
   /* Muted elements */
-  --muted: oklch(0.2 0.003 240);
-  --muted-foreground: oklch(0.65 0.001 240); /* Lighter gray text */
+  --muted: oklch(0.2 0 0);
+  --muted-foreground: oklch(0.68 0 0);
 
   /* Accent: follows secondary for a monotone feel */
-  --accent: oklch(0.2 0.003 240);
+  --accent: oklch(1 0 0 / 0.07);
   --accent-foreground: oklch(0.98 0 0);
 
   /* Destructive actions */
@@ -102,9 +105,9 @@
   --destructive-foreground: oklch(0.98 0 0);
 
   /* Borders, Inputs, and Rings */
-  --border: oklch(0.2 0.003 240);
-  --input: oklch(0.2 0.003 240);
-  --ring: oklch(0.98 0 0); /* White/light focus ring for visibility */
+  --border: oklch(1 0 0 / 0.09);
+  --input: oklch(1 0 0 / 0.1);
+  --ring: oklch(0.98 0 0 / 0.6);
 
   /* Sidebar */
   --sidebar: var(--background);
@@ -137,7 +140,22 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    letter-spacing: -0.006em;
+    -webkit-font-smoothing: antialiased;
+    /* One faint light source up top so glass surfaces have something to refract. */
+    background-image: radial-gradient(1200px 520px at 50% -180px, oklch(1 0 0 / 0.055), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: oklch(1 0 0 / 0.18);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
@@ -436,4 +454,133 @@
 
 .comment-marker.active {
   @apply bg-blue-500;
+}
+
+/* ---------- Motion ---------- */
+:root {
+  /* Fast start, long soft settle: snappy without bounce. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --ease-soft: var(--ease-out-soft);
+  --animate-rise: rise 520ms var(--ease-out-soft) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Stagger children of a .stagger container by --i (set inline) or nth-child fallback. */
+.stagger > * {
+  animation: rise 520ms var(--ease-out-soft) both;
+}
+.stagger > *:nth-child(2) { animation-delay: 50ms; }
+.stagger > *:nth-child(3) { animation-delay: 100ms; }
+.stagger > *:nth-child(4) { animation-delay: 150ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(n + 6) { animation-delay: 250ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ---------- Liquid glass ---------- */
+
+/* Frosted floating surface: menus, popovers, dialogs, toolbars. */
+@utility glass {
+  background-color: var(--popover);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  border: 1px solid oklch(1 0 0 / 0.1);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.08),
+    0 1px 2px oklch(0 0 0 / 0.4),
+    0 24px 64px -16px oklch(0 0 0 / 0.7);
+}
+
+/* Glass control: translucent pill with a top highlight and a soft sheen that follows hover. */
+@utility liquid {
+  position: relative;
+  isolation: isolate;
+  background-color: oklch(1 0 0 / 0.06);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid oklch(1 0 0 / 0.1);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.14),
+    inset 0 -1px 0 oklch(0 0 0 / 0.2),
+    0 1px 2px oklch(0 0 0 / 0.35);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(180deg, oklch(1 0 0 / 0.1), transparent 55%);
+    opacity: 0.8;
+    transition: opacity 300ms var(--ease-out-soft);
+    pointer-events: none;
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+
+  &:hover {
+    background-color: oklch(1 0 0 / 0.1);
+    border-color: oklch(1 0 0 / 0.16);
+  }
+}
+
+/* Bright frosted pill for the primary action. */
+@utility liquid-solid {
+  position: relative;
+  isolation: isolate;
+  background-color: oklch(0.97 0 0);
+  color: oklch(0.12 0 0);
+  border: 1px solid oklch(1 0 0 / 0.6);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0),
+    inset 0 -2px 6px oklch(0 0 0 / 0.08),
+    0 1px 2px oklch(0 0 0 / 0.4),
+    0 8px 24px -8px oklch(1 0 0 / 0.25);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(120% 90% at 50% -20%, oklch(1 0 0), transparent 60%);
+    pointer-events: none;
+  }
+
+  &:hover {
+    background-color: oklch(1 0 0);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0),
+      inset 0 -2px 6px oklch(0 0 0 / 0.08),
+      0 1px 2px oklch(0 0 0 / 0.4),
+      0 10px 32px -8px oklch(1 0 0 / 0.35);
+  }
 }

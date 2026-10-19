@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/global.css";
 import { cookies } from 'next/headers';
 import { Providers } from "./providers";
 import { Fragment } from "react";
 import { PWASupport } from "@/components/PWASupport";
+
+const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   title: "Kabeer's Docs - Document Management & Collaboration",
@@ -18,11 +22,11 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   return (
-    <html lang="en">
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} dark`}>
       <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#0a0a0a" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Docs" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

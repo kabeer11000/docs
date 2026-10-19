@@ -2,7 +2,6 @@
 
 import { useStore } from "@nanostores/react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -47,19 +46,19 @@ export function OnboardForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden border-none">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleSubmit}>
+      <Card className="glass rounded-[28px] py-0 overflow-hidden">
+        <CardContent className="p-0">
+          <form className="p-7 md:p-9" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl font-bold">Create your account</h1>
+                <h1 className="text-[28px] font-semibold tracking-tight">Create your account</h1>
                 <p className="text-balance text-muted-foreground">
                   Enter your details below to create your account
                 </p>
               </div>
 
               {authState.error && (
-                <div className="bg-destructive/10 text-destructive px-3 py-2 rounded-md text-xs">
+                <div className="bg-destructive/10 text-destructive border border-destructive/20 px-4 py-3 rounded-2xl text-[13px]">
                   {authState.error}
                 </div>
               )}
@@ -216,16 +215,6 @@ export function OnboardForm({
               </div>
             </div>
           </form>
-          <div className="bg-muted relative hidden md:block">
-            <Image
-              src="/media/document-collaboration-cropped.webp"
-              alt="Document collaboration interface"
-              fill
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-cover dark:brightness-[0.2] dark:neutralscale"
-              priority
-            />
-          </div>
         </CardContent>
       </Card>
       <div className="text-balance text-center text-xs text-muted-foreground">
