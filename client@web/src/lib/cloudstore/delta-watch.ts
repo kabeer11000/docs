@@ -1,3 +1,4 @@
+import { v4 as uuid } from "uuid";
 
 // Replacement for the cloudstore client's collection.watch():
 // - asks the server for deltas instead of the full result set on every change
@@ -47,7 +48,7 @@ export function deltaWatch(
   query: StructuredQuery,
   onUpdate: (result: { collection: any[]; _update?: unknown }) => void,
 ) {
-  const id = crypto.randomUUID();
+  const id = uuid();
   const orderBy: OrderBy = {
     field: query.orderBy?.field || "_id",
     direction: query.orderBy?.direction ?? "ASCENDING",

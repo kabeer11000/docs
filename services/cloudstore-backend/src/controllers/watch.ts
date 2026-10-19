@@ -135,6 +135,8 @@ async function openStream(s: SharedStream) {
         console.error(`Change stream ${s.key} failed, reopening:`, error?.message);
         reopenStream(s, stream);
     });
+    // Invalidation (drop/rename) closes the stream without an error; our own closes null s.stream first.
+    stream.on("close", () => reopenStream(s, stream));
 }
 
 // A dead stream used to leave every watcher silently stale. Reopen it, then
