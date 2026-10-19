@@ -5,15 +5,22 @@ import * as jwt from "jsonwebtoken";
 import RedisClientPromise from "@/db-internals/redis-client";
 
 export const Authorization = async (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> & { auth: { verified: boolean, data: any } }, next: (err?: ExtendedError | undefined) => void) => {
-    if (!socket.handshake.headers['authorization']) return next(new Error('error, authorization header not attached.'));
+    // Browsers can't attach custom headers to a native WebSocket handshake,
+    // so extraHeaders only works over HTTP polling. Clients forcing
+    // transports: ["websocket"] (no polling upgrade) send the token via the
+    // "authorization" query param instead - accept either.
+    const headerAuth = socket.handshake.headers['authorization'];
+    const queryToken = socket.handshake.query.authorization;
+    const token = headerAuth ? headerAuth.split(' ')[1] : (typeof queryToken === 'string' ? queryToken : undefined);
+
+    if (!token?.length) return next(new Error('error, authorization header not attached.'));
     if (!socket.handshake.query.tenant_id) return next(new Error('error, tenant id was not attached.')); // TODO Unified Public API
-    if (!socket.handshake.headers['authorization'].split(' ')[1]?.length) return next(new Error('error, Bearer token was not attached.'));
     const tenantPublicKeyResult = await (await RedisClientPromise).get(socket.handshake.query.tenant_id.toString());
     if (!tenantPublicKeyResult) return next(new Error('error, Tenant is not registered! Kindly make sure [tenant_id, publicKey] is added to the Redis instance.'));
 
     const tenantPublicKey = tenantPublicKeyResult.toString().replace(/\\n/g, '\n');
     try {
-        const decoded = jwt.verify(socket.handshake.headers['authorization'].split(' ')[1], tenantPublicKey, {
+        const decoded = jwt.verify(token, tenantPublicKey, {
             algorithms: ['ES256'],
         });
 
