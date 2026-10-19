@@ -1,4 +1,4 @@
-import WatchController, { streamWatchers, queryCache, collectionStreams, queryHashCount } from "@/controllers/watch";
+import WatchController, { releaseSocket } from "@/controllers/watch";
 import { Server } from "socket.io";
 import { ServerVersion } from "./config";
 import { DeleteHandler, InsertHandler, UpdateHandler, GetHandler } from "@/controllers/crud";
@@ -24,7 +24,6 @@ io.on("error", (err) => {
 
 io.on("connection", async (socket: any) => {
     if ((process.env).ENV === 'development') console.log("a device: ", socket.id, " has connected");
-    socket.data.activeWatchables = new Map();
     socket.on(Events.config.config(), async (config: { database: string }) => {
         socket.data.config = config;
         socket.emit("config-cb", { _s: ServerVersion });
@@ -53,46 +52,7 @@ io.on("connection", async (socket: any) => {
             console.log(`client ${socket.id} disconnected: ${reason}`);
         }
 
-        // Clean up optimized watch streams
-        if (socket.data.activeWatchables) {
-            for (const [streamId] of socket.data.activeWatchables) {
-                try {
-                    const watcherData = streamWatchers?.get(streamId);
-                    if (watcherData) {
-                        const { watcher, queryHash, streamData } = watcherData;
-
-                        // Remove from cache
-                        const cacheEntry = queryCache?.get(queryHash);
-                        if (cacheEntry) {
-                            cacheEntry.watchers.delete(watcher);
-                            if (cacheEntry.watchers.size === 0) {
-                                queryCache.delete(queryHash);
-                            }
-                        }
-
-                        // Remove from stream
-                        streamData.watcherCount--;
-                        const count = queryHashCount?.get(queryHash) || 0;
-                        if (count > 1) {
-                            queryHashCount.set(queryHash, count - 1);
-                        } else {
-                            queryHashCount?.delete(queryHash);
-                            streamData.watchers.delete(queryHash);
-                        }
-
-                        if (streamData.watcherCount === 0) {
-                            streamData.stream?.close();
-                            collectionStreams?.delete(streamData.key);
-                        }
-
-                        streamWatchers.delete(streamId);
-                    }
-                } catch (e) {
-                    // Ignore cleanup errors
-                }
-            }
-            socket.data.activeWatchables.clear();
-        }
+        releaseSocket(socket);
     });
     // Implements watch, watch-cb, watch:[STREAM_ID]:close, closed-stream:[STREAM_ID]
     socket.on("watch", (d: IWatchConfig) => WatchController(socket, d));
@@ -105,4 +65,4 @@ io.on("connection", async (socket: any) => {
     // Implements insert insert-cb-[REF_ID]
     socket.on("insert", (d: IInsertConfig) => InsertHandler(socket, d));
 });
-console.log("socket server started on port http://localhost:8080/")
+console.log(`socket server started on port ${process.env.PORT || 8080}`)

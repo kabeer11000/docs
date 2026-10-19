@@ -1,16 +1,38 @@
-import { IActiveWatchable, IWatchConfig } from "@/types";
+import { IWatchConfig } from "@/types";
 import MongoDatabasePromise from "@/db-internals/mongo-client";
 import { Socket } from "socket.io";
 import Events from "@/events";
 import * as crypto from "crypto";
-// import { ParseRules } from "@/auth/rules";
+import { computeWindow, diffWindows, toWindowMap, docId, OrderBy } from "@/controllers/watch-delta";
 
-// Global shared streams and caches
-export const collectionStreams = new Map();
-export const queryCache = new Map();
-export const streamWatchers = new Map();
-const queryLocks = new Map();
-export const queryHashCount = new Map();
+// One change stream per collection, one cached result set per distinct query,
+// many watchers (socket streams) per query.
+type SharedStream = {
+    key: string;
+    dbName: string;
+    collectionName: string;
+    stream: any;
+    ready: Promise<void>;
+    entries: Set<QueryEntry>;
+};
+type QueryEntry = {
+    hash: string;
+    stream: SharedStream;
+    mongoQuery: object;
+    rawFilters: any[];
+    orderBy: OrderBy;
+    limit?: number | null;
+    results: any[];
+    window: Map<string, any>;
+    watchers: Set<Watcher>;
+};
+type Watcher = { socket: Socket<any, any>; streamId: string; delta: boolean; entry: QueryEntry };
+
+const streams = new Map<string, SharedStream>();
+const queries = new Map<string, QueryEntry>();
+const pending = new Map<string, Promise<QueryEntry>>();
+const STREAM_RETRY_MS = 1000;
+
 export const FilterOperatorToMongoDBMap = {
     "EQUAL": "$eq",
     "GREATER": "$gt",
@@ -42,26 +64,6 @@ function buildFilter(filter: any) {
     }
 }
 
-function hashQuery(filters: any[], orderBy?: any, limit?: number) {
-    return crypto.createHash('sha256').update(JSON.stringify({ filters, orderBy, limit })).digest('hex');
-}
-
-function applySortAndLimit(results: any[], orderBy?: any, limit?: number) {
-    let final = [...results];
-    if (orderBy) {
-        final.sort((a, b) => {
-            const aVal = orderBy.field.split('.').reduce((obj, key) => obj?.[key], a);
-            const bVal = orderBy.field.split('.').reduce((obj, key) => obj?.[key], b);
-            const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-            return orderBy.direction === 'DESCENDING' ? -cmp : cmp;
-        });
-    }
-    if (limit && limit > 0) {
-        final = final.slice(0, limit);
-    }
-    return final;
-}
-
 function documentMatches(doc: any, filters: any[]) {
     if (!filters.length) return true;
     return filters.every(filter => {
@@ -85,261 +87,192 @@ function documentMatches(doc: any, filters: any[]) {
     });
 }
 
-function getSharedStream(dbName: string, collectionName: string) {
+// Applies a change event to a cached result set in place. Returns whether it changed.
+function applyChange(results: any[], filters: any[], change: any) {
+    if (!change.documentKey) return false;
+    const id = String(change.documentKey._id);
+    const idx = results.findIndex(doc => docId(doc) === id);
+    const doc = change.fullDocument;
+
+    if (change.operationType === 'delete' || !doc) {
+        if (idx < 0) return false;
+        results.splice(idx, 1);
+        return true;
+    }
+    const matches = documentMatches(doc, filters);
+    if (idx >= 0 && matches) results[idx] = doc;
+    else if (idx >= 0) results.splice(idx, 1);
+    else if (matches) results.push(doc);
+    else return false;
+    return true;
+}
+
+// Recomputes the query window and sends watchers only what changed.
+// Delta-capable watchers get { delta }, legacy ones the full window as before.
+function publish(entry: QueryEntry, update: any) {
+    const next = computeWindow(entry.results, entry.orderBy, entry.limit);
+    const delta = diffWindows(entry.window, next);
+    if (!delta.upsert.length && !delta.remove.length) return;
+    entry.window = toWindowMap(next);
+
+    const op = { operationType: update.operationType };
+    for (const w of entry.watchers) {
+        w.socket.emit(Events.server.WATCH_CALLBACK(w.streamId),
+            w.delta ? { delta, _update: op } : { collection: next, _update: update });
+    }
+}
+
+async function openStream(s: SharedStream) {
+    const db = (await MongoDatabasePromise).db(s.dbName);
+    const stream = db.collection(s.collectionName).watch([], { fullDocument: 'updateLookup' });
+    s.stream = stream;
+    stream.on("change", (change) => {
+        for (const entry of s.entries) {
+            if (applyChange(entry.results, entry.rawFilters, change)) publish(entry, change);
+        }
+    });
+    stream.on("error", (error) => {
+        console.error(`Change stream ${s.key} failed, reopening:`, error?.message);
+        reopenStream(s, stream);
+    });
+}
+
+// A dead stream used to leave every watcher silently stale. Reopen it, then
+// re-query each entry so changes missed while it was down still get published.
+function reopenStream(s: SharedStream, dead: any) {
+    if (s.stream !== dead) return;
+    s.stream = null;
+    dead?.close().catch(() => { });
+    setTimeout(async () => {
+        if (streams.get(s.key) !== s) return;
+        try {
+            await openStream(s);
+            const db = (await MongoDatabasePromise).db(s.dbName);
+            for (const entry of s.entries) {
+                entry.results = await db.collection(s.collectionName).find(entry.mongoQuery).toArray();
+                publish(entry, { operationType: 'resync' });
+            }
+        } catch (error) {
+            console.error(`Reopening change stream ${s.key} failed:`, error?.message);
+            reopenStream(s, s.stream);
+        }
+    }, STREAM_RETRY_MS);
+}
+
+async function ensureStream(dbName: string, collectionName: string) {
     const key = `${dbName}.${collectionName}`;
-    let streamData = collectionStreams.get(key);
-
-    if (!streamData) {
-        streamData = { stream: null, watchers: new Set(), watcherCount: 0, key };
-        collectionStreams.set(key, streamData);
+    let s = streams.get(key);
+    if (!s) {
+        s = { key, dbName, collectionName, stream: null, ready: Promise.resolve(), entries: new Set() };
+        s.ready = openStream(s);
+        streams.set(key, s);
     }
-
-    return streamData;
+    await s.ready;
+    return s;
 }
 
-async function createStream(streamData: any, dbName: string, collectionName: string) {
-    if (streamData.stream) return;
-
-    try {
-        const db = (await MongoDatabasePromise).db(dbName);
-        streamData.stream = db.collection(collectionName).watch([], { fullDocument: 'updateLookup' });
-
-        streamData.stream.on("error", (error) => {
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Change stream error:', error);
-            }
-            streamData.stream = null;
-        });
-
-        streamData.stream.on("change", async (data) => {
-        for (const queryHash of streamData.watchers) {
-            const cacheEntry = queryCache.get(queryHash);
-            if (!cacheEntry) continue;
-
-            let updated = false;
-            const { results, rawFilters } = cacheEntry;
-
-            switch (data.operationType) {
-                case 'insert':
-                    if (data.fullDocument && documentMatches(data.fullDocument, rawFilters)) {
-                        results.push(data.fullDocument);
-                        updated = true;
-                    }
-                    break;
-                case 'update':
-                    const docId = data.documentKey._id.toString();
-                    const idx = results.findIndex(doc => doc._id.toString() === docId);
-
-                    if (data.fullDocument) {
-                        const matches = documentMatches(data.fullDocument, rawFilters);
-
-                        if (idx >= 0 && matches) {
-                            results[idx] = data.fullDocument;
-                            updated = true;
-                        } else if (idx >= 0 && !matches) {
-                            results.splice(idx, 1);
-                            updated = true;
-                        } else if (idx < 0 && matches) {
-                            results.push(data.fullDocument);
-                            updated = true;
-                        }
-                    } else if (idx >= 0) {
-                        // Document updated but no fullDocument - remove from cache to be safe
-                        results.splice(idx, 1);
-                        updated = true;
-                    }
-                    break;
-                case 'delete':
-                    const deleteDocId = data.documentKey._id.toString();
-                    const deleteIdx = results.findIndex(doc => doc._id.toString() === deleteDocId);
-                    if (deleteIdx >= 0) {
-                        results.splice(deleteIdx, 1);
-                        updated = true;
-                    }
-                    break;
-            }
-
-            if (updated) {
-                cacheEntry.watchers.forEach(watcher => {
-                    const final = applySortAndLimit(cacheEntry.results, watcher.orderBy, watcher.limit);
-                    watcher.socket.emit(Events.server.WATCH_CALLBACK(watcher.streamId), {
-                        collection: final,
-                        _update: data
-                    });
-                });
-            }
-        }
-        });
-    } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error('Failed to create change stream:', error);
-        }
-        streamData.stream = null;
-    }
+function dropStreamIfUnused(s: SharedStream) {
+    if (s.entries.size || streams.get(s.key) !== s) return;
+    streams.delete(s.key);
+    const stream = s.stream;
+    s.stream = null;
+    stream?.close().catch(() => { });
 }
-export default async function WatchController(socket: Socket<any, any>, config: IWatchConfig) {
+
+async function loadEntry(hash: string, dbName: string, collectionName: string, structured: IWatchConfig["watchable"]["query"]["structured"]) {
+    // Stream opens before the initial find so changes during the find aren't lost.
+    // ponytail: a change landing mid-find can still be missed until the next change to that doc; buffer events during load if that bites.
+    const s = await ensureStream(dbName, collectionName);
     try {
-        const dbName = config.watchable.database.name;
-        const collectionName = config.watchable.collection.name;
-        const rawFilters = config.watchable.query.structured.where;
+        const rawFilters = structured.where || [];
         const mongoFilters = rawFilters.map(buildFilter);
-        const { orderBy, limit } = config.watchable.query.structured;
+        const mongoQuery = mongoFilters.length ? { $and: mongoFilters } : {};
+        const results = await (await MongoDatabasePromise).db(dbName).collection(collectionName).find(mongoQuery).toArray();
+        const entry: QueryEntry = {
+            hash, stream: s, mongoQuery, rawFilters,
+            orderBy: structured.orderBy, limit: structured.limit,
+            results, window: new Map(), watchers: new Set(),
+        };
+        entry.window = toWindowMap(computeWindow(results, entry.orderBy, entry.limit));
+        queries.set(hash, entry);
+        s.entries.add(entry);
+        return entry;
+    } catch (error) {
+        dropStreamIfUnused(s);
+        throw error;
+    }
+}
 
-        const queryHash = hashQuery(rawFilters, orderBy, limit);
-        const streamData = getSharedStream(dbName, collectionName);
+function acquireEntry(dbName: string, collectionName: string, structured: IWatchConfig["watchable"]["query"]["structured"]) {
+    // Database and collection are part of the key: identical filters on two collections must not share results.
+    const hash = crypto.createHash('sha256').update(JSON.stringify({
+        dbName, collectionName, filters: structured.where, orderBy: structured.orderBy, limit: structured.limit
+    })).digest('hex');
+    const existing = queries.get(hash);
+    if (existing) return Promise.resolve(existing);
+    let load = pending.get(hash);
+    if (!load) {
+        load = loadEntry(hash, dbName, collectionName, structured).finally(() => pending.delete(hash));
+        pending.set(hash, load);
+    }
+    return load;
+}
 
-        // Initialize activeWatchables as Map if not exists
-        if (!socket.data.activeWatchables) {
-            socket.data.activeWatchables = new Map();
+function watchersOf(socket: Socket<any, any>): Map<string, Watcher> {
+    return socket.data.watchers ??= new Map();
+}
+
+export function releaseWatcher(socket: Socket<any, any>, streamId: string) {
+    const watchers = watchersOf(socket);
+    const watcher = watchers.get(streamId);
+    if (!watcher) return;
+    watchers.delete(streamId);
+    const { entry } = watcher;
+    entry.watchers.delete(watcher);
+    releaseEntryIfUnused(entry);
+}
+
+function releaseEntryIfUnused(entry: QueryEntry) {
+    if (entry.watchers.size || queries.get(entry.hash) !== entry) return;
+    queries.delete(entry.hash);
+    entry.stream.entries.delete(entry);
+    dropStreamIfUnused(entry.stream);
+}
+
+export function releaseSocket(socket: Socket<any, any>) {
+    for (const streamId of [...watchersOf(socket).keys()]) releaseWatcher(socket, streamId);
+}
+
+export default async function WatchController(socket: Socket<any, any>, config: IWatchConfig & { delta?: boolean }) {
+    const streamId = config?.stream?.id;
+    if (!streamId) return;
+    try {
+        const { database, collection, query } = config.watchable;
+        const entry = await acquireEntry(database.name, collection.name, query.structured);
+        if (socket.disconnected) {
+            // Socket left while we were loading; don't register a watcher nobody will release.
+            // Deferred so other sockets awaiting the same load can attach first.
+            setTimeout(() => releaseEntryIfUnused(entry), 0);
+            return;
         }
 
-        // Create watcher object
-        const watcher = {
-            socket,
-            streamId: config.stream.id,
-            orderBy,
-            limit,
-            queryHash
-        };
+        releaseWatcher(socket, streamId);
+        const watcher: Watcher = { socket, streamId, delta: config.delta === true, entry };
+        entry.watchers.add(watcher);
+        watchersOf(socket).set(streamId, watcher);
 
-        // Get or create query cache with race condition protection
-        let cacheEntry = queryCache.get(queryHash);
-        if (!cacheEntry) {
-            if (queryLocks.get(queryHash)) {
-                // Wait for existing query to complete
-                await queryLocks.get(queryHash);
-                cacheEntry = queryCache.get(queryHash);
-            }
+        socket.removeAllListeners(`watch:${streamId}:close`);
+        socket.once(`watch:${streamId}:close`, () => {
+            releaseWatcher(socket, streamId);
+            socket.emit("closed-stream:" + streamId, { success: true });
+        });
 
-            if (!cacheEntry) {
-                // Create lock and execute query
-                const lockResolve = [];
-                queryLocks.set(queryHash, new Promise(resolve => lockResolve.push(resolve)));
-
-                try {
-                    const db = (await MongoDatabasePromise).db(dbName);
-                    const query = mongoFilters.length ? { $and: mongoFilters } : {};
-                    const results = await db.collection(collectionName).find(query).toArray();
-
-                    cacheEntry = { results, watchers: new Set(), rawFilters };
-                    queryCache.set(queryHash, cacheEntry);
-                } catch (dbError) {
-                    if (process.env.NODE_ENV === 'development') {
-                        console.error('Database query failed:', dbError);
-                    }
-                    throw dbError;
-                } finally {
-                    queryLocks.delete(queryHash);
-                    lockResolve[0]();
-                }
-            }
-        }
-
-        cacheEntry.watchers.add(watcher);
-        streamData.watchers.add(queryHash);
-        streamData.watcherCount++;
-        queryHashCount.set(queryHash, (queryHashCount.get(queryHash) || 0) + 1);
-        streamWatchers.set(config.stream.id, { watcher, queryHash, streamData });
-
-        // Create shared stream if needed
-        await createStream(streamData, dbName, collectionName);
-
-        const activeWatchable: IActiveWatchable = {
-            database: { name: dbName, version: config.watchable.database.version },
-            stream: { id: config.stream.id, active: true, paused: false, resumeToken: null },
-            collection: { name: collectionName }
-        };
-
-        socket.data.activeWatchables.set(config.stream.id, activeWatchable);
-
-        // Handle watch close
-        const closeHandler = async (closeConfig: { stream: { id: string } }) => {
-            try {
-                const watcherData = streamWatchers.get(closeConfig.stream.id);
-                if (watcherData) {
-                    const { watcher, queryHash, streamData } = watcherData;
-
-                    // Remove from cache
-                    const cacheEntry = queryCache.get(queryHash);
-                    if (cacheEntry) {
-                        cacheEntry.watchers.delete(watcher);
-                        if (cacheEntry.watchers.size === 0) {
-                            queryCache.delete(queryHash);
-                        }
-                    }
-
-                    // Remove from stream
-                    streamData.watcherCount--;
-                    const count = queryHashCount.get(queryHash) || 0;
-                    if (count > 1) {
-                        queryHashCount.set(queryHash, count - 1);
-                    } else {
-                        queryHashCount.delete(queryHash);
-                        streamData.watchers.delete(queryHash);
-                    }
-
-                    if (streamData.watcherCount === 0) {
-                        streamData.stream?.close();
-                        collectionStreams.delete(streamData.key);
-                    }
-
-                    streamWatchers.delete(closeConfig.stream.id);
-                }
-
-                socket.data.activeWatchables.delete(closeConfig.stream.id);
-                socket.removeListener(`watch:${closeConfig.stream.id}:close`, closeHandler);
-                socket.emit("closed-stream:" + closeConfig.stream.id, { success: true });
-            } catch (error) {
-                socket.emit("closed-stream:" + closeConfig.stream.id, { success: false, error: error.message });
-            }
-        };
-
-        socket.on(`watch:${config.stream.id}:close`, closeHandler);
-
-        // Send initial data
-        const final = applySortAndLimit(cacheEntry.results, orderBy, limit);
-        socket.emit(Events.server.WATCH_CALLBACK(config.stream.id), {
-            collection: final,
+        socket.emit(Events.server.WATCH_CALLBACK(streamId), {
+            collection: [...entry.window.values()],
             _update: { operationType: 'initial' }
         });
     } catch (error) {
-        // Clean up on error
-        const watcherData = streamWatchers.get(config.stream.id);
-        if (watcherData) {
-            const { queryHash, streamData } = watcherData;
-
-            // Clean up cache
-            const cacheEntry = queryCache.get(queryHash);
-            if (cacheEntry) {
-                cacheEntry.watchers.delete(watcherData.watcher);
-                if (cacheEntry.watchers.size === 0) {
-                    queryCache.delete(queryHash);
-                }
-            }
-
-            // Clean up stream data
-            const count = queryHashCount.get(queryHash) || 0;
-            if (count > 1) {
-                queryHashCount.set(queryHash, count - 1);
-            } else {
-                queryHashCount.delete(queryHash);
-                streamData.watchers.delete(queryHash);
-            }
-
-            if (streamData.watcherCount <= 1) {
-                streamData.stream?.close();
-                collectionStreams.delete(streamData.key);
-            } else {
-                streamData.watcherCount--;
-            }
-
-            streamWatchers.delete(config.stream.id);
-        }
-
-        if (socket.data.activeWatchables) {
-            socket.data.activeWatchables.delete(config.stream.id);
-        }
-
-        socket.emit(Events.watch.watchError(config.stream.id), { error: error?.message || 'Watch failed' });
+        releaseWatcher(socket, streamId);
+        socket.emit(Events.watch.watchError(streamId), { error: error?.message || 'Watch failed' });
     }
 }
