@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"authentication-service/models"
@@ -32,20 +33,33 @@ type Claims struct {
 }
 
 func InitJWT() error {
-	privateKeyPath := os.Getenv("JWT_PRIVATE_KEY_PATH")
-	publicKeyPath := os.Getenv("JWT_PUBLIC_KEY_PATH")
+	// Prefer inline PEM content (JWT_PRIVATE_KEY / JWT_PUBLIC_KEY) since
+	// platforms like Render don't let you ship key files in the repo.
+	// Falls back to reading from JWT_PRIVATE_KEY_PATH / JWT_PUBLIC_KEY_PATH
+	// for local development.
+	privateKeyData := []byte(strings.ReplaceAll(os.Getenv("JWT_PRIVATE_KEY"), "\\n", "\n"))
+	publicKeyData := []byte(strings.ReplaceAll(os.Getenv("JWT_PUBLIC_KEY"), "\\n", "\n"))
 
-	if privateKeyPath == "" {
-		privateKeyPath = "./keys/jwt_private.pem"
+	var err error
+	if len(privateKeyData) == 0 {
+		privateKeyPath := os.Getenv("JWT_PRIVATE_KEY_PATH")
+		if privateKeyPath == "" {
+			privateKeyPath = "./keys/jwt_private.pem"
+		}
+		privateKeyData, err = os.ReadFile(privateKeyPath)
+		if err != nil {
+			return errors.New("failed to read private key file: " + err.Error())
+		}
 	}
-	if publicKeyPath == "" {
-		publicKeyPath = "./keys/jwt_public.pem"
-	}
-
-	// Load private key
-	privateKeyData, err := os.ReadFile(privateKeyPath)
-	if err != nil {
-		return errors.New("failed to read private key file: " + err.Error())
+	if len(publicKeyData) == 0 {
+		publicKeyPath := os.Getenv("JWT_PUBLIC_KEY_PATH")
+		if publicKeyPath == "" {
+			publicKeyPath = "./keys/jwt_public.pem"
+		}
+		publicKeyData, err = os.ReadFile(publicKeyPath)
+		if err != nil {
+			return errors.New("failed to read public key file: " + err.Error())
+		}
 	}
 
 	privateKeyBlock, _ := pem.Decode(privateKeyData)
@@ -67,12 +81,6 @@ func InitJWT() error {
 	privateKey, ok = parsedKey.(*ecdsa.PrivateKey)
 	if !ok {
 		return errors.New("private key is not ECDSA key")
-	}
-
-	// Load public key
-	publicKeyData, err := os.ReadFile(publicKeyPath)
-	if err != nil {
-		return errors.New("failed to read public key file: " + err.Error())
 	}
 
 	publicKeyBlock, _ := pem.Decode(publicKeyData)
