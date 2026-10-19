@@ -24,10 +24,9 @@ export function LoginForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await auth.login();
-    console.log(success);
     if (success) {
-      // const redirectTo = searchParams.get("redirect") || "/home";
-      // router.push(redirectTo);
+      const redirectTo = searchParams.get("redirect") || "/home";
+      router.push(redirectTo);
     }
   };
 
