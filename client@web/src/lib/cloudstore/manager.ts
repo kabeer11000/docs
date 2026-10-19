@@ -1,6 +1,7 @@
 import * as cl from "cloudstore";
 import { $auth } from "@/lib/auth/manager";
 import { showToast } from "@/lib/toast";
+import { enableDeltaWatch } from "@/lib/cloudstore/delta-watch";
 
 const { default: CloudStore, Adapters } = cl;
 
@@ -40,7 +41,7 @@ class CloudStoreManager {
       // Disconnect previous instance
       await this.disconnect();
 
-      this.instance = new CloudStore({
+      this.instance = enableDeltaWatch(new CloudStore({
         server: {
           uri: process.env.NEXT_PUBLIC_CLOUDSTORE_URI || "https://lxcloudstore.deployments.otherdev.com",
           access: { key: accessToken, tenant_id: tenantId },
@@ -54,7 +55,7 @@ class CloudStoreManager {
         database: {
           name: process.env.NEXT_PUBLIC_CLOUDSTORE_DB || "kabeers-docs-cl",
         },
-      });
+      }));
 
       await this.instance.connect();
 

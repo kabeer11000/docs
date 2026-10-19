@@ -13,14 +13,10 @@ export const useCollection = <T = any>(
   const [state, setState] = useState<CollectionState<T> | undefined>(undefined);
 
   useEffect(() => {
-    if (collection && query) {
-      collection.watch(query, setState);
-    }
+    if (!collection || !query) return;
+    const watcher = collection.watch(query, setState);
+    return () => watcher?.stop?.();
   }, [collection, query]);
-
-  useEffect(() => {
-    console.log("collection changed", state);
-  }, [state]);
 
   return state;
 };

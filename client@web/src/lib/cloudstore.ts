@@ -1,6 +1,7 @@
 "use client"
 import * as cl from "cloudstore";
 import { $auth } from "@/state/auth";
+import { enableDeltaWatch } from "@/lib/cloudstore/delta-watch";
 
 const { default: CloudStore, Adapters } = cl;
 let cloudStore: typeof CloudStore | null = null;
@@ -18,7 +19,7 @@ function createCloudStore(
     console.log("CloudStore: Skipping initialization - missing credentials");
     return null;
   }
-  const cl = new CloudStore({
+  const cl = enableDeltaWatch(new CloudStore({
     server: {
       uri: CLOUDSTORE_CONFIG.URI,
       access: {
@@ -44,7 +45,7 @@ function createCloudStore(
     database: {
       name: CLOUDSTORE_CONFIG.DATABASE_NAME,
     },
-  });
+  }));
   cl.connect();
   // cl.info.socket.on('connect', () => cl.connect());
   // window.addEventListener('L')
