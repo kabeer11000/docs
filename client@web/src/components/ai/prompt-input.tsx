@@ -44,22 +44,22 @@ const IsolatedPromptInput = memo(
 
     return (
       <div className={cn(`fixed bottom-0 left-72 right-80 z-10`, className)}>
-        <div className="bg-gradient-to-t from-background to-background/0 pt-8 pb-4">
+        <div className="bg-background pt-2 pb-4">
           <div className="max-w-3xl mx-auto px-4">
             <PromptInput
               onSubmit={handleSubmit}
-              className="bg-background border border-input rounded-xl shadow-sm"
+              className="relative rounded-none border-0 border-b border-border bg-transparent shadow-none focus-within:border-primary"
             >
               <PromptInputTextarea
                 value={inputValue}
                 onChange={handleInputChange}
                 placeholder="Message Lexa AI..."
                 disabled={isTyping || isStreaming}
-                className="min-h-[56px] resize-none pr-16 bg-transparent border-0 focus:ring-0 focus:outline-none"
+                className="min-h-[44px] resize-none px-0 pr-12 bg-transparent border-0 focus:ring-0 focus:outline-none"
               />
-              <div className="absolute right-2 bottom-2">
+              <div className="absolute right-0 bottom-1.5">
                 <PromptInputSubmit
-                  className="rounded-lg"
+                  className="size-8 rounded-md"
                   disabled={!inputValue.trim() || isTyping || isStreaming}
                   variant={"default"}
                   status={isTyping || isStreaming ? "streaming" : "ready"}

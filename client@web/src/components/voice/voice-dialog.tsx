@@ -25,13 +25,13 @@ export function VoiceDialog({
   useEffect(() => {
     if (open && !sessionData) {
       console.log("=== VOICE DIALOG OPENED ===");
-      console.log("🔧 Voice Tools Available:", voiceTools.length);
+      console.log("Voice Tools Available:", voiceTools.length);
       console.log(
-        "🔧 Tool Names:",
+        "Tool Names:",
         voiceTools.map((t) => t.name),
       );
       console.log(
-        "🔧 Tool Descriptions:",
+        "Tool Descriptions:",
         voiceTools.map((t) => ({ name: t.name, description: t.description })),
       );
     }
@@ -46,7 +46,7 @@ export function VoiceDialog({
     setLoading(true);
     setError(null);
 
-    console.log("🔌 [VOICE DIALOG] Connecting to assistant:", assistantId);
+    console.log("[VOICE DIALOG] Connecting to assistant:", assistantId);
 
     try {
       const response = await fetch(
@@ -63,7 +63,7 @@ export function VoiceDialog({
       );
 
       console.log(
-        "📡 [VOICE DIALOG] Session API response status:",
+        "[VOICE DIALOG] Session API response status:",
         response.status,
       );
 
@@ -72,14 +72,14 @@ export function VoiceDialog({
       }
 
       const data = await response.json();
-      console.log("✅ [VOICE DIALOG] Session created:", {
+      console.log("[VOICE DIALOG] Session created:", {
         hasToken: !!data.token,
         wsUrl: data.wsUrl,
       });
       setSessionData(data);
     } catch (err: any) {
       setError(err.message || "Failed to connect to assistant");
-      console.error("❌ [VOICE DIALOG] Connection error:", err);
+      console.error("[VOICE DIALOG] Connection error:", err);
     } finally {
       setLoading(false);
     }
@@ -117,20 +117,33 @@ export function VoiceDialog({
       />
 
       {/* Dialog Content */}
-      <div className="voice-dialog-content">
+      <div
+        className="voice-dialog-content"
+       
+      >
         {error && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-            <div className="bg-red-50 border-2 border-red-500 text-red-700 px-6 py-4 rounded-lg">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-3 text-center">
+            <div
+              role="alert"
+              className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400"
+            >
               {error}
             </div>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="h-8 rounded-md border border-border px-3 text-sm text-foreground hover:bg-accent"
+            >
+              Close
+            </button>
           </div>
         )}
 
         {loading && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-t-teal-500 border-r-gray-200 border-b-teal-500 border-l-gray-200"></div>
-            <p className="mt-6 text-gray-700 text-sm font-medium">
-              Connecting to AI Assistant...
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center">
+            <div className="size-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+            <p className="mt-4 text-sm text-muted-foreground">
+              Connecting to voice assistant...
             </p>
           </div>
         )}
@@ -146,12 +159,12 @@ export function VoiceDialog({
             onDisconnected={handleDisconnect}
             onToolsChange={(tools) => {
               console.log(
-                "🔧 [VOICE DIALOG] Tools changed:",
+                "[VOICE DIALOG] Tools changed:",
                 tools.map((t) => t.name),
               );
             }}
             onConnectionChange={(connected, agentIdentity) => {
-              console.log("🔌 [VOICE DIALOG] Connection changed:", {
+              console.log("[VOICE DIALOG] Connection changed:", {
                 connected,
                 agentIdentity,
               });

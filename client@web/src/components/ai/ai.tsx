@@ -1,13 +1,9 @@
 "use client";
 import { useStore } from "@nanostores/react";
 import {
-  Building,
   File,
   Mic,
   Paperclip,
-  Scale,
-  Shield,
-  Sparkles,
   Upload,
   X,
 } from "lucide-react";
@@ -682,7 +678,7 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
     <div
       className={cn(
         "h-screen flex flex-col bg-background relative overflow-hidden",
-        isDragOver && "bg-blue-50 border-2 border-dashed border-blue-300",
+        isDragOver && "ring-2 ring-inset ring-primary/40",
       )}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -691,15 +687,13 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
     >
       {/* Drag Overlay */}
       {isDragOver && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-50/90 backdrop-blur-sm">
+        <div className="absolute inset-3 z-50 flex items-center justify-center rounded-xl border-2 border-dashed border-primary/40 bg-background/95">
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-              <Upload className="w-8 h-8 text-blue-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+            <Upload className="mx-auto mb-3 size-5 text-muted-foreground" />
+            <h3 className="mb-1 text-sm font-medium text-foreground">
               Drop files to upload
             </h3>
-            <p className="text-blue-700 text-sm">
+            <p className="text-[13px] text-muted-foreground">
               Release to upload files to the chat
             </p>
           </div>
@@ -741,69 +735,31 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
           ) : (
             // Empty state - only shows when no messages
             <div className="min-h-[60vh] flex items-center justify-center">
-              <div className="flex flex-col items-center gap-y-6">
-                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold mb-3 text-neutral-900">
-                    Ask Lexa
-                  </h3>
-                  <p className="text-neutral-600 text-sm max-w-md">
-                    Get expert guidance on documents, workflows, and
-                    business processes
-                  </p>
-                </div>
-
-                {/* Suggested Prompts */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
+              <div className="w-full max-w-xl">
+                <h3 className="font-serif text-2xl font-medium tracking-[-0.015em] text-foreground">
+                  Ask Lexa
+                </h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">
+                  Ask about a document, a workflow, or a business process.
+                </p>
+                <ul className="mt-6 border-t border-border">
                   {[
-                    {
-                      icon: File,
-                      title: "Document Review",
-                      prompt:
-                        "Help me review this document and identify key sections",
-                    },
-                    {
-                      icon: Scale,
-                      title: "Compliance",
-                      prompt:
-                        "What are the compliance requirements for data protection in my business?",
-                    },
-                    {
-                      icon: Building,
-                      title: "Business Processes",
-                      prompt:
-                        "Guide me through creating business processes for my organization",
-                    },
-                    {
-                      icon: Shield,
-                      title: "Risk Assessment",
-                      prompt:
-                        "Analyze potential risks in this business partnership",
-                    },
-                  ].map((suggestion, index) => (
-                    <button
-                      key={index}
-                      onClick={() =>
-                        aiChatActions.setInputValue(suggestion.prompt)
-                      }
-                      className="p-4 text-left border border-neutral-200 rounded-lg hover:border-primary/50 hover:bg-neutral-50/50 transition-all duration-200 hover:shadow-sm group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <suggestion.icon className="w-6 h-6 text-primary mt-0.5 font-medium" />
-                        <div>
-                          <h4 className="font-medium text-neutral-900 mb-1 group-hover:text-primary transition-colors">
-                            {suggestion.title}
-                          </h4>
-                          <p className="text-sm text-neutral-600 leading-relaxed">
-                            {suggestion.prompt}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
+                    "Help me review this document and identify key sections",
+                    "What are the compliance requirements for data protection in my business?",
+                    "Guide me through creating business processes for my organization",
+                    "Analyze potential risks in this business partnership",
+                  ].map((prompt) => (
+                    <li key={prompt} className="border-b border-border">
+                      <button
+                        type="button"
+                        onClick={() => aiChatActions.setInputValue(prompt)}
+                        className="w-full py-2.5 text-left text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                      >
+                        {prompt}
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
             </div>
           )}
@@ -828,7 +784,7 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
               {uploadedFiles.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg border border-border text-sm"
+                  className="flex h-8 items-center gap-2 rounded-md border border-border bg-background pl-2.5 pr-1 text-[13px]"
                 >
                   <File className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   <span className="truncate max-w-[200px]">{file.name}</span>
@@ -840,7 +796,8 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
                     variant="ghost"
                     size="icon"
                     onClick={() => aiChatActions.removeUploadedFile(file.id)}
-                    className="h-5 w-5 rounded-full hover:bg-accent ml-1"
+                    className="size-6"
+                    aria-label={`Remove ${file.name}`}
                   >
                     <X className="w-3 h-3" />
                   </Button>
@@ -851,24 +808,25 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
 
           <PromptInput
             onSubmit={handleSubmit}
-            className="relative rounded-3xl border border-border shadow-sm hover:shadow-md transition-all duration-200"
+            className="relative divide-y-0 rounded-none border-0 border-b border-border bg-transparent shadow-none transition-colors duration-150 focus-within:border-primary"
           >
             <PromptInputTextarea
               value={inputValue}
               onChange={(e) => aiChatActions.setInputValue(e.target.value)}
               placeholder="Message Lexa AI..."
               disabled={isTyping || isStreaming || isLoadingChat}
-              className="min-h-[52px] resize-none pr-24 transition-colors duration-200"
+              className="min-h-[44px] resize-none px-0 pr-32"
             />
-            <div className="absolute right-2 bottom-2 flex items-center gap-1">
+            <div className="absolute right-0 bottom-1.5 flex items-center gap-0.5">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => setVoiceDialogOpen(true)}
                 disabled={isTyping || isStreaming || isLoadingChat}
-                className="h-8 w-8 rounded-full hover:bg-accent"
+                className="size-8"
                 title="Voice input"
+                aria-label="Voice input"
               >
                 <Mic className="w-4 h-4" />
               </Button>
@@ -878,23 +836,24 @@ const AI = ({ id: chatId }: { id: string | number | undefined }) => {
                 size="icon"
                 onClick={handleAttachmentClick}
                 disabled={isTyping || isStreaming || isLoadingChat}
-                className="h-8 w-8 rounded-full hover:bg-accent"
+                className="size-8"
                 title="Attach file"
+                aria-label="Attach file"
               >
                 <Paperclip className="w-4 h-4" />
               </Button>
               <PromptInputSubmit
-                className="rounded-full aspect-square hover:scale-105 transition-transform duration-150"
+                className="size-8 rounded-md"
                 disabled={
                   !inputValue.trim() || isTyping || isStreaming || isLoadingChat
                 }
-                variant={"ghost"}
+                variant={"default"}
                 status={isTyping || isStreaming ? "streaming" : "ready"}
                 size="sm"
               />
             </div>
           </PromptInput>
-          <div className="flex items-center justify-center mt-3 mb-2 text-xs text-muted-foreground transition-opacity duration-200 group-hover:opacity-80">
+          <div className="mt-2 flex items-center justify-center text-xs text-muted-foreground">
             Lexa AI can make mistakes. Check important info.
           </div>
         </div>

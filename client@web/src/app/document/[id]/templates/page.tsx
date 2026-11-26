@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { searchActions } from "@/state/search";
@@ -42,12 +41,14 @@ export default function DocumentTemplatesPage({
 
   return (
     <ReactHome pathname="/templates" hideSearch={false}>
-      <div className="min-h-screen p-6">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Choose a Template</h1>
-            <p className="text-neutral-600">
-              Select a template to start your document
+      <div className="px-6 py-10 md:px-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6">
+            <h1 className="font-serif text-2xl font-medium tracking-[-0.015em] text-foreground">
+              Start from a template
+            </h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Pick a starting point, or begin with a blank page.
             </p>
           </div>
           <Templates folderId={folderId} />

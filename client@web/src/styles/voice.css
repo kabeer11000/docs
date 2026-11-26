@@ -8,7 +8,7 @@
 }
 
 .voice-dialog-content {
-  background: white;
+  background: var(--background);
   border-radius: 0;
   padding: 0;
   width: 100vw;

@@ -69,53 +69,59 @@
   --color-paper: var(--paper);
   --color-paper-foreground: var(--paper-foreground);
   --color-paper-canvas: var(--paper-canvas);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
   --shadow-float: var(--elev-float);
   --shadow-paper: var(--elev-paper);
+  --shadow-paper-hover: var(--elev-paper-hover);
 }
 
 /* Light-first palette ("quiet paper"). Dark overrides live in .dark below. */
 :root {
   color-scheme: light;
-  --radius: 0.5rem;
+  --radius: 0.375rem;
 
-  /* App canvas (sidebar, editor surround) and the raised content surface */
-  --background: oklch(0.975 0.002 90);
-  --foreground: oklch(0.22 0.006 80);
+  /* Desk (app canvas and chrome) and paper (the only white: pages, dialogs, menus) */
+  --background: #eceef1;
+  --foreground: #1e2227;
 
-  --card: oklch(1 0 0);
+  --card: #ffffff;
   --card-foreground: var(--foreground);
 
-  --popover: oklch(1 0 0);
+  --popover: #ffffff;
   --popover-foreground: var(--foreground);
 
-  /* Single accent: calm blue for primary actions, focus and selection */
-  --primary: oklch(0.55 0.17 258);
-  --primary-foreground: oklch(0.99 0 0);
+  /* Ink: only for things you can act on (primary actions, links, focus, active nav) */
+  --primary: #2340b8;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.955 0.003 90);
+  --secondary: #e2e5e9;
   --secondary-foreground: var(--foreground);
 
-  --muted: oklch(0.955 0.003 90);
-  --muted-foreground: oklch(0.52 0.007 80);
+  --muted: #e2e5e9;
+  --muted-foreground: #686e76;
 
   /* Hover / selected background for neutral controls */
-  --accent: oklch(0.94 0.004 90);
+  --accent: #dfe2e6;
   --accent-foreground: var(--foreground);
 
   --destructive: oklch(0.58 0.2 27);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.915 0.005 85);
-  --input: oklch(0.885 0.006 85);
-  --ring: oklch(0.55 0.17 258 / 0.45);
+  --border: #d9dce0;
+  --input: #cdd1d6;
+  --ring: rgb(35 64 184 / 0.45);
 
   /* Document page */
-  --paper: oklch(1 0 0);
-  --paper-foreground: oklch(0.2 0.005 80);
-  --paper-canvas: oklch(0.955 0.003 90);
+  --paper: #ffffff;
+  --paper-foreground: #1e2227;
+  --paper-canvas: #eceef1;
+  --highlight: #ffe36b;
+  --highlight-foreground: #1e2227;
 
-  --elev-float: 0 1px 2px oklch(0.2 0.01 80 / 0.06), 0 8px 24px -8px oklch(0.2 0.01 80 / 0.16);
-  --elev-paper: 0 0 0 1px oklch(0.2 0.01 80 / 0.06), 0 2px 6px oklch(0.2 0.01 80 / 0.06);
+  --elev-float: 0 0 0 1px rgb(30 34 39 / 0.06), 0 10px 28px -10px rgb(30 34 39 / 0.25);
+  --elev-paper: 0 0 0 1px rgb(30 34 39 / 0.06), 0 1px 2px rgb(30 34 39 / 0.08), 0 3px 10px -4px rgb(30 34 39 / 0.12);
+  --elev-paper-hover: var(--elev-paper), 0 8px 20px -10px rgb(30 34 39 / 0.28);
 
   --sidebar: var(--background);
   --sidebar-foreground: var(--foreground);
@@ -139,32 +145,35 @@
 .dark {
   color-scheme: dark;
 
-  --background: oklch(0.178 0 0);
-  --foreground: oklch(0.93 0 0);
+  --background: #141619;
+  --foreground: #e7e9ec;
 
-  --card: oklch(0.205 0 0);
-  --popover: oklch(0.225 0 0);
+  --card: #1d2024;
+  --popover: #22262b;
 
-  --primary: oklch(0.66 0.15 258);
-  --primary-foreground: oklch(0.16 0.02 258);
+  --primary: #8ba2ff;
+  --primary-foreground: #0f1530;
 
-  --secondary: oklch(0.245 0 0);
-  --muted: oklch(0.245 0 0);
-  --muted-foreground: oklch(0.67 0 0);
-  --accent: oklch(0.26 0 0);
+  --secondary: #24282d;
+  --muted: #24282d;
+  --muted-foreground: #9097a0;
+  --accent: #2a2f35;
 
   --destructive: oklch(0.62 0.19 25);
 
-  --border: oklch(0.285 0 0);
-  --input: oklch(0.32 0 0);
-  --ring: oklch(0.66 0.15 258 / 0.5);
+  --border: #2c3036;
+  --input: #363b42;
+  --ring: rgb(139 162 255 / 0.5);
 
-  --paper: oklch(0.215 0 0);
-  --paper-foreground: oklch(0.9 0 0);
-  --paper-canvas: oklch(0.165 0 0);
+  --paper: #1d2024;
+  --paper-foreground: #e7e9ec;
+  --paper-canvas: #141619;
+  --highlight: rgb(232 197 71 / 0.28);
+  --highlight-foreground: #f3e3a6;
 
   --elev-float: 0 1px 2px oklch(0 0 0 / 0.3), 0 12px 32px -8px oklch(0 0 0 / 0.55);
   --elev-paper: 0 0 0 1px oklch(1 0 0 / 0.05), 0 2px 8px oklch(0 0 0 / 0.35);
+  --elev-paper-hover: var(--elev-paper), 0 8px 20px -8px rgb(0 0 0 / 0.6);
 }
 
 /* Base Layer */
@@ -175,14 +184,14 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
-    letter-spacing: -0.006em;
+    font-family: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
-    background: color-mix(in oklch, var(--primary) 22%, transparent);
+    background: color-mix(in srgb, #ffe36b 70%, transparent);
+    color: inherit;
   }
 
   :focus-visible {
@@ -207,16 +216,16 @@
 }
 
 .ProseMirror table {
-  @apply border-collapse border-border border-2 my-4 w-full bg-card;
+  @apply border-collapse my-4 w-full;
 }
 
 .ProseMirror table td,
 .ProseMirror table th {
-  @apply border border-border px-3 py-2 text-left bg-card text-card-foreground min-w-[100px] relative;
+  @apply border border-border px-3 py-2 text-left min-w-[100px] relative align-top;
 }
 
 .ProseMirror table th {
-  @apply bg-muted font-semibold text-muted-foreground;
+  @apply bg-muted/60 font-medium;
 }
 
 .ProseMirror table .selectedCell {
@@ -278,7 +287,7 @@
 
 /* Blockquote styling */
 .ProseMirror blockquote {
-  @apply border-l-4 border-primary/20 pl-4 my-4 text-muted-foreground bg-muted/20 py-2 rounded-r-md;
+  @apply border-l-2 border-border pl-4 my-4 text-muted-foreground;
 }
 
 /* Better focus outline */
@@ -287,24 +296,37 @@
 }
 
 /* Heading Styles */
+/* Document text inherits the page ink (paper-foreground) so it reads on light and dark paper. */
+.ProseMirror hr {
+  @apply my-6 border-border;
+}
+
+.ProseMirror code {
+  @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.9em];
+}
+
+.ProseMirror pre {
+  @apply my-4 rounded-md bg-muted p-4 font-mono text-sm overflow-x-auto;
+}
+
 .ProseMirror h1 {
-  @apply text-3xl font-bold mt-6 mb-4 text-foreground;
+  @apply text-3xl font-semibold mt-6 mb-4;
   line-height: 1.2;
 }
 
 .ProseMirror h2 {
-  @apply text-2xl font-semibold mt-5 mb-3 text-foreground;
+  @apply text-2xl font-semibold mt-5 mb-3;
   line-height: 1.3;
 }
 
 .ProseMirror h3 {
-  @apply text-xl font-medium mt-4 mb-2 text-foreground;
+  @apply text-xl font-semibold mt-4 mb-2;
   line-height: 1.4;
 }
 
 /* Title and Subtitle styles for typography selector */
 .ProseMirror h1.title {
-  @apply text-4xl font-bold text-center mt-8 mb-6;
+  @apply text-4xl font-semibold tracking-tight text-center mt-8 mb-6;
 }
 
 .ProseMirror h2.subtitle {
@@ -325,7 +347,7 @@
 }
 
 .ProseMirror p a {
-  @apply text-primary underline cursor-pointer
+  @apply text-primary underline underline-offset-2 cursor-pointer
 }
 
 .d-block {
@@ -450,11 +472,13 @@
 
 /* Comment Highlighting Styles */
 .comment-highlight {
-  @apply bg-yellow-400/20 border-b-2 border-yellow-400 cursor-pointer transition-colors;
+  background: color-mix(in srgb, var(--highlight) 55%, transparent);
+  border-bottom: 2px solid var(--highlight);
+  cursor: pointer;
 }
 
 .comment-highlight:hover {
-  @apply bg-yellow-400/30 border-yellow-500;
+  background: var(--highlight);
 }
 
 .comment-highlighted {
@@ -488,7 +512,7 @@
 
 /* Comment marker in margin */
 .comment-marker {
-  @apply absolute right-0 top-0 w-1 h-full bg-yellow-400;
+  @apply absolute right-0 top-0 w-1 h-full bg-highlight;
 }
 
 .comment-marker.active {
@@ -503,7 +527,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-literata), Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --ease-soft: var(--ease-out-soft);
   --animate-rise: rise 520ms var(--ease-out-soft) both;
@@ -570,3 +595,72 @@
     background-color: color-mix(in oklch, var(--primary) 88%, black);
   }
 }
+
+/* ---------- Product tour (driver.js) ---------- */
+.driver-popover.docs-tour {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--elev-float);
+  padding: 16px;
+  max-width: 320px;
+  font-family: var(--font-sans);
+}
+
+.docs-tour .driver-popover-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.docs-tour .driver-popover-description {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+
+.docs-tour .driver-popover-progress-text {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.docs-tour .driver-popover-footer {
+  margin-top: 14px;
+}
+
+.docs-tour .driver-popover-footer button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--input);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.docs-tour .driver-popover-footer button:hover {
+  background: var(--accent);
+}
+
+.docs-tour .driver-popover-footer .driver-popover-next-btn {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--primary-foreground);
+}
+
+.docs-tour .driver-popover-footer .driver-popover-next-btn:hover {
+  background: color-mix(in oklch, var(--primary) 88%, black);
+}
+
+.docs-tour .driver-popover-close-btn {
+  color: var(--muted-foreground);
+}
+
+.docs-tour .driver-popover-arrow-side-left.driver-popover-arrow { border-left-color: var(--popover); }
+.docs-tour .driver-popover-arrow-side-right.driver-popover-arrow { border-right-color: var(--popover); }
+.docs-tour .driver-popover-arrow-side-top.driver-popover-arrow { border-top-color: var(--popover); }
+.docs-tour .driver-popover-arrow-side-bottom.driver-popover-arrow { border-bottom-color: var(--popover); }

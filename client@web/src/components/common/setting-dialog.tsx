@@ -1,11 +1,11 @@
 import { useStore } from "@nanostores/react";
-import { Settings, Shield } from "lucide-react";
+import { Monitor, Moon, Palette, Settings, Shield, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { cn } from "@/lib/utils";
 import { auth } from "@/state/auth";
 import {
   $settingsDialogState,
@@ -18,49 +18,129 @@ import {
 
 const settingsSections = [
   { id: "general" as SettingsSection, label: "General", icon: Settings },
+  { id: "personalization" as SettingsSection, label: "Appearance", icon: Palette },
   { id: "security" as SettingsSection, label: "Security", icon: Shield },
 ];
 
-function GeneralSettings() {
-  const settings = useStore($settingsState);
-  const [editingField, setEditingField] = React.useState<string | null>(null);
-  const [editValue, setEditValue] = React.useState("");
+/** One settings row: label + description/value on the left, control on the right. */
+function SettingRow({
+  label,
+  description,
+  action,
+  children,
+}: {
+  label: string;
+  description?: React.ReactNode;
+  action?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border py-4 last:border-b-0">
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-foreground">{label}</div>
+        {description && (
+          <div className="mt-0.5 truncate text-[13px] text-muted-foreground">
+            {description}
+          </div>
+        )}
+        {children}
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
+  );
+}
+
+function EditableRow({
+  label,
+  value,
+  placeholder,
+  type = "text",
+  onSave,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  type?: string;
+  onSave: (value: string) => void;
+}) {
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState("");
+
+  if (editing) {
+    return (
+      <SettingRow label={label}>
+        <form
+          className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onSave(draft);
+            setEditing(false);
+          }}
+        >
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            type={type}
+            placeholder={placeholder}
+            className="sm:max-w-xs"
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <Button type="submit" size="sm">
+              Save
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setEditing(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </SettingRow>
+    );
+  }
 
   return (
-    <div className="space-y-4 md:space-y-6 p-3 md:p-6">
-      <div className="space-y-6">
-        {/* Profile Picture */}
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden">
-                {settings.profilePicture ? (
-                  <img
-                    src={settings.profilePicture}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src="/avatars/avatar-3.png"
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-foreground">
-                  Profile picture
-                </Label>
-                <p className="text-xs text-foreground/60 mt-1">
-                  JPG, GIF or PNG. 1MB max.
-                </p>
-              </div>
-            </div>
+    <SettingRow
+      label={label}
+      description={value || "Not added"}
+      action={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setDraft(value);
+            setEditing(true);
+          }}
+        >
+          {value ? "Edit" : "Add"}
+        </Button>
+      }
+    />
+  );
+}
+
+function GeneralSettings() {
+  const settings = useStore($settingsState);
+
+  return (
+    <div>
+      <SettingRow
+        label="Profile picture"
+        description="JPG, GIF or PNG. 1MB max."
+        action={
+          <div className="flex items-center gap-3">
+            <img
+              src={settings.profilePicture || "/avatars/avatar-3.png"}
+              alt=""
+              className="size-9 rounded-full bg-muted object-cover"
+            />
             <Button
               variant="outline"
               size="sm"
-              className="text-foreground border-border hover:bg-accent hover:text-accent-foreground"
               onClick={() => {
                 const input = document.createElement("input");
                 input.type = "file";
@@ -79,333 +159,197 @@ function GeneralSettings() {
               Upload
             </Button>
           </div>
-        </div>
+        }
+      />
+      <EditableRow
+        label="Name"
+        value={settings.name}
+        onSave={(name) => updateSettings({ name })}
+      />
+      <EditableRow
+        label="Email"
+        type="email"
+        value={settings.email}
+        onSave={(email) => updateSettings({ email })}
+      />
+      <EditableRow
+        label="Phone number"
+        type="tel"
+        placeholder="Enter phone number"
+        value={settings.phoneNumber}
+        onSave={(phoneNumber) => updateSettings({ phoneNumber })}
+      />
+    </div>
+  );
+}
 
-        {/* Name */}
-        <div className="space-y-2 py-3 border-b border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Label className="text-sm font-medium text-foreground">
-                Name
-              </Label>
-              {editingField === "name" ? (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
-                  <Input
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="text-sm"
-                    autoFocus
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      updateSettings({ name: editValue });
-                      setEditingField(null);
-                    }}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingField(null)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-sm text-foreground/80 mt-1">
-                  {settings.name}
-                </p>
-              )}
-            </div>
-            {editingField !== "name" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                onClick={() => {
-                  setEditingField("name");
-                  setEditValue(settings.name);
-                }}
-              >
-                Edit
-              </Button>
-            )}
-          </div>
-        </div>
+const themeOptions = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+];
 
-        {/* Email */}
-        <div className="space-y-2 py-3 border-b border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Label className="text-sm font-medium text-foreground">
-                Email
-              </Label>
-              {editingField === "email" ? (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
-                  <Input
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="text-sm"
-                    type="email"
-                    autoFocus
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      updateSettings({ email: editValue });
-                      setEditingField(null);
-                    }}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingField(null)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-sm text-foreground/80 mt-1">
-                  {settings.email}
-                </p>
-              )}
-            </div>
-            {editingField !== "email" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                onClick={() => {
-                  setEditingField("email");
-                  setEditValue(settings.email);
-                }}
-              >
-                Edit
-              </Button>
-            )}
-          </div>
-        </div>
+function AppearanceSettings() {
+  const { theme, setTheme } = useTheme();
 
-        {/* Phone */}
-        <div className="space-y-2 py-3 border-b border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Label className="text-sm font-medium text-foreground">
-                Phone number
-              </Label>
-              {editingField === "phone" ? (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-1">
-                  <Input
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="text-sm"
-                    type="tel"
-                    placeholder="Enter phone number"
-                    autoFocus
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      updateSettings({ phoneNumber: editValue });
-                      setEditingField(null);
-                    }}
-                  >
-                    Save
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingField(null)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-sm text-foreground/60 mt-1">
-                  {settings.phoneNumber || "Not added"}
-                </p>
-              )}
-            </div>
-            {editingField !== "phone" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                onClick={() => {
-                  setEditingField("phone");
-                  setEditValue(settings.phoneNumber);
-                }}
+  return (
+    <div>
+      <SettingRow label="Theme" description="Choose how Docs looks on this device.">
+        <div
+          role="radiogroup"
+          aria-label="Theme"
+          className="mt-3 inline-flex rounded-md border border-border p-0.5"
+        >
+          {themeOptions.map(({ value, label, icon: Icon }) => {
+            const active = (theme ?? "system") === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setTheme(value)}
+                className={cn(
+                  "inline-flex h-7 items-center gap-1.5 rounded-[5px] px-3 text-[13px] transition-colors duration-150",
+                  active
+                    ? "bg-accent font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
               >
-                {settings.phoneNumber ? "Edit" : "Add"}
-              </Button>
-            )}
-          </div>
+                <Icon className="size-3.5" />
+                {label}
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </SettingRow>
     </div>
   );
 }
 
 function SecuritySettings() {
-  const _settings = useStore($settingsState);
   const [confirmAction, setConfirmAction] = React.useState<string | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = React.useState("");
 
   return (
-    <div className="space-y-4 md:space-y-6 p-3 md:p-6">
-      <div className="space-y-6">
-        {/* Log out of this device */}
-        <div className="space-y-2 py-3 border-b border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Label className="text-sm font-medium text-foreground">
-                Log out of this device
-              </Label>
-              {confirmAction === "logout-device" && (
-                <div className="mt-3 p-3 bg-muted/50 rounded-lg border">
-                  <p className="text-sm text-foreground/80 mb-3">
-                    Are you sure you want to log out of this device?
-                  </p>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        await auth.logout();
-                        closeSettingsDialog();
-                      }}
-                    >
-                      Yes, log out
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setConfirmAction(null)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-            {confirmAction !== "logout-device" && (
+    <div>
+      <SettingRow
+        label="Log out of this device"
+        description="End your session in this browser."
+        action={
+          confirmAction !== "logout-device" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmAction("logout-device")}
+            >
+              Log out
+            </Button>
+          )
+        }
+      >
+        {confirmAction === "logout-device" && (
+          <div className="mt-3 rounded-lg border border-border bg-muted/50 p-3">
+            <p className="mb-3 text-sm text-foreground">
+              Are you sure you want to log out of this device?
+            </p>
+            <div className="flex gap-2">
               <Button
-                variant="outline"
                 size="sm"
-                className="text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                onClick={() => {
-                  setConfirmAction("logout-device");
+                onClick={async () => {
+                  await auth.logout();
+                  closeSettingsDialog();
                 }}
               >
-                Log out
+                Yes, log out
               </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Delete Account */}
-        <div className="space-y-4 pt-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Label className="text-sm font-medium text-foreground">
-                Delete account
-              </Label>
-              <p className="text-xs text-foreground/60 mt-1">
-                Permanently delete your account and all associated data
-              </p>
-              {confirmAction === "delete-account" && (
-                <div className="mt-3 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-                  <div className="space-y-2">
-                    <p className="text-sm text-foreground/80 font-medium">
-                      {" "}
-                      This action cannot be undone
-                    </p>
-                    <p className="text-xs text-foreground/70">
-                      This will permanently delete your account and all data.
-                    </p>
-                    <div className="pt-1">
-                      <Label className="text-xs text-foreground/60">
-                        Type "DELETE" to confirm:
-                      </Label>
-                      <Input
-                        placeholder="Type DELETE to confirm"
-                        className="text-sm mt-1 h-8"
-                        value={deleteConfirmText}
-                        onChange={(e) => setDeleteConfirmText(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 pt-1">
-                      <Button
-                        id="delete-confirm-btn"
-                        variant="destructive"
-                        size="sm"
-                        disabled={deleteConfirmText !== "DELETE"}
-                        onClick={() => {
-                          alert(
-                            "Account deletion initiated. You will receive an email confirmation.",
-                          );
-                          closeSettingsDialog();
-                        }}
-                      >
-                        Delete account
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setConfirmAction(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            {confirmAction !== "delete-account" && (
               <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setConfirmAction(null)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </SettingRow>
+
+      <SettingRow
+        label="Delete account"
+        description="Permanently delete your account and all associated data."
+        action={
+          confirmAction !== "delete-account" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setConfirmAction("delete-account")}
+            >
+              Delete
+            </Button>
+          )
+        }
+      >
+        {confirmAction === "delete-account" && (
+          <div className="mt-3 space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                This action cannot be undone
+              </p>
+              <p className="mt-0.5 text-[13px] text-muted-foreground">
+                This will permanently delete your account and all data.
+              </p>
+            </div>
+            <label className="block text-xs font-medium text-muted-foreground">
+              Type "DELETE" to confirm
+              <Input
+                placeholder="DELETE"
+                className="mt-1.5 sm:max-w-xs"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+              />
+            </label>
+            <div className="flex gap-2">
+              <Button
+                id="delete-confirm-btn"
                 variant="destructive"
                 size="sm"
+                disabled={deleteConfirmText !== "DELETE"}
                 onClick={() => {
-                  setConfirmAction("delete-account");
+                  alert(
+                    "Account deletion initiated. You will receive an email confirmation.",
+                  );
+                  closeSettingsDialog();
                 }}
               >
-                Delete
+                Delete account
               </Button>
-            )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setConfirmAction(null)}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function _PlaceholderSection({ title }: { title: string }) {
-  return (
-    <div className="space-y-6 p-6">
-      <div className="text-center text-muted-foreground">
-        <p>{title} settings coming soon...</p>
-      </div>
+        )}
+      </SettingRow>
     </div>
   );
 }
 
 export function SettingsDialog() {
   const dialogState = useStore($settingsDialogState);
-  const activeSection = settingsSections.find(
-    (s) => s.id === dialogState.activeSection,
-  );
+  const activeSection =
+    settingsSections.find((s) => s.id === dialogState.activeSection) ??
+    settingsSections[0];
 
   const renderContent = () => {
-    switch (dialogState.activeSection) {
-      case "general":
-        return <GeneralSettings />;
+    switch (activeSection.id) {
+      case "personalization":
+        return <AppearanceSettings />;
       case "security":
         return <SecuritySettings />;
       default:
@@ -415,58 +359,48 @@ export function SettingsDialog() {
 
   return (
     <Dialog open={dialogState.isOpen} onOpenChange={closeSettingsDialog}>
-      <DialogContent className="w-full h-full max-w-full max-h-full p-0 bg-background border border-border shadow-2xl md:max-w-[1200px] md:w-auto md:min-w-[900px] md:h-[600px] md:max-h-[80vh] md:rounded-xl rounded-none top-0 md:top-[50%] left-0 md:left-[50%] translate-x-0 md:translate-x-[-50%] translate-y-0 md:translate-y-[-50%]">
-        <VisuallyHidden>
-          <DialogTitle>{activeSection?.label}</DialogTitle>
-        </VisuallyHidden>
-        <div className="flex flex-col md:flex-row h-full overflow-hidden">
-          {/* Sidebar */}
-          <div className="w-full md:w-80 bg-muted/30 border-r md:border-r border-b md:border-b-0 flex flex-col">
-            {/* <DialogHeader className="p-4 pb-2">
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-lg font-semibold">Settings</DialogTitle>
-                <DialogClose asChild>
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DialogClose>
-              </div>
-            </DialogHeader> */}
-            <nav className="p-2 flex-1 flex flex-col md:flex-col items-center justify-start pt-4">
-              <div className="flex flex-row md:flex-col w-full justify-center gap-1 md:gap-0 overflow-x-auto md:overflow-x-visible">
-                {settingsSections.map((section) => {
-                  const Icon = section.icon;
-                  return (
-                    <Button
-                      key={section.id}
-                      variant={
-                        dialogState.activeSection === section.id
-                          ? "secondary"
-                          : "ghost"
-                      }
-                      className="flex-shrink-0 justify-center md:justify-start mb-1 md:mb-1 h-10 w-12 md:w-full px-2 md:px-4"
-                      onClick={() => setActiveSection(section.id)}
-                    >
-                      <Icon className="h-4 w-4 md:mr-3 flex-shrink-0" />
-                      <span className="hidden md:inline ml-0 md:ml-0">
-                        {section.label}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </nav>
-          </div>
-
-          {/* Main content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-3 md:p-6 pb-2 border-b flex-shrink-0">
-              <h2 className="text-lg md:text-xl font-semibold">
-                {activeSection?.label}
-              </h2>
+      <DialogContent className="inset-0 h-full w-full max-w-full translate-x-0 translate-y-0 gap-0 overflow-hidden rounded-none p-0 md:inset-auto md:top-1/2 md:left-1/2 md:h-[480px] md:max-h-[85vh] md:w-[800px] md:max-w-[calc(100%-2rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg bg-paper">
+        <div className="flex h-full flex-col overflow-hidden md:flex-row">
+          <nav
+            aria-label="Settings sections"
+            className="flex shrink-0 flex-col border-b border-border p-3 md:w-52 md:border-r md:border-b-0"
+          >
+            <div className="px-2 pt-1.5 pb-4 font-serif text-lg font-medium tracking-[-0.01em] text-foreground">
+              Settings
             </div>
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400 scrollbar-track-transparent px-2 md:px-0">
-              <div className="min-h-full">{renderContent()}</div>
+            <div className="flex gap-1 overflow-x-auto md:flex-col md:gap-0.5">
+              {settingsSections.map((section) => {
+                const Icon = section.icon;
+                const active = activeSection.id === section.id;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setActiveSection(section.id)}
+                    className={cn(
+                      "flex h-8 shrink-0 items-center gap-2 rounded-md px-2 text-sm transition-colors duration-150",
+                      active
+                        ? "bg-accent font-medium text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="size-4" />
+                    {section.label}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex h-14 shrink-0 items-center border-b border-border px-6">
+              <DialogTitle className="font-serif text-lg font-medium tracking-[-0.01em]">
+                {activeSection.label}
+              </DialogTitle>
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-2">
+              {renderContent()}
             </div>
           </div>
         </div>

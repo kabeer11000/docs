@@ -22,16 +22,15 @@ export const EnvironmentStatus: React.FC<EnvironmentStatusProps> = ({
     return null;
   }
 
+  // Quiet by default; only non-development environments get a warning tint.
   const getEnvironmentColor = () => {
     switch (API_CONFIG.ENVIRONMENT) {
       case "production":
-        return "bg-red-600 text-white";
+        return "border-transparent bg-red-500/10 text-red-600 dark:text-red-400";
       case "staging":
-        return "bg-yellow-600 text-white";
-      case "development":
-        return "bg-blue-600 text-white";
+        return "border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400";
       default:
-        return "bg-neutral-600 text-white";
+        return "border-border bg-background text-muted-foreground";
     }
   };
 
@@ -51,17 +50,17 @@ export const EnvironmentStatus: React.FC<EnvironmentStatusProps> = ({
   if (showDetails) {
     return (
       <div className={`space-y-2 ${className}`}>
-        <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+        <div className="text-xs font-medium text-muted-foreground">
           Environment Status
         </div>
         <div className="space-y-1">
           <Badge variant="outline" className={getEnvironmentColor()}>
             ENV: {API_CONFIG.ENVIRONMENT.toUpperCase()}
           </Badge>
-          <div className="text-xs text-neutral-600 dark:text-neutral-400">
+          <div className="text-xs text-muted-foreground">
             Backend: {API_CONFIG.BACKEND.BASE_URL}
           </div>
-          <div className="text-xs text-neutral-600 dark:text-neutral-400">
+          <div className="text-xs text-muted-foreground">
             AI: {API_CONFIG.AI.BASE_URL}
           </div>
           <div className="flex flex-wrap gap-1 mt-2">
@@ -101,7 +100,10 @@ export const EnvironmentStatus: React.FC<EnvironmentStatusProps> = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <div className={`fixed bottom-4 left-4 z-50 ${className}`}>
-            <Badge className={`${getEnvironmentColor()} cursor-help`}>
+            <Badge
+              variant="outline"
+              className={`h-5 px-1.5 text-[11px] font-medium tracking-wide cursor-help ${getEnvironmentColor()}`}
+            >
               {API_CONFIG.ENVIRONMENT.toUpperCase()}
             </Badge>
           </div>
@@ -114,7 +116,7 @@ export const EnvironmentStatus: React.FC<EnvironmentStatusProps> = ({
             <div className="space-y-1 text-xs">
               <div>Backend: {API_CONFIG.BACKEND.BASE_URL}</div>
               <div>AI: {API_CONFIG.AI.BASE_URL}</div>
-              <div className="border-t pt-1 mt-2">
+              <div className="border-t border-current/20 pt-1 mt-2">
                 <div className="font-medium mb-1">Features:</div>
                 <div className="flex flex-wrap gap-1">
                   {Object.entries(statusDetails.features).map(
@@ -122,7 +124,7 @@ export const EnvironmentStatus: React.FC<EnvironmentStatusProps> = ({
                       enabled && (
                         <span
                           key={key}
-                          className="bg-green-100 text-green-800 px-1 py-0.5 rounded text-xs"
+                          className="rounded-sm bg-green-500/15 px-1 py-0.5 text-xs"
                         >
                           {key}
                         </span>
@@ -137,6 +139,9 @@ export const EnvironmentStatus: React.FC<EnvironmentStatusProps> = ({
     </TooltipProvider>
   );
 };
+
+const switchButton =
+  "h-7 rounded-md border border-border px-2 text-xs text-foreground transition-colors hover:bg-accent";
 
 // Environment switcher for development (localStorage-based)
 export const EnvironmentSwitcher: React.FC<{ className?: string }> = ({
@@ -155,30 +160,33 @@ export const EnvironmentSwitcher: React.FC<{ className?: string }> = ({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+      <div className="text-xs font-medium text-muted-foreground">
         Switch Environment (Dev Only)
       </div>
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => switchEnvironment("development")}
-          className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+          className={switchButton}
         >
           Development
         </button>
         <button
+          type="button"
           onClick={() => switchEnvironment("staging")}
-          className="px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700"
+          className={switchButton}
         >
           Staging
         </button>
         <button
+          type="button"
           onClick={() => switchEnvironment("production")}
-          className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+          className={switchButton}
         >
           Production
         </button>
       </div>
-      <div className="text-xs text-neutral-500">
+      <div className="text-xs text-muted-foreground">
         Note: This only affects client-side environment detection in development
       </div>
     </div>

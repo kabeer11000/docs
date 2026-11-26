@@ -129,7 +129,7 @@ export function SiteHeader({ chatId }: SiteHeaderProps) {
   };
 
   return (
-    <header className="justify-between flex h-(--header-height) shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+    <header className="justify-between flex border-b border-border h-(--header-height) shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="px-4 lg:px-4 flex w-full items-center gap-4">
         <SidebarTrigger className="transition-opacity duration-200 opacity-100" />
 
@@ -145,13 +145,15 @@ export function SiteHeader({ chatId }: SiteHeaderProps) {
                   if (e.key === "Enter") handleSaveRename();
                   if (e.key === "Escape") handleCancelRename();
                 }}
-                className="flex-1 px-2 py-1 text-sm border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
+                aria-label="Chat title"
+                autoFocus
               />
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={handleSaveRename}
-                className="h-7 px-2"
+                className="h-8 px-2"
               >
                 Save
               </Button>
@@ -159,7 +161,7 @@ export function SiteHeader({ chatId }: SiteHeaderProps) {
                 size="sm"
                 variant="ghost"
                 onClick={handleCancelRename}
-                className="h-7 px-2"
+                className="h-8 px-2"
               >
                 Cancel
               </Button>
@@ -169,10 +171,10 @@ export function SiteHeader({ chatId }: SiteHeaderProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="flex items-center gap-2 px-2 py-1 h-auto font-semibold text-base hover:bg-accent"
+                  className="h-8 gap-1.5 px-2 text-sm font-medium"
                 >
                   <span className="truncate max-w-[400px]">{chatTitle}</span>
-                  <ChevronDown className="w-4 h-4 flex-shrink-0" />
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
@@ -183,7 +185,7 @@ export function SiteHeader({ chatId }: SiteHeaderProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleDelete}
-                  className="text-red-600 focus:text-red-600"
+                  variant="destructive"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
@@ -193,54 +195,21 @@ export function SiteHeader({ chatId }: SiteHeaderProps) {
           )}
         </div>
 
-        {/* Right side actions */}
-        <div className="items-center ml-auto gap-3 transition-opacity duration-200">
-          <div className="hidden md:flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => aiChatActions.toggleRightSidebar()}
-              className="h-8 w-8"
-            >
-              {isRightSidebarOpen ? (
-                <PanelRightClose className="h-4 w-4" />
-              ) : (
-                <PanelRightOpen className="h-4 w-4" />
-              )}
-            </Button>
-            <NotificationsPopover />{" "}
-            {/* TEMP DISABLED: Returns null, see component file */}
-            {/* <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{currentUser?.displayName || 'User'}</span>
-              <Avatar className="cursor-pointer bg-neutral-200" onClick={() => openSettingsDialog()}>
-                <AvatarImage src="/avatars/avatar-3.png" />
-                <AvatarFallback>{userInitials || 'U'}</AvatarFallback>
-              </Avatar>
-            </div> */}
-          </div>
-          <div className="md:hidden flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => aiChatActions.toggleRightSidebar()}
-              className="h-8 w-8"
-            >
-              {isRightSidebarOpen ? (
-                <PanelRightClose className="h-4 w-4" />
-              ) : (
-                <PanelRightOpen className="h-4 w-4" />
-              )}
-            </Button>
-            <NotificationsPopover />{" "}
-            {/* TEMP DISABLED: Returns null, see component file */}
-            {/* <Avatar
-              className="cursor-pointer bg-neutral-200"
-              onClick={() => openSettingsDialog()}
-            >
-              <AvatarImage src="/avatars/avatar-3.png" />
-              <AvatarFallback>{userInitials || 'U'}</AvatarFallback>
-            </Avatar> */}
-          </div>
+        <div className="ml-auto flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => aiChatActions.toggleRightSidebar()}
+            className="size-8"
+            aria-label={isRightSidebarOpen ? "Hide chat history" : "Show chat history"}
+          >
+            {isRightSidebarOpen ? (
+              <PanelRightClose className="size-4" />
+            ) : (
+              <PanelRightOpen className="size-4" />
+            )}
+          </Button>
+          <NotificationsPopover />
         </div>
       </div>
     </header>

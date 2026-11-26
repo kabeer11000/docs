@@ -1,95 +1,19 @@
 import { useStore } from "@nanostores/react";
-import Color from "@tiptap/extension-color";
-import ListItem from "@tiptap/extension-list-item";
-import TextAlign from "@tiptap/extension-text-align";
-import { FontSize, TextStyle } from "@tiptap/extension-text-style";
-import Underline from "@tiptap/extension-underline";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { PiSpinner } from "react-icons/pi";
 import {
-  Plane as Airplane,
-  BookOpen,
-  Briefcase,
-  Building,
-  Building2 as Buildings,
-  Calendar,
-  Camera,
-  ChevronLeft,
-  ChevronRight,
-  Award as Certificate,
-  ChartLine as ChartLineUp,
-  CheckCircle,
-  Clock,
-  Code,
-  DollarSign,
-  Table as Desk,
-  Factory,
-  FileText,
-  Film as FilmSlate,
-  FlaskConical as Flask,
-  Gavel,
-  Settings,
-  Gift,
-  Globe,
-  GraduationCap,
-  Handshake,
-  Home,
-  Lock,
-  Megaphone,
-  File as Note,
-  Package,
-  Palette,
-  Plus,
-  // Prohibit,
-  Receipt,
-  StampIcon as  Seal,
-  Network as ShareNetwork,
-  Shield,
-  ShieldCheck,
-  ShoppingCart,
-  Stamp,
-  // Storefront,
-  Truck,
-  User,
-  Users,
-  User2 as UsersThree,
-  Warehouse,
-  FileWarning as Warning,
-  Wrench,
-  X,
-} from "lucide-react";
-import {
-  TableCellPlus,
-  TableHeaderPlus,
-  TablePlus,
-  TableRowPlus,
-} from "tiptap-pagination-plus";
-import { TemplatePreviewDialog } from "@/components/create/template-preview-dialog";
-import { Badge } from "@/components/ui/badge";
+  PAGE_HEIGHT,
+  PAGE_WIDTH,
+  TemplateDocument,
+  TemplatePreviewDialog,
+} from "@/components/create/template-preview-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCloudStore } from "@/hooks/use-cloudstore";
+import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
-
-interface TemplateCardProps {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  tags: string[];
-  content: string | { type: string; content: any[] };
-  onClick?: () => void;
-}
 
 interface Template {
   id: string;
@@ -102,318 +26,139 @@ interface Template {
   createdAt: string;
 }
 
-// Map template categories to appropriate icons
-const _getTemplateIcon = (category: string, title: string): React.ComponentType => {
-  const categoryLower = category.toLowerCase();
-  const _titleLower = title.toLowerCase();
+const COLLAPSED_TAG_COUNT = 12;
+const PAGE_ASPECT = `${PAGE_WIDTH} / ${PAGE_HEIGHT}`;
 
-  // Specific category matches (most specific first)
-  if (categoryLower.includes("assignment of shares")) return UsersThree;
-  if (categoryLower.includes("child travel consent")) return Airplane;
-  if (
-    categoryLower.includes("warehouse lease") ||
-    categoryLower.includes("warehouse")
-  )
-    return Warehouse;
-  if (categoryLower.includes("commercial lease")) return Buildings;
-  if (categoryLower.includes("coworking space")) return Desk;
-  if (
-    categoryLower.includes("bill of sale") ||
-    categoryLower.includes("sale deed")
-  )
-    return Receipt;
-  if (categoryLower.includes("deed of trust")) return Seal;
-  if (
-    categoryLower.includes("power of attorney") ||
-    categoryLower.includes("guarantee")
-  )
-    return Stamp;
-  if (categoryLower.includes("indemnity")) return Shield;
-  if (
-    categoryLower.includes("release of liability") ||
-    categoryLower.includes("waiver")
-  )
-    return Warning;
-
-  // Legal & IP
-  if (
-    categoryLower.includes("trademark") ||
-    categoryLower.includes("patent") ||
-    categoryLower.includes("ip agreement")
-  )
-    return Gavel;
-  if (categoryLower.includes("nda") || categoryLower.includes("confidential"))
-    return ShieldCheck;
-  // if (categoryLower.includes("non-compete")) return Prohibit;
-
-  // Financial & Business
-  if (
-    categoryLower.includes("fixed price") ||
-    categoryLower.includes("lump sum")
-  )
-    return DollarSign;
-  if (categoryLower.includes("time & materials")) return Clock;
-  if (categoryLower.includes("investor")) return ChartLineUp;
-  if (categoryLower.includes("shareholder")) return ChartLineUp;
-  // if (categoryLower.includes("franchise")) return Storefront;
-  if (categoryLower.includes("buy-sell")) return Handshake;
-  if (categoryLower.includes("business transfer")) return Handshake;
-
-  // Licensing & Certification
-  if (
-    categoryLower.includes("licensing") ||
-    categoryLower.includes("license") ||
-    categoryLower.includes("eula")
-  )
-    return Certificate;
-  if (categoryLower.includes("beta") || categoryLower.includes("testing"))
-    return Flask;
-
-  // People & Groups
-  if (
-    categoryLower.includes("ambassador") ||
-    categoryLower.includes("influencer")
-  )
-    return Users;
-  if (categoryLower.includes("referral")) return Users;
-  if (categoryLower.includes("board") || categoryLower.includes("director"))
-    return UsersThree;
-
-  // Contracts & Agreements
-  if (categoryLower.includes("booking")) return Calendar;
-  if (
-    categoryLower.includes("contract amendment") ||
-    categoryLower.includes("renewal")
-  )
-    return Note;
-  if (
-    categoryLower.includes("terms of use") ||
-    categoryLower.includes("rfp") ||
-    categoryLower.includes("request for proposal")
-  )
-    return FileText;
-  if (categoryLower.includes("master services")) return Briefcase;
-
-  // Industry Specific
-  if (categoryLower.includes("cybersecurity")) return Lock;
-  if (
-    categoryLower.includes("software") ||
-    categoryLower.includes("technology transfer") ||
-    categoryLower.includes("web development")
-  )
-    return Code;
-  if (categoryLower.includes("photography")) return Camera;
-  if (
-    categoryLower.includes("stunt performer") ||
-    categoryLower.includes("film")
-  )
-    return FilmSlate;
-  if (categoryLower.includes("exhibition")) return Camera;
-
-  // General categories
-  if (categoryLower.includes("share") || categoryLower.includes("stock"))
-    return ShareNetwork;
-  if (
-    categoryLower.includes("copyright") ||
-    categoryLower.includes("author") ||
-    categoryLower.includes("publisher")
-  )
-    return BookOpen;
-  if (categoryLower.includes("lease") || categoryLower.includes("rental"))
-    return Home;
-  if (
-    categoryLower.includes("consulting") ||
-    categoryLower.includes("freelancer")
-  )
-    return Briefcase;
-  if (categoryLower.includes("design")) return Palette;
-  if (
-    categoryLower.includes("domain") ||
-    categoryLower.includes("online course")
-  )
-    return Globe;
-  if (
-    categoryLower.includes("employee") ||
-    categoryLower.includes("employment")
-  )
-    return User;
-  if (
-    categoryLower.includes("equipment") ||
-    categoryLower.includes("fleet maintenance")
-  )
-    return Wrench;
-  if (categoryLower.includes("freight") || categoryLower.includes("logistics"))
-    return Truck;
-  if (
-    categoryLower.includes("partnership") ||
-    categoryLower.includes("joint venture")
-  )
-    return Handshake;
-  if (categoryLower.includes("llc") || categoryLower.includes("llp"))
-    return Building;
-  if (
-    categoryLower.includes("manufacturing") ||
-    categoryLower.includes("distributor")
-  )
-    return Factory;
-  if (
-    categoryLower.includes("teacher") ||
-    categoryLower.includes("course") ||
-    categoryLower.includes("education")
-  )
-    return GraduationCap;
-  if (
-    categoryLower.includes("vendor") ||
-    categoryLower.includes("supplier") ||
-    categoryLower.includes("supply")
-  )
-    return Package;
-  if (categoryLower.includes("wedding") || categoryLower.includes("event"))
-    return Gift;
-  if (
-    categoryLower.includes("marketing") ||
-    categoryLower.includes("advertising")
-  )
-    return Megaphone;
-  if (
-    categoryLower.includes("service") ||
-    categoryLower.includes("maintenance")
-  )
-    return Settings;
-  if (
-    categoryLower.includes("subcontract") ||
-    categoryLower.includes("handyman")
-  )
-    return Wrench;
-  if (categoryLower.includes("quality")) return CheckCircle;
-  if (
-    categoryLower.includes("merchandise") ||
-    categoryLower.includes("purchasing")
-  )
-    return ShoppingCart;
-
-  // Default icon
-  return FileText;
-};
-
-const TemplateCard: React.FC<TemplateCardProps> = ({
-  id,
+/** Card shell shared by the blank card and template cards. */
+function PageCard({
   title,
   description,
-  category,
-  tags,
-  content,
+  tag,
   onClick,
-}) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(false);
-
-  // Intersection Observer to detect when card enters viewport
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsInView(true);
-        }
-      },
-      {
-        rootMargin: "100px", // Start loading 100px before card enters viewport
-        threshold: 0.01,
-      },
-    );
-
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Only initialize editor when card is in/near viewport
-  const previewEditor = useEditor(
-    {
-      immediatelyRender: false,
-      extensions: [
-        StarterKit,
-        Underline,
-        TextStyle,
-        FontSize,
-        Color,
-        ListItem,
-        TextAlign.configure({
-          types: ["heading", "paragraph"],
-          alignments: ["left", "center", "right", "justify"],
-          defaultAlignment: "left",
-        }),
-        TablePlus,
-        TableRowPlus,
-        TableCellPlus,
-        TableHeaderPlus,
-      ],
-      content: content || "",
-      editable: false,
-      editorProps: {
-        attributes: {
-          class: "text-xs leading-tight",
-        },
-      },
-    },
-    isInView ? [content] : undefined, // undefined prevents editor creation until in view
-  );
-
+  disabled,
+  children,
+}: {
+  title: string;
+  description: string;
+  tag?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <Card
-      ref={cardRef}
-      className="w-full group  bg-transparent border-none  cursor-pointer transition-all border-none-duration-200-hover:shadow-md hover:border-accent disabled:opacity-50"
-      style={{
-        animation: "fade-in 0.25s ease-in-out",
-      }}
+    <button
+      type="button"
       onClick={onClick}
+      disabled={disabled}
+      className="group self-start w-full min-w-0 text-left outline-none disabled:opacity-60"
     >
-      <CardContent className="p-0">
-        <div className="aspect-[3/4] group-hover:shadow-xl group-hover:bg-muted group-hover:outline outline-muted  bg-transparent duration-150 transition-all rounded-md mb-3 overflow-hidden relative">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {isInView && previewEditor ? (
-              <EditorContent
-                editor={previewEditor}
-                className="px-4 text-[0.5rem] leading-tight line-clamp-[20] opacity-70 [&_h1]:text-[0.65rem] [&_h1]:font-semibold [&_h1]:mb-1 [&_h2]:text-[0.55rem] [&_h2]:font-medium [&_h2]:mb-0.5 [&_h3]:text-[0.5rem] [&_h3]:font-medium"
-              />
-            ) : (
-              <div className="text-[0.5rem] leading-tight opacity-30 text-muted-foreground">
-                {/* Subtle placeholder while editor loads */}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <h3 className="font-semibold text-sm mb-1 line-clamp-2 break-words">
+      <div
+        className="relative w-full overflow-hidden rounded-[2px] bg-paper text-paper-foreground shadow-paper transition-[translate,box-shadow] duration-150 ease-out group-hover:-translate-y-0.5 group-hover:shadow-paper-hover group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
+        style={{ aspectRatio: PAGE_ASPECT }}
+      >
+        {children}
+      </div>
+      <div className="mt-3 px-px">
+        <h3 className="truncate font-serif text-[15px] font-medium tracking-[-0.01em] text-foreground">
           {title}
         </h3>
-
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2 break-words">
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
           {description}
         </p>
-
-        <Badge
-          variant="secondary"
-          className="text-xs px-2 py-1 rounded-full truncate max-w-full block"
-        >
-          {category}
-        </Badge>
-      </CardContent>
-    </Card>
+        {tag && (
+          <p className="mt-1 truncate text-xs text-muted-foreground/80 capitalize">
+            {tag}
+          </p>
+        )}
+      </div>
+    </button>
   );
-};
+}
+
+/** Renders the template at full page size and scales it to the card width. */
+function ScaledPreview({ content }: { content: Template["content"] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const resize = new ResizeObserver(([entry]) =>
+      setScale(entry.contentRect.width / PAGE_WIDTH),
+    );
+    // Defer creating the editor until the card is near the viewport.
+    const view = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          view.disconnect();
+        }
+      },
+      { rootMargin: "100px", threshold: 0.01 },
+    );
+    resize.observe(el);
+    view.observe(el);
+    return () => {
+      resize.disconnect();
+      view.disconnect();
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 select-none overflow-hidden"
+    >
+      {isInView && scale > 0 && (
+        <div
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            height: PAGE_HEIGHT,
+          }}
+        >
+          <TemplateDocument content={content} className="h-full" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SkeletonCard() {
   return (
     <div className="w-full">
-      <Skeleton className="aspect-[3/4] rounded-md mb-3" />
-      <div className="grid grid-cols-1 gap-y-4">
-        <Skeleton className="h-4 w-full rounded-full" />
-        <Skeleton className="h-4 w-12 rounded-full" />
-      </div>
+      <Skeleton className="w-full rounded-[2px]" style={{ aspectRatio: PAGE_ASPECT }} />
+      <Skeleton className="mt-3 h-4 w-3/4 rounded-md" />
+      <Skeleton className="mt-1.5 h-3 w-1/2 rounded-md" />
     </div>
+  );
+}
+
+function TagChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "-mb-px h-9 shrink-0 border-b-2 text-[13px] capitalize transition-colors duration-150",
+        active
+          ? "border-primary font-medium text-foreground"
+          : "border-transparent text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -572,167 +317,157 @@ export function Templates({ folderId }: TemplatesProps) {
     setCurrentPage(1); // Reset to first page when changing filter
   };
 
+  const [showAllTags, setShowAllTags] = useState(false);
+  const visibleTags = showAllTags
+    ? allTags
+    : allTags.filter(
+        (tag, i) => i < COLLAPSED_TAG_COUNT || tag === selectedTag,
+      );
+
   return (
     <>
-      {/* Tag Filter Dropdown */}
-      {!isLoadingTemplates && allTags.length > 0 && (
-        <div className="mb-6 flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">
-            Filter by tag:
-          </span>
-          <Select
-            value={selectedTag || "all"}
-            onValueChange={(value) =>
-              handleTagSelect(value === "all" ? null : value)
-            }
-          >
-            <SelectTrigger className="w-[280px]">
-              <SelectValue placeholder="All tags" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All tags</SelectItem>
-              {allTags.map((tag) => (
-                <SelectItem key={tag} value={tag} className="capitalize">
-                  {tag}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedTag && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleTagSelect(null)}
-              className="h-8"
+      {allTags.length > 0 && (
+        <div
+          role="toolbar"
+          aria-label="Filter templates by tag"
+          className="mb-8 flex flex-wrap items-center gap-x-5 border-b border-border"
+        >
+          <TagChip active={!selectedTag} onClick={() => handleTagSelect(null)}>
+            All
+          </TagChip>
+          {visibleTags.map((tag) => (
+            <TagChip
+              key={tag}
+              active={selectedTag === tag}
+              onClick={() => handleTagSelect(selectedTag === tag ? null : tag)}
             >
-              <X className="h-4 w-4 mr-1" />
-              Clear
-            </Button>
+              {tag}
+            </TagChip>
+          ))}
+          {allTags.length > COLLAPSED_TAG_COUNT && (
+            <button
+              type="button"
+              className="-mb-px h-9 shrink-0 border-b-2 border-transparent text-[13px] text-muted-foreground underline-offset-4 transition-colors duration-150 hover:text-foreground"
+              aria-expanded={showAllTags}
+              onClick={() => setShowAllTags((v) => !v)}
+            >
+              {showAllTags
+                ? "Fewer tags"
+                : `${allTags.length - visibleTags.length} more tags`}
+            </button>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <div
+        data-tour="templates"
+        className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      >
         {isLoadingTemplates &&
           [...new Array(8)].map((_, index) => (
             <SkeletonCard key={`skeleton-${index}`} />
           ))}
         {!isLoadingTemplates && (
-          <Card
-            className="w-full bg-transparent border-none group cursor-pointer transition-all border-none duration-200 hover:shadow-md hover:border-accent disabled:opacity-50"
-            style={{
-              animation: "fade-in 0.25s ease-in-out",
-            }}
-            onClick={
-              loadingTemplateId === "blank"
-                ? undefined
-                : handleBlankDocumentClick
-            }
+          <PageCard
+            title="Blank document"
+            description="Start from an empty page"
+            onClick={handleBlankDocumentClick}
+            disabled={loadingTemplateId === "blank"}
           >
-            <CardContent className="p-0">
-              {/* Template Preview */}
-              <div className="aspect-[3/4] group-hover:shadow-xl group-hover:border duration-300 transition-all rounded-md bg-muted mb-3 flex items-center justify-center overflow-hidden">
-                {loadingTemplateId === "blank" ? (
-                  <div>Loading ... </div>
-                  // <Spinner className="h-6 w-6 text-muted-foreground animate-spin" />
-                ) : (
-                  <Plus className="h-8 w-8 text-muted-foreground" />
-                )}
-              </div>
-
-              {/* Title */}
-              <h3 className="font-semibold text-sm mb-1 line-clamp-2 break-words">
-                Blank
-              </h3>
-
-              {/* Description */}
-              <p className="text-xs text-muted-foreground mb-3 line-clamp-2 break-words">
-                Start fresh with a crisp new document
-              </p>
-            </CardContent>
-          </Card>
+            <div className="absolute inset-0 flex items-center justify-center">
+              {loadingTemplateId === "blank" ? (
+                <PiSpinner className="size-5 animate-spin text-muted-foreground" />
+              ) : (
+                <Plus className="size-5 text-muted-foreground transition-colors duration-150 group-hover:text-foreground" />
+              )}
+            </div>
+          </PageCard>
         )}
         {!isLoadingTemplates &&
           templates.map((template) => (
-            <TemplateCard
+            <PageCard
               key={template.id}
-              id={template.id}
               title={template.name}
               description={template.description}
-              category={template.group}
-              tags={template.tags}
-              content={template.content}
+              tag={template.group}
               onClick={() => handleTemplateCardClick(template)}
-            />
+            >
+              <ScaledPreview content={template.content} />
+            </PageCard>
           ))}
       </div>
 
-      {/* Pagination Controls */}
       {!isLoadingTemplates && totalTemplates > templatesPerPage && (
-        <div className="flex items-center justify-center gap-2 mt-8">
+        <nav
+          aria-label="Templates pagination"
+          className="mt-10 flex items-center justify-center gap-1"
+        >
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handlePrevPage}
             disabled={currentPage === 1}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
             Previous
           </Button>
 
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (pageNumber) => {
-                // Show first page, last page, current page, and pages around current
-                const showPage =
-                  pageNumber === 1 ||
-                  pageNumber === totalPages ||
-                  (pageNumber >= currentPage - 1 &&
-                    pageNumber <= currentPage + 1);
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+            (pageNumber) => {
+              // Show first page, last page, current page, and pages around current
+              const showPage =
+                pageNumber === 1 ||
+                pageNumber === totalPages ||
+                (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1);
 
-                const showEllipsis =
-                  (pageNumber === currentPage - 2 && currentPage > 3) ||
-                  (pageNumber === currentPage + 2 &&
-                    currentPage < totalPages - 2);
+              const showEllipsis =
+                (pageNumber === currentPage - 2 && currentPage > 3) ||
+                (pageNumber === currentPage + 2 && currentPage < totalPages - 2);
 
-                if (showEllipsis) {
-                  return (
-                    <span
-                      key={pageNumber}
-                      className="px-2 text-muted-foreground"
-                    >
-                      ...
-                    </span>
-                  );
-                }
-
-                if (!showPage) return null;
-
+              if (showEllipsis) {
                 return (
-                  <Button
+                  <span
                     key={pageNumber}
-                    variant={currentPage === pageNumber ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handlePageChange(pageNumber)}
-                    className="min-w-[40px]"
+                    className="px-1.5 text-sm text-muted-foreground"
                   >
-                    {pageNumber}
-                  </Button>
+                    ...
+                  </span>
                 );
-              },
-            )}
-          </div>
+              }
+
+              if (!showPage) return null;
+
+              const isCurrent = currentPage === pageNumber;
+              return (
+                <Button
+                  key={pageNumber}
+                  variant="ghost"
+                  size="sm"
+                  aria-current={isCurrent ? "page" : undefined}
+                  onClick={() => handlePageChange(pageNumber)}
+                  className={cn(
+                    "min-w-8 px-2 tabular-nums",
+                    isCurrent
+                      ? "bg-accent font-medium text-foreground"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {pageNumber}
+                </Button>
+              );
+            },
+          )}
 
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleNextPage}
             disabled={currentPage === totalPages}
           >
             Next
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           </Button>
-        </div>
+        </nav>
       )}
 
       <TemplatePreviewDialog

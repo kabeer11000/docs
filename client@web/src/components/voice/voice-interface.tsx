@@ -112,131 +112,26 @@ export function VoiceInterface({ onDisconnect }: VoiceInterfaceProps) {
     return isOrbActive ? 0.8 : 0.2;
   }, [isOrbActive]);
 
-  // Get status text and color based on state
-  const statusInfo = useMemo(() => {
-    switch (state) {
-      case "listening":
-        return { text: "Listening...", color: "#3b82f6" };
-      case "thinking":
-        return { text: "Thinking...", color: "#f59e0b" };
-      case "speaking":
-        return { text: "Speaking...", color: "#10b981" };
-      case "connecting":
-        return { text: "Connecting...", color: "#6b7280" };
-      default:
-        return { text: "Ready", color: "#9ca3af" };
-    }
-  }, [state]);
+  const statusText = {
+    listening: "Listening",
+    thinking: "Thinking",
+    speaking: "Speaking",
+    connecting: "Connecting",
+  }[state as string] ?? "Ready";
 
   return (
-    <div
-      style={{
-        background: "white",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-        padding: "0",
-      }}
-    >
-      <style jsx global>{`
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-
-        @keyframes gentle-scale {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.05);
-          }
-        }
-
-        .voice-orb-container {
-          filter: drop-shadow(0 0 60px rgba(16, 185, 129, 0.3));
-          transition: filter 0.3s ease-out;
-        }
-
-        .voice-orb-container.active {
-          animation: gentle-scale 3s ease-in-out infinite;
-          filter: drop-shadow(0 0 100px rgba(16, 185, 129, 0.6));
-        }
-      `}</style>
+    <div className="relative flex h-full w-full flex-col items-center justify-center bg-background text-foreground">
       {/* Hidden audio track */}
       {agentTrack && <AudioTrack trackRef={agentTrack} />}
 
-      {/* Status Label */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: "180px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 9999,
-        }}
-      >
-        <div
-          style={{
-            padding: "12px 32px",
-            borderRadius: "24px",
-            background: "white",
-            border: `2px solid ${statusInfo.color}`,
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-          }}
-        >
-          <div
-            style={{
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              background: statusInfo.color,
-              animation: isOrbActive ? "pulse 2s infinite" : "none",
-            }}
-          />
-          <span
-            style={{
-              fontSize: "16px",
-              fontWeight: 600,
-              color: statusInfo.color,
-            }}
-          >
-            {statusInfo.text}
-          </span>
-        </div>
-      </div>
-
       {/* Shader-based Orb visualization */}
-      <div
-        style={{
-          position: "absolute",
-          top: "0",
-          left: "0",
-          width: "100vw",
-          height: "calc(100vh - 180px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <div className="absolute inset-x-0 top-0 bottom-[180px] flex items-center justify-center">
         <div
-          className={`voice-orb-container ${isOrbActive ? "active" : ""}`}
           style={{
-            width: "min(90vw, calc(100vh - 240px))",
-            height: "min(90vw, calc(100vh - 240px))",
-            maxWidth: "1000px",
-            maxHeight: "1000px",
+            width: "min(70vw, calc(100vh - 280px))",
+            height: "min(70vw, calc(100vh - 280px))",
+            maxWidth: "640px",
+            maxHeight: "640px",
           }}
         >
           <VoiceOrb
@@ -248,81 +143,46 @@ export function VoiceInterface({ onDisconnect }: VoiceInterfaceProps) {
         </div>
       </div>
 
-      {/* Controls at bottom */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: "60px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: "24px",
-          zIndex: 9999,
-        }}
-      >
-        <button
-          onClick={toggleMicrophone}
-          style={{
-            width: "72px",
-            height: "72px",
-            borderRadius: "50%",
-            border: "3px solid #10b981",
-            background: "white",
-            color: "#10b981",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#10b981";
-            e.currentTarget.style.color = "white";
-            e.currentTarget.style.transform = "scale(1.05)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "white";
-            e.currentTarget.style.color = "#10b981";
-            e.currentTarget.style.transform = "scale(1)";
-          }}
+      <div className="fixed bottom-14 left-1/2 z-[9999] flex -translate-x-1/2 flex-col items-center gap-6">
+        <div
+          role="status"
+          className="flex h-8 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground"
         >
-          {isMicEnabled ? (
-            <Mic className="w-6 h-6" />
-          ) : (
-            <MicOff className="w-6 h-6" />
-          )}
-        </button>
+          <span
+            className={`size-1.5 rounded-full ${
+              isOrbActive ? "animate-pulse bg-primary" : "bg-muted-foreground/50"
+            }`}
+          />
+          {statusText}
+        </div>
 
-        <button
-          onClick={onDisconnect}
-          style={{
-            width: "72px",
-            height: "72px",
-            borderRadius: "50%",
-            border: "3px solid #ef4444",
-            background: "white",
-            color: "#ef4444",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#ef4444";
-            e.currentTarget.style.color = "white";
-            e.currentTarget.style.transform = "scale(1.05)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "white";
-            e.currentTarget.style.color = "#ef4444";
-            e.currentTarget.style.transform = "scale(1)";
-          }}
-        >
-          <X className="w-6 h-6" />
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={toggleMicrophone}
+            aria-label={isMicEnabled ? "Mute microphone" : "Unmute microphone"}
+            aria-pressed={!isMicEnabled}
+            className={`flex size-12 items-center justify-center rounded-full border transition-colors duration-150 ${
+              isMicEnabled
+                ? "border-border bg-background text-foreground hover:bg-accent"
+                : "border-transparent bg-accent text-foreground"
+            }`}
+          >
+            {isMicEnabled ? (
+              <Mic className="size-5" />
+            ) : (
+              <MicOff className="size-5" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={onDisconnect}
+            aria-label="End voice session"
+            className="flex size-12 items-center justify-center rounded-full bg-destructive text-white transition-opacity duration-150 hover:opacity-90"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
       </div>
     </div>
   );

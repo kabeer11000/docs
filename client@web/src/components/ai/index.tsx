@@ -39,7 +39,7 @@ export default function HomePage({
           </div>
           {/* Right Panel */}
           {isRightSidebarOpen && (
-            <div className="flex-shrink-0 w-80 h-full border-l-2 border-border/60 bg-muted/10 rounded-tl-lg transition-all duration-300">
+            <div className="flex-shrink-0 w-80 h-full border-l border-border">
               <AIPanel chatId={chatId} />
             </div>
           )}

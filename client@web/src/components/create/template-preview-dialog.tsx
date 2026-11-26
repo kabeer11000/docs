@@ -12,7 +12,6 @@ import {
   TablePlus,
   TableRowPlus,
 } from "tiptap-pagination-plus";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,13 +21,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+
+type TemplateContent = string | { type: string; content: any[] };
 
 interface Template {
   id: string;
   name: string;
   description: string;
-  content: string | { type: string; content: any[] }; // Support both HTML and JSON
+  content: TemplateContent; // Support both HTML and JSON
   group: string;
   tags: string[];
   isPublic: boolean;
@@ -43,14 +44,22 @@ interface TemplatePreviewDialogProps {
   isLoading?: boolean;
 }
 
-export function TemplatePreviewDialog({
-  open,
-  onOpenChange,
-  template,
-  onUseTemplate,
-  isLoading = false,
-}: TemplatePreviewDialogProps) {
-  const previewEditor = useEditor(
+/** Letter page at 96dpi; previews render at this size and are scaled down. */
+export const PAGE_WIDTH = 816;
+export const PAGE_HEIGHT = 1056;
+
+/**
+ * Read-only render of template content laid out like a document page
+ * (fixed width, page margins, paper colors).
+ */
+export function TemplateDocument({
+  content,
+  className,
+}: {
+  content: TemplateContent;
+  className?: string;
+}) {
+  const editor = useEditor(
     {
       immediatelyRender: false,
       extensions: [
@@ -70,69 +79,71 @@ export function TemplatePreviewDialog({
         TableCellPlus,
         TableHeaderPlus,
       ],
-      content: template?.content || "",
+      content: content || "",
       editable: false,
-      editorProps: {
-        attributes: {
-          class:
-            "prose prose-sm prose-stone dark:prose-invert max-w-none focus:outline-none",
-        },
-      },
     },
-    [template?.content],
+    [content],
   );
 
-  if (!template) return null;
+  return (
+    <div
+      className={cn(
+        "bg-paper text-paper-foreground px-[72px] py-[72px] text-[15px] [&_h1]:text-paper-foreground [&_h2]:text-paper-foreground [&_h3]:text-paper-foreground",
+        className,
+      )}
+      style={{ width: PAGE_WIDTH }}
+    >
+      <EditorContent editor={editor} />
+    </div>
+  );
+}
 
-  const handleUseTemplate = () => {
-    onUseTemplate(template);
-  };
+export function TemplatePreviewDialog({
+  open,
+  onOpenChange,
+  template,
+  onUseTemplate,
+  isLoading = false,
+}: TemplatePreviewDialogProps) {
+  if (!template) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0 bg-background">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b space-y-3">
-          <div className="space-y-2">
-            <DialogTitle className="text-2xl">{template.name}</DialogTitle>
-            <DialogDescription className="text-base">
+      <DialogContent className="sm:max-w-[920px] max-h-[90vh] flex flex-col p-0 gap-0 rounded-lg overflow-hidden bg-paper">
+        <DialogHeader className="px-6 py-4 border-b border-border gap-1 text-left">
+          <DialogTitle className="font-serif text-lg font-medium tracking-[-0.01em]">
+            {template.name}
+          </DialogTitle>
+          {template.description && (
+            <DialogDescription className="text-sm">
               {template.description}
             </DialogDescription>
-          </div>
-
-          {template.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {template.tags.slice(0, 5).map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
           )}
         </DialogHeader>
 
-        <ScrollArea className="flex-1 overflow-y-auto">
-          <div className="px-6 py-6">
-            <EditorContent editor={previewEditor} />
-          </div>
-        </ScrollArea>
+        <div className="flex-1 min-h-0 overflow-auto bg-paper-canvas px-6 py-8">
+          <TemplateDocument
+            content={template.content}
+            className="mx-auto min-h-[600px] rounded-[2px] shadow-paper"
+          />
+        </div>
 
-        <DialogFooter className="px-6 py-4 border-t bg-muted/30">
+        <DialogFooter className="px-6 py-3 border-t border-border">
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
-            className="border-none"
           >
             Cancel
           </Button>
-          <Button onClick={handleUseTemplate} disabled={isLoading}>
+          <Button onClick={() => onUseTemplate(template)} disabled={isLoading}>
             {isLoading ? (
               <>
-                <PiSpinner className="h-4 w-4 animate-spin mr-2" />
+                <PiSpinner className="size-4 animate-spin" />
                 Creating...
               </>
             ) : (
-              "Use Template"
+              "Use template"
             )}
           </Button>
         </DialogFooter>

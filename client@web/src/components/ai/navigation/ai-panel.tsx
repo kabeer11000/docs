@@ -32,7 +32,7 @@ const ConversationSkeleton = () => (
 
 const EmptyConversations = ({ onCreateChat }: { onCreateChat: () => void }) => (
   <div className="text-center py-8 px-4">
-    <MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+    <MessageSquare className="size-5 text-muted-foreground mx-auto mb-2" />
     <p className="text-sm text-muted-foreground mb-1">No conversations yet</p>
     <p className="text-xs text-muted-foreground/75 mb-4">
       Start a new chat to see it here
@@ -293,26 +293,26 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
   }, [chats, searchQuery, performSearch]);
 
   return (
-    <div className="w-80 h-full bg-background/95 backdrop-blur-sm flex flex-col rounded-tl-lg">
+    <div className="w-80 h-full bg-background flex flex-col">
       {/* Header */}
-      <div className="border-b bg-muted/30 py-2 px-2 rounded-tl-lg flex-shrink-0">
+      <div className="border-b border-border p-2 flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               ref={searchInputRef}
               value={searchQuery}
               onChange={handleSearchChange}
               placeholder="Search conversations..."
-              className="pl-9 h-8 text-sm bg-background/80"
+              className="pl-8 h-8 text-sm"
               aria-label="Search conversations"
             />
           </div>
           <Button
             size="icon"
             variant="ghost"
-            className="w-8 h-8 hover:bg-background/80"
-            aria-label="New Chat"
+            className="size-8"
+            aria-label="New chat"
             onClick={handleCreateChat}
           >
             <MessageSquare className="w-4 h-4" />
@@ -322,9 +322,9 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
 
       {/* Conversations Section */}
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="px-4 py-3 border-b bg-muted/20 flex-shrink-0">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            Recent Conversations
+        <div className="px-4 pt-3 pb-1 flex-shrink-0">
+          <h3 className="text-xs font-medium text-muted-foreground">
+            Recent conversations
           </h3>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto">
@@ -335,7 +335,7 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
               <EmptyConversations onCreateChat={handleCreateChat} />
             ) : filteredChats.length === 0 && searchQuery ? (
               <div className="text-center py-8 px-4">
-                <MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <MessageSquare className="size-5 text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground mb-1">
                   No conversations found
                 </p>
@@ -344,7 +344,7 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
                 </p>
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {filteredChats.map((chat, index) => {
                   const isActive = chatId === chat.id;
                   const timeAgo =
@@ -360,8 +360,8 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
                     <a
                       key={chat.id}
                       href={`/chat/${chat.id}`}
-                      className={`block p-3 rounded-md hover:bg-secondary/50 transition-colors ${
-                        isActive ? "bg-secondary" : ""
+                      className={`block px-2.5 py-2 rounded-md hover:bg-accent transition-colors duration-150 ${
+                        isActive ? "bg-accent" : ""
                       } ${
                         selectedIndex === index &&
                         typeof window !== "undefined" &&
@@ -370,16 +370,16 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
                           : ""
                       }`}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2.5">
                         <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate mb-1">
+                          <p className="text-[13px] font-medium text-foreground truncate">
                             {chat.title}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate leading-relaxed mb-1">
+                          <p className="text-xs text-muted-foreground truncate">
                             {chat.preview}
                           </p>
-                          <p className="text-xs text-muted-foreground/70">
+                          <p className="mt-0.5 text-[11px] text-muted-foreground/80 tabular-nums">
                             {timeAgo}
                           </p>
                         </div>
@@ -394,9 +394,9 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
       </div>
 
       {/* Sources Section */}
-      <div className="hidden border-t bg-muted/10">
-        <div className="px-4 py-3 border-b bg-muted/20">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+      <div className="hidden border-t border-border">
+        <div className="px-4 pt-3 pb-1">
+          <h3 className="text-xs font-medium text-muted-foreground">
             Sources
           </h3>
         </div>
@@ -404,7 +404,7 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
           <div className="p-3 space-y-4">
             {/* Upload Area - More compact */}
             <div
-              className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-4 text-center hover:border-primary/50 hover:bg-muted/20 transition-all duration-200 cursor-pointer group"
+              className="border border-dashed border-border rounded-lg p-4 text-center hover:border-primary/50 hover:bg-accent transition-colors duration-150 cursor-pointer group"
               tabIndex={0}
               role="button"
               aria-label="Upload files"
@@ -435,12 +435,12 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
 
             {/* File List - Better spacing */}
             <div className="space-y-2">
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2">
                 Uploaded Files
               </h4>
               {uploadedFiles.length === 0 ? (
                 <div className="text-center py-6">
-                  <File className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <File className="size-5 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground mb-1">
                     No files uploaded yet
                   </p>
@@ -453,22 +453,21 @@ export const AIPanel = ({ chatId }: AIPanelProps) => {
                   {uploadedFiles.map((file) => (
                     <div
                       key={file.id}
-                      className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors border"
+                      className="flex items-center gap-2.5 p-2 rounded-md border border-border"
                     >
-                      <File className="w-4 h-4 text-primary flex-shrink-0" />
+                      <File className="size-4 text-muted-foreground flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
                           {file.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatFileSize(file.size)} •{" "}
-                          {formatUploadTime(file.uploadedAt)}
+                          {formatFileSize(file.size)}
                         </p>
                       </div>
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="w-6 h-6 hover:bg-destructive/20 hover:text-destructive transition-colors"
+                        className="size-6 hover:text-destructive"
                         aria-label={`Remove ${file.name}`}
                         onClick={() =>
                           aiChatActions.removeUploadedFile(file.id)

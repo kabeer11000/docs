@@ -78,16 +78,16 @@ export const voiceTools: ToolConfig[] = [
     },
     timeout: 5,
     handler: async (data) => {
-      console.log("🎉 [TEST TOOL] TEST TOOL CALLED SUCCESSFULLY!");
+      console.log("[TEST TOOL] TEST TOOL CALLED SUCCESSFULLY!");
       console.log(
-        "📦 [TEST TOOL] Data received:",
+        "[TEST TOOL] Data received:",
         JSON.stringify(data, null, 2),
       );
 
       try {
         const payload = JSON.parse(data.payload);
         const args = payload.arguments?.raw_arguments || {};
-        console.log("✅ [TEST TOOL] Arguments:", args);
+        console.log("[TEST TOOL] Arguments:", args);
 
         const response = {
           result: {
@@ -97,10 +97,10 @@ export const voiceTools: ToolConfig[] = [
           presentationInstructions: `Great! The test tool is working perfectly. I received your message: "${args.message || "no message"}". This confirms that tool calling is functional.`,
         };
 
-        console.log("🎉 [TEST TOOL] Returning success:", response);
+        console.log("[TEST TOOL] Returning success:", response);
         return JSON.stringify(response);
       } catch (error) {
-        console.error("❌ [TEST TOOL] Error:", error);
+        console.error("[TEST TOOL] Error:", error);
         return JSON.stringify({
           result: { success: false, error: String(error) },
           presentationInstructions: "Test tool encountered an error.",
@@ -134,9 +134,9 @@ export const voiceTools: ToolConfig[] = [
     },
     timeout: 15,
     handler: async (data) => {
-      console.log("🎤 [VOICE TOOL] create_fir_document CALLED!");
+      console.log("[VOICE TOOL] create_fir_document CALLED!");
       console.log(
-        "📦 [VOICE TOOL] Raw data received:",
+        "[VOICE TOOL] Raw data received:",
         JSON.stringify(data, null, 2),
       );
 
@@ -144,7 +144,7 @@ export const voiceTools: ToolConfig[] = [
         // Parse the payload string
         const payload = JSON.parse(data.payload);
         console.log(
-          "📄 [VOICE TOOL] Parsed payload:",
+          "[VOICE TOOL] Parsed payload:",
           JSON.stringify(payload, null, 2),
         );
 
@@ -152,7 +152,7 @@ export const voiceTools: ToolConfig[] = [
         const args = payload.arguments?.raw_arguments || {};
         const { title, complainantName, incidentType } = args;
 
-        console.log("✅ [VOICE TOOL] Extracted arguments:", {
+        console.log("[VOICE TOOL] Extracted arguments:", {
           title,
           complainantName,
           incidentType,
@@ -172,7 +172,7 @@ export const voiceTools: ToolConfig[] = [
         }
 
         const user = JSON.parse(authData);
-        console.log("👤 [VOICE TOOL] User info:", {
+        console.log("[VOICE TOOL] User info:", {
           id: user?.id,
           name: user?.displayName,
         });
@@ -183,12 +183,12 @@ export const voiceTools: ToolConfig[] = [
 
         // Generate document ID
         const docId = nanoid();
-        console.log("🆔 [VOICE TOOL] Generated document ID:", docId);
+        console.log("[VOICE TOOL] Generated document ID:", docId);
 
         // Get FIR HTML template with parameters
         const firContent = getFIRTemplate(complainantName, incidentType);
         console.log(
-          "📝 [VOICE TOOL] FIR template generated, length:",
+          "[VOICE TOOL] FIR template generated, length:",
           firContent.length,
         );
 
@@ -247,7 +247,7 @@ export const voiceTools: ToolConfig[] = [
           lastSaved: new Date(),
         };
 
-        console.log("📊 [VOICE TOOL] Document object created:", {
+        console.log("[VOICE TOOL] Document object created:", {
           id: newDocument.id,
           title: newDocument.title,
           owner: newDocument.owner,
@@ -255,31 +255,31 @@ export const voiceTools: ToolConfig[] = [
         });
 
         // Insert into CloudStore
-        console.log("📊 [VOICE TOOL] Checking CloudStore availability...");
+        console.log("[VOICE TOOL] Checking CloudStore availability...");
         if (!cloudStore) {
-          console.error("❌ [VOICE TOOL] CloudStore is NULL or undefined!");
+          console.error("[VOICE TOOL] CloudStore is NULL or undefined!");
           throw new Error("CloudStore not available");
         }
 
         console.log(
-          "✅ [VOICE TOOL] CloudStore is available, accessing documents collection...",
+          "[VOICE TOOL] CloudStore is available, accessing documents collection...",
         );
         const documentsCollection = cloudStore.collection("documents");
 
-        console.log("💾 [VOICE TOOL] Inserting document into CloudStore...");
+        console.log("[VOICE TOOL] Inserting document into CloudStore...");
         await documentsCollection.insert(newDocument);
         console.log(
-          "✅ [VOICE TOOL] Document inserted successfully into CloudStore!",
+          "[VOICE TOOL] Document inserted successfully into CloudStore!",
         );
 
         // Show custom toast with action button
-        console.log("🔔 [VOICE TOOL] Showing toast notification...");
+        console.log("[VOICE TOOL] Showing toast notification...");
         toast.success("FIR Document Created", {
           description: `"${title}" has been created in your vault`,
           action: {
             label: "Open Document",
             onClick: () => {
-              console.log("📄 [VOICE TOOL] Opening document:", docId);
+              console.log("[VOICE TOOL] Opening document:", docId);
               window.location.href = `/document/${docId}`;
             },
           },
@@ -288,7 +288,7 @@ export const voiceTools: ToolConfig[] = [
             zIndex: 10000,
           },
         });
-        console.log("✅ [VOICE TOOL] Toast notification shown");
+        console.log("[VOICE TOOL] Toast notification shown");
 
         const successResponse = {
           result: {
@@ -300,13 +300,13 @@ export const voiceTools: ToolConfig[] = [
         };
 
         console.log(
-          "🎉 [VOICE TOOL] Returning success response:",
+          "[VOICE TOOL] Returning success response:",
           successResponse,
         );
         return JSON.stringify(successResponse);
       } catch (error) {
-        console.error("❌ [VOICE TOOL] ERROR in create_fir_document:", error);
-        console.error("❌ [VOICE TOOL] Error details:", {
+        console.error("[VOICE TOOL] ERROR in create_fir_document:", error);
+        console.error("[VOICE TOOL] Error details:", {
           name: error instanceof Error ? error.name : "Unknown",
           message: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined,
@@ -331,7 +331,7 @@ export const voiceTools: ToolConfig[] = [
             "I encountered an error while creating the FIR document. Please try again.",
         };
 
-        console.log("⚠️ [VOICE TOOL] Returning error response:", errorResponse);
+        console.log("[VOICE TOOL] Returning error response:", errorResponse);
         return JSON.stringify(errorResponse);
       }
     },

@@ -58,7 +58,7 @@ export function SettingsAppSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="offcanvas" {...props} className="border-r-0 ">
+    <Sidebar collapsible="offcanvas" {...props} className="border-r-0">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -67,7 +67,7 @@ export function SettingsAppSidebar({
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="#">
-                <span className="text-lg font-semibold">Kabeer Docs</span>
+                <span className="text-base font-semibold">Kabeer Docs</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -82,7 +82,7 @@ export function SettingsAppSidebar({
               key={item.title}
               asChild
               className={`w-full justify-start ${
-                item.isActive ? "bg-neutral-300" : ""
+                item.isActive ? "bg-accent font-medium text-foreground" : ""
               }`}
             >
               <a href={item.url}>
@@ -95,21 +95,21 @@ export function SettingsAppSidebar({
 
         {/* Storage Overview - light styling to match sidebar */}
         <div className="px-4 pb-4 mt-auto">
-          <p className="text-[#727272] text-[16px] font-semibold mb-4">
-            STORAGE OVERVIEW
+          <p className="text-xs font-medium text-muted-foreground mb-2">
+            Storage
           </p>
-          <Card className="bg-neutral-100 border border-neutral-300">
-            <CardContent className="p-4">
+          <Card className="border border-border shadow-none">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-neutral-800 text-[16px] font-medium">
-                  Total Files
+                <span className="text-sm text-foreground">
+                  Total files
                 </span>
-                <span className="text-neutral-800 text-[16px] font-medium">
+                <span className="text-sm font-medium text-foreground tabular-nums">
                   127
                 </span>
               </div>
-              <Progress value={85} className="mb-2 h-2 bg-neutral-300" />
-              <p className="text-[#727272] text-[12px] font-medium">
+              <Progress value={85} className="mb-2 h-1.5" />
+              <p className="text-xs text-muted-foreground">
                 4.25 GB of 5GB used
               </p>
             </CardContent>
@@ -120,9 +120,9 @@ export function SettingsAppSidebar({
         <div className="px-4 pb-4">
           <Button
             variant="ghost"
-            className="w-full justify-between text-[#727272] p-3 h-auto hover:bg-neutral-100"
+            className="w-full justify-between text-muted-foreground"
           >
-            <span className="text-[16px] font-medium">Upgrade Storage</span>
+            <span className="text-sm">Upgrade storage</span>
             <Plus className="w-4 h-4" />
           </Button>
         </div>

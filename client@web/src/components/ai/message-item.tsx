@@ -72,23 +72,25 @@ export const MessageItem = memo<MessageItemProps>(
     return (
       <div
         className={cn(
-          "py-3 px-4 group",
-          message.role === "user" ? "bg-neutral-200/60 rounded-2xl" : "",
+          "group my-2 px-3 py-2.5 text-sm leading-relaxed text-foreground",
+          message.role === "user" ? "rounded-lg bg-accent" : "",
         )}
       >
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           {message.role === "user" && (
             <div className="flex-shrink-0">
-              <Avatar className="w-8 h-8 bg-neutral-200">
+              <Avatar className="size-6 bg-muted">
                 <AvatarImage src={userAvatarUrl || "/avatars/avatar-3.png"} />
-                <AvatarFallback>{userInitials || "U"}</AvatarFallback>
+                <AvatarFallback className="text-[10px]">
+                  {userInitials || "U"}
+                </AvatarFallback>
               </Avatar>
             </div>
           )}
           <div className="flex-1 min-w-0">
             {message.isThinking && message.content === "" ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader size={16} />
+              <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                <Loader size={14} />
                 <span>Thinking...</span>
               </div>
             ) : (
@@ -97,18 +99,19 @@ export const MessageItem = memo<MessageItemProps>(
                   <Response>{message.content}</Response>
                 </div>
                 {message.role === "assistant" && message.content && (
-                  <div className="mt-2 flex items-center gap-1">
+                  <div className="mt-1.5 -ml-1.5 flex items-center gap-0.5">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={handleCopy}
-                      className="h-7 w-7 rounded-md"
+                      className="size-7 text-muted-foreground hover:text-foreground"
                       title="Copy"
+                      aria-label="Copy"
                     >
                       {copied ? (
-                        <Check className="w-4 h-4 text-green-600" />
+                        <Check className="size-3.5 text-green-600 dark:text-green-400" />
                       ) : (
-                        <Copy className="w-4 h-4" />
+                        <Copy className="size-3.5" />
                       )}
                     </Button>
                     {onInsert && (
@@ -116,13 +119,14 @@ export const MessageItem = memo<MessageItemProps>(
                         variant="ghost"
                         size="icon"
                         onClick={handleInsert}
-                        className="h-7 w-7 rounded-md"
+                        className="size-7 text-muted-foreground hover:text-foreground"
                         title="Insert to Document"
+                        aria-label="Insert to Document"
                       >
                         {inserted ? (
-                          <Check className="w-4 h-4 text-green-600" />
+                          <Check className="size-3.5 text-green-600 dark:text-green-400" />
                         ) : (
-                          <SquareArrowUpLeft className="w-4 h-4" />
+                          <SquareArrowUpLeft className="size-3.5" />
                         )}
                       </Button>
                     )}
@@ -131,10 +135,11 @@ export const MessageItem = memo<MessageItemProps>(
                         variant="ghost"
                         size="icon"
                         onClick={onRetry}
-                        className="h-7 w-7 rounded-md"
+                        className="size-7 text-muted-foreground hover:text-foreground"
                         title="Retry"
+                        aria-label="Retry"
                       >
-                        <RefreshCw className="w-4 h-4" />
+                        <RefreshCw className="size-3.5" />
                       </Button>
                     )}
                   </div>
@@ -149,15 +154,15 @@ export const MessageItem = memo<MessageItemProps>(
                   <div
                     key={index}
                     className={cn(
-                      "flex items-center gap-2 p-3 rounded-lg border text-sm",
+                      "flex items-center gap-2 rounded-md border px-2.5 py-2 text-[13px]",
                       attachment.hasError
-                        ? "bg-red-50 border-red-200 text-red-700"
-                        : "bg-muted border-border",
+                        ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
+                        : "border-border bg-background",
                     )}
                   >
                     <div className="flex-shrink-0">
                       {attachment.hasError ? (
-                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <AlertCircle className="size-4" />
                       ) : attachment.isUploading ? (
                         <Loader size={16} />
                       ) : (
@@ -176,12 +181,14 @@ export const MessageItem = memo<MessageItemProps>(
                       <div className="truncate font-medium">
                         {attachment.name}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {attachment.size < 1024 * 1024
-                          ? `${(attachment.size / 1024).toFixed(1)} KB`
-                          : `${(attachment.size / 1024 / 1024).toFixed(1)} MB`}
-                        {attachment.isUploading && " • Uploading..."}
-                        {attachment.hasError && " • Upload failed"}
+                      <div className="text-xs opacity-70">
+                        {attachment.hasError
+                          ? "Upload failed"
+                          : attachment.isUploading
+                            ? "Uploading..."
+                            : attachment.size < 1024 * 1024
+                              ? `${(attachment.size / 1024).toFixed(1)} KB`
+                              : `${(attachment.size / 1024 / 1024).toFixed(1)} MB`}
                       </div>
                     </div>
                   </div>

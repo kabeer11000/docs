@@ -46,12 +46,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="flex items-center justify-center min-h-[400px] p-4">
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-sm shadow-none">
             <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <AlertTriangle className="h-12 w-12 text-destructive" />
+              <div className="flex justify-center mb-2">
+                <AlertTriangle className="size-6 text-destructive" />
               </div>
-              <CardTitle>Something went wrong</CardTitle>
+              <CardTitle className="text-base">Something went wrong</CardTitle>
               <CardDescription>
                 {this.state.error?.message || "An unexpected error occurred"}
               </CardDescription>
