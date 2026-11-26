@@ -216,7 +216,7 @@ export function LoadingOverlay({
     <div className="relative">
       {children}
       {loading && (
-        <div className="absolute inset-0 /80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+        <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
           <div className="flex flex-col items-center gap-3">
             <LoadingSpinner size="lg" />
             <p className="text-sm font-medium">{loadingText}</p>

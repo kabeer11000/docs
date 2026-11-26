@@ -1,10 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/global.css";
 import { cookies } from 'next/headers';
 import { Providers } from "./providers";
 import { Fragment } from "react";
-import { PWASupport } from "@/components/PWASupport";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
@@ -15,6 +14,13 @@ export const metadata: Metadata = {
     "Document management and collaboration platform",
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#141414" },
+  ],
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -22,14 +28,13 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} dark`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0a0a0a" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Docs" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         {await cookieStore.get('kn.docs.debug-env') && <Fragment>
           <script
@@ -43,7 +48,6 @@ export default async function RootLayout({
         </Fragment>}
       </head>
       <body>
-        <PWASupport/>
         <Providers>{children}</Providers>
       </body>
     </html>

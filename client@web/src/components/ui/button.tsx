@@ -5,26 +5,26 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium tracking-[-0.01em] select-none transition-[transform,background-color,border-color,box-shadow,color,opacity] duration-300 ease-soft active:scale-[0.97] active:duration-100 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/40 focus-visible:ring-[3px] aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium select-none transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/40 focus-visible:ring-[3px] aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default: "liquid-solid",
         destructive:
-          "bg-destructive/90 text-white border border-white/10 shadow-[inset_0_1px_0_oklch(1_0_0/0.2)] hover:bg-destructive focus-visible:ring-destructive/40",
-        outline: "liquid text-foreground",
-        secondary: "liquid text-foreground",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/40",
+        outline: "liquid",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-accent",
         ghost:
-          "text-foreground/80 hover:text-foreground hover:bg-white/[0.07]",
-        link: "text-foreground underline-offset-4 hover:underline active:scale-100",
+          "text-foreground/80 hover:text-foreground hover:bg-accent",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 has-[>svg]:px-3",
-        sm: "h-8 gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 px-5 has-[>svg]:px-4",
-        icon: "size-9",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        default: "h-8 px-3 has-[>svg]:px-2.5",
+        sm: "h-7 gap-1.5 px-2.5 text-[13px] has-[>svg]:px-2",
+        lg: "h-9 px-4 has-[>svg]:px-3",
+        icon: "size-8",
+        "icon-sm": "size-7",
+        "icon-lg": "size-9",
       },
     },
     defaultVariants: {
