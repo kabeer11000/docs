@@ -399,8 +399,14 @@ export class AuthManager {
     try {
       const { tokens, user } = clientCookies.getAuthFromCookies()
 
-      if (tokens && user && !this.isTokenExpired(tokens.accessToken)) {
+      if (!tokens || !user) {
+        this.clearAuth()
+      } else if (!this.isTokenExpired(tokens.accessToken)) {
         this.setAuth(user, tokens)
+      } else if (tokens.refreshToken && !this.isTokenExpired(tokens.refreshToken)) {
+        // Access tokens are short-lived; restore the session from the refresh token.
+        this.state.set({ ...this.state.get(), user, tokens })
+        await this.refreshToken()
       } else {
         this.clearAuth()
       }
@@ -580,10 +586,28 @@ export class AuthManager {
     const now = Date.now() / 1000
     const refreshIn = (payload.exp - now - 300) * 1000 // 5 min before expiry
 
-    if (refreshIn > 0) {
-      this.refreshTimer = setTimeout(() => this.refreshToken(), refreshIn)
-    }
+    this.refreshTimer = setTimeout(() => this.refreshToken(), Math.max(refreshIn, 0))
+    this.watchVisibility()
   }
+
+  private visibilityWatched = false
+
+  /** Timers stall while a laptop sleeps or a tab is throttled, so re-check when the tab wakes. */
+  private watchVisibility(): void {
+    if (this.visibilityWatched || typeof document === "undefined") return
+    this.visibilityWatched = true
+    const check = () => {
+      if (document.visibilityState !== "visible") return
+      const { tokens } = this.state.get()
+      if (!tokens?.accessToken) return
+      const payload = this.authService.decodeToken(tokens.accessToken)
+      if (payload?.exp && payload.exp - Date.now() / 1000 < 300) this.refreshToken()
+    }
+    document.addEventListener("visibilitychange", check)
+    window.addEventListener("focus", check)
+  }
+
+  private refreshInFlight: Promise<boolean> | null = null
 
   private stopTokenRefresh(): void {
     if (this.refreshTimer) {
@@ -593,25 +617,45 @@ export class AuthManager {
   }
 
   async refreshToken(): Promise<boolean> {
+    // Focus, timer and init can all ask at once; share one request.
+    if (!this.refreshInFlight) {
+      this.refreshInFlight = this.doRefresh().finally(() => {
+        this.refreshInFlight = null
+      })
+    }
+    return this.refreshInFlight
+  }
+
+  private async doRefresh(): Promise<boolean> {
     const { tokens, user } = this.state.get()
     if (!tokens?.refreshToken || !user) return false
 
     try {
       const response = await this.authService.refreshToken(tokens.refreshToken)
-
-      this.setAuth(user, {
+      this.setAuth(response.user ?? user, {
         accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
+        refreshToken: response.refreshToken || tokens.refreshToken,
         idToken: response.idToken,
         expiresIn: response.expiresIn,
         tokenType: response.tokenType,
       })
-
-      showToast.success('Session Refreshed', 'Your session has been renewed') // ✅ Toast
       return true
     } catch (error) {
-      console.error('Token refresh failed:', error)
-      showToast.error('Session Expired', 'Please log in again') // ✅ Toast
+      const rejected =
+        error instanceof HttpError && [400, 401, 403].includes(error.statusCode)
+      if (!rejected) {
+        // Offline or server hiccup: keep the session and retry shortly.
+        console.warn("Token refresh deferred:", error)
+        this.stopTokenRefresh()
+        this.refreshTimer = setTimeout(() => this.refreshToken(), 30_000)
+        const st = this.state.get()
+        if (!st.isInitialized) {
+          this.state.set({ ...st, isAuthenticated: true, isLoading: false, isInitialized: true })
+        }
+        return false
+      }
+      console.error("Token refresh failed:", error)
+      showToast.error("Session expired", "Please sign in again")
       this.clearAuth()
       return false
     }

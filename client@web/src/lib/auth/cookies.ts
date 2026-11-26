@@ -15,7 +15,7 @@ const COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   path: "/",
-  maxAge: 24 * 60 * 60, // 24 hours - matches typical JWT token lifetime
+  maxAge: 30 * 24 * 60 * 60, // matches the refresh token lifetime; access token expiry is checked separately
 };
 
 // Server-side cookie utilities (for middleware, API routes)
