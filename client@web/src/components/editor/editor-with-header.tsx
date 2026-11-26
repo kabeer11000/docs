@@ -209,7 +209,7 @@ export function EditorWithHeader({
       >
         <MessagesSquare className="w-4 h-4" />
         {comments.length > 0 && (
-          <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">
             {comments.length}
           </span>
         )}
@@ -228,7 +228,7 @@ export function EditorWithHeader({
         >
           <PenTool className="w-4 h-4" />
           {(documentData?.signatures?.length || 0) > 0 && (
-            <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
               {documentData?.signatures?.length}
             </span>
           )}

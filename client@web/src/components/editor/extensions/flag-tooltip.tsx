@@ -47,46 +47,36 @@ export const FlagTooltip: React.FC<FlagTooltipProps> = ({
           top: `${element.getBoundingClientRect().bottom + 5}px`,
         }}
       >
-        <div className={`p-4 ${type === "red" ? "bg-red-50" : "bg-green-50"}`}>
-          <div className="flex items-start gap-2">
-            {type === "red" ? (
-              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            ) : (
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-            )}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h4
-                  className={`font-semibold text-sm ${type === "red" ? "text-red-900" : "text-green-900"}`}
-                >
-                  {type === "red" ? "Red Flag" : "Green Flag"}
-                </h4>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded ${
-                    severity === "high"
-                      ? "bg-red-200 text-red-800"
-                      : severity === "medium"
-                        ? "bg-yellow-200 text-yellow-800"
-                        : "bg-blue-200 text-blue-800"
-                  }`}
-                >
-                  {severity}
-                </span>
-              </div>
-              <p
-                className={`text-sm mb-2 ${type === "red" ? "text-red-800" : "text-green-800"}`}
+        <div className="flex items-start gap-2.5 p-3">
+          {type === "red" ? (
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-600 dark:text-red-400" />
+          ) : (
+            <CheckCircle className="mt-0.5 size-4 shrink-0 text-green-600 dark:text-green-400" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <h4 className="text-[13px] font-medium">
+                {type === "red" ? "Red flag" : "Green flag"}
+              </h4>
+              <span
+                className={`rounded px-1.5 py-0.5 text-[11px] font-medium capitalize ${
+                  severity === "high"
+                    ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                    : severity === "medium"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      : "bg-muted text-muted-foreground"
+                }`}
               >
-                {reason}
-              </p>
-              {recommendation && type === "red" && (
-                <div className="mt-2 pt-2 border-t border-red-200">
-                  <p className="text-xs font-medium text-red-900 mb-1">
-                    💡 Recommendation:
-                  </p>
-                  <p className="text-xs text-red-700">{recommendation}</p>
-                </div>
-              )}
+                {severity}
+              </span>
             </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">{reason}</p>
+            {recommendation && type === "red" && (
+              <div className="mt-2 border-t border-border pt-2">
+                <p className="mb-0.5 text-xs font-medium">Recommendation</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">{recommendation}</p>
+              </div>
+            )}
           </div>
         </div>
       </PopoverContent>

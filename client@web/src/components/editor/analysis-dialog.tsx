@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 import type React from "react";
 import {
   Dialog,
@@ -35,114 +35,115 @@ export const AnalysisDialog: React.FC<AnalysisDialogProps> = ({
   if (!data) return null;
 
   const getRiskColor = (score: number) => {
-    if (score < 30) return "text-green-600";
-    if (score < 70) return "text-yellow-600";
-    return "text-red-600";
+    if (score < 30) return "text-green-600 dark:text-green-400";
+    if (score < 70) return "text-amber-600 dark:text-amber-400";
+    return "text-red-600 dark:text-red-400";
   };
 
   const getRiskLabel = (score: number) => {
-    if (score < 30) return "Low Risk";
-    if (score < 70) return "Medium Risk";
-    return "High Risk";
+    if (score < 30) return "Low risk";
+    if (score < 70) return "Medium risk";
+    return "High risk";
   };
+
+  const sections = [
+    {
+      title: "Red flags",
+      flags: data.red_flags,
+      Icon: AlertTriangle,
+      tone: "text-red-600 dark:text-red-400",
+      edge: "border-l-red-500",
+      showRecommendation: true,
+    },
+    {
+      title: "Green flags",
+      flags: data.green_flags,
+      Icon: CheckCircle,
+      tone: "text-green-600 dark:text-green-400",
+      edge: "border-l-green-500",
+      showRecommendation: false,
+    },
+  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] bg-background">
+      <DialogContent className="max-h-[80vh] max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-blue-600" />
-            Contract Analysis
+          <DialogTitle className="font-serif text-lg font-medium">
+            Contract analysis
           </DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-4 pr-4">
-            {/* Risk Score */}
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <p className="text-sm text-muted-foreground">Risk Score</p>
+          <div className="space-y-5 pr-4">
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border">
+              <div className="bg-popover p-4">
+                <p className="text-xs text-muted-foreground">Risk score</p>
                 <p
-                  className={`text-2xl font-bold ${getRiskColor(data.risk_score)}`}
+                  className={`text-2xl font-semibold tabular-nums ${getRiskColor(data.risk_score)}`}
                 >
-                  {data.risk_score}/100
+                  {data.risk_score}
+                  <span className="text-sm font-normal text-muted-foreground">
+                    /100
+                  </span>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {getRiskLabel(data.risk_score)}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">
-                  Clauses Analyzed
+              <div className="bg-popover p-4">
+                <p className="text-xs text-muted-foreground">
+                  Clauses analyzed
                 </p>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-semibold tabular-nums">
                   {data.total_clauses_analyzed}
                 </p>
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">Summary</h3>
-                  <p className="text-sm text-blue-800">{data.summary}</p>
-                </div>
-              </div>
+            <div>
+              <h3 className="mb-1 text-[13px] font-medium">Summary</h3>
+              <p className="text-[13px] leading-relaxed text-muted-foreground">
+                {data.summary}
+              </p>
             </div>
 
-            {/* Red Flags */}
-            {data.red_flags.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-red-600 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Red Flags ({data.red_flags.length})
-                </h3>
-                {data.red_flags.map((flag, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-red-50 rounded-lg border border-red-200"
-                  >
-                    <p className="font-medium text-red-900 text-sm mb-1">
-                      "{flag.flagged_text}"
-                    </p>
-                    <p className="text-xs text-red-800 mb-1">{flag.reason}</p>
-                    {flag.recommendation && (
-                      <p className="text-xs text-red-700 italic">
-                        💡 {flag.recommendation}
-                      </p>
-                    )}
-                    <span className="text-xs text-red-600 font-medium">
-                      Severity: {flag.severity}
-                    </span>
+            {sections.map(
+              ({ title, flags, Icon, tone, edge, showRecommendation }) =>
+                flags.length > 0 && (
+                  <div key={title} className="space-y-2">
+                    <h3
+                      className={`flex items-center gap-1.5 text-[13px] font-medium ${tone}`}
+                    >
+                      <Icon className="size-4" />
+                      {title}
+                      <span className="tabular-nums text-muted-foreground">
+                        {flags.length}
+                      </span>
+                    </h3>
+                    {flags.map((flag, idx) => (
+                      <div
+                        key={idx}
+                        className={`rounded-[2px] border border-l-2 border-border ${edge} bg-paper p-3`}
+                      >
+                        <p className="mb-1 text-[13px] font-medium text-foreground">
+                          {flag.flagged_text}
+                        </p>
+                        <p className="mb-1 text-xs text-muted-foreground">
+                          {flag.reason}
+                        </p>
+                        {showRecommendation && flag.recommendation && (
+                          <p className="mb-1 text-xs text-foreground">
+                            Recommendation: {flag.recommendation}
+                          </p>
+                        )}
+                        <span className={`text-xs font-medium capitalize ${tone}`}>
+                          {flag.severity} severity
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-
-            {/* Green Flags */}
-            {data.green_flags.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold text-green-600 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4" />
-                  Green Flags ({data.green_flags.length})
-                </h3>
-                {data.green_flags.map((flag, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-green-50 rounded-lg border border-green-200"
-                  >
-                    <p className="font-medium text-green-900 text-sm mb-1">
-                      "{flag.flagged_text}"
-                    </p>
-                    <p className="text-xs text-green-800 mb-1">{flag.reason}</p>
-                    <span className="text-xs text-green-600 font-medium">
-                      Severity: {flag.severity}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                ),
             )}
           </div>
         </ScrollArea>

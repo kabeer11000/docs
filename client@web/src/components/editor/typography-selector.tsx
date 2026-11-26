@@ -12,6 +12,8 @@ import {
   editorFormatState,
   editorInstance,
 } from "@/state/editor";
+import { cn } from "@/lib/utils";
+import { toolbarSelectClass } from "./toolbar-button";
 
 const typographyOptions = [
   { value: "normal", label: "Normal text" },
@@ -79,29 +81,30 @@ export function TypographySelector({
       disabled={disabled}
     >
       <SelectTrigger
-        className="w-full max-w-[180px] sm:w-40 h-7 sm:h-8 text-xs sm:text-sm border-input bg-background hover:bg-muted/50 transition-colors"
+        className={cn(toolbarSelectClass, "w-[124px]")}
+        aria-label="Text style"
         disabled={disabled}
       >
         <SelectValue>
           <span className="truncate">{getCurrentLabel()}</span>
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className="min-w-[180px] sm:min-w-[200px]">
+      <SelectContent className="min-w-[200px]">
         {typographyOptions.map((option) => (
           <SelectItem
             key={option.value}
             value={option.value}
-            className="cursor-pointer hover:bg-accent transition-colors py-2 sm:py-3 min-h-[36px] sm:min-h-[40px] flex items-center"
+            className="min-h-9 cursor-pointer"
           >
             <span
               className={
                 option.value === "heading1"
-                  ? "text-base sm:text-lg font-semibold leading-none"
+                  ? "text-lg font-semibold leading-none"
                   : option.value === "heading2"
-                    ? "text-sm sm:text-base font-semibold leading-none"
+                    ? "text-base font-semibold leading-none"
                     : option.value === "subtitle"
-                      ? "text-sm sm:text-base font-medium text-muted-foreground leading-none"
-                      : "text-xs sm:text-sm leading-none"
+                      ? "text-sm text-muted-foreground leading-none"
+                      : "text-sm leading-none"
               }
             >
               {option.label}

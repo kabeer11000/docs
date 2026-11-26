@@ -106,8 +106,8 @@ export const SelectionMenu: React.FC<SelectionMenuProps> = ({
       ref={menuRef}
       data-selection-menu
       className={cn(
-        "fixed z-50 bg-background border border-border rounded-lg shadow-lg",
-        "animate-in fade-in zoom-in-95 duration-150",
+        "fixed z-50 rounded-lg border border-border bg-popover shadow-float",
+        "animate-in fade-in duration-150",
       )}
       style={{
         left: adjustedPosition.x,
@@ -115,19 +115,15 @@ export const SelectionMenu: React.FC<SelectionMenuProps> = ({
       }}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <div className="flex items-center gap-1 p-1">
+      <div className="flex items-center gap-0.5 p-1">
         {actions.map((action) => (
           <Button
             key={action.label}
             variant="ghost"
-            size="sm"
             onClick={action.onClick}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all",
-              "text-muted-foreground hover:bg-muted hover:text-primary",
-            )}
+            className="gap-1.5 px-2.5 text-[13px] text-foreground"
           >
-            <action.icon className="w-4 h-4" />
+            <action.icon className="text-muted-foreground" />
             <span>{action.label}</span>
           </Button>
         ))}

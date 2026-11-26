@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -391,10 +390,10 @@ export function ShareDialog({
   if (viewState === "main") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent showCloseButton={false} className="p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
+        <DialogContent showCloseButton={false} className="p-0 bg-popover w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl">
+              <DialogTitle className="min-w-0 truncate font-serif text-lg font-medium tracking-[-0.01em]">
                 Share &quot;{document.title}&quot;
               </DialogTitle>
               <div className="flex items-center gap-1">
@@ -470,7 +469,7 @@ export function ShareDialog({
                             className="flex items-center gap-3 px-3 py-2"
                           >
                             <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                              <AvatarFallback className="bg-accent text-foreground text-sm font-medium">
                                 {getInitials(result.displayName, result.email)}
                               </AvatarFallback>
                             </Avatar>
@@ -546,8 +545,8 @@ export function ShareDialog({
                 {/* Owner */}
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-blue-500 text-white">
+                    <Avatar className="size-9">
+                      <AvatarFallback className="bg-accent text-foreground text-sm font-medium">
                         {getInitials(user?.displayName, user?.email)}
                       </AvatarFallback>
                     </Avatar>
@@ -560,9 +559,7 @@ export function ShareDialog({
                       </div>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
-                    Owner
-                  </Badge>
+                  <span className="pr-2 text-[13px] text-muted-foreground">Owner</span>
                 </div>
 
                 {/* Shared users */}
@@ -576,8 +573,8 @@ export function ShareDialog({
                       className="flex items-center justify-between py-2"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-green-500 text-white">
+                        <Avatar className="size-9">
+                          <AvatarFallback className="bg-accent text-foreground text-sm font-medium">
                             {getInitials(
                               sharedUser.displayName,
                               sharedUser.email,
@@ -600,7 +597,7 @@ export function ShareDialog({
                             value: "viewer" | "editor" | "signer",
                           ) => changeAccess(sharedUser.email, value)}
                         >
-                          <SelectTrigger className="w-28 h-9">
+                          <SelectTrigger className="w-28">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -612,7 +609,7 @@ export function ShareDialog({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-9 w-9"
+                          className="size-8"
                           onClick={() => removePerson(sharedUser.email)}
                         >
                           <X className="h-4 w-4" />
@@ -627,7 +624,7 @@ export function ShareDialog({
             <div className="pt-2 space-y-3">
               <div className="text-sm font-medium">General access</div>
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center h-10 w-10 rounded-full bg-muted">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                   <Lock className="h-4 w-4" />
                 </div>
                 <div className="flex-1">
@@ -696,7 +693,7 @@ export function ShareDialog({
           onOpenChange(isOpen);
         }}
       >
-        <DialogContent className="p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
+        <DialogContent className="p-0 bg-popover w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <Button
               variant="ghost"
@@ -710,7 +707,7 @@ export function ShareDialog({
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
-            <DialogTitle className="text-xl">
+            <DialogTitle className="min-w-0 truncate font-serif text-lg font-medium tracking-[-0.01em]">
               Share &quot;{document.title}&quot;
             </DialogTitle>
           </DialogHeader>
@@ -720,7 +717,7 @@ export function ShareDialog({
             <div className="flex items-center gap-2 p-2 border rounded-md">
               <div className="flex items-center gap-2 flex-1 min-w-0 bg-muted rounded px-3 py-1.5">
                 <Avatar className="h-6 w-6">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                  <AvatarFallback className="bg-accent text-foreground text-xs font-medium">
                     {getInitials(selectedUser.displayName, selectedUser.email)}
                   </AvatarFallback>
                 </Avatar>
@@ -818,7 +815,7 @@ export function ShareDialog({
           onOpenChange(isOpen);
         }}
       >
-        <DialogContent className="p-0 bg-background w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
+        <DialogContent className="p-0 bg-popover w-full h-full max-w-full max-h-full top-0 left-0 translate-x-0 translate-y-0 rounded-none sm:max-w-[550px] sm:w-auto sm:h-auto sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg">
           <DialogHeader className="px-6 pt-6 pb-4">
             <Button
               variant="ghost"
@@ -829,7 +826,7 @@ export function ShareDialog({
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
-            <DialogTitle className="text-xl">
+            <DialogTitle className="min-w-0 truncate font-serif text-lg font-medium tracking-[-0.01em]">
               Settings for &quot;{document.title}&quot;
             </DialogTitle>
           </DialogHeader>

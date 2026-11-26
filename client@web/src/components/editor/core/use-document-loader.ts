@@ -15,7 +15,7 @@ export function useDocumentLoader(documentId: string) {
     if (!documentId || !user) return;
 
     let watcher: any = null;
-    let mounted = true; // ✅ FIX: Prevents setState on unmounted
+    let mounted = true; // Prevents setState on unmounted
 
     const startWatching = async () => {
       const cloudStore = cloudStoreManager.get();
@@ -29,7 +29,7 @@ export function useDocumentLoader(documentId: string) {
       watcher = documentsCollection.watch(
         query,
         ({ collection: docs }: { collection: Document[] }) => {
-          if (!mounted) return; // ✅ FIX: Check before setState
+          if (!mounted) return; // Check before setState
 
           const doc = docs?.[0];
 
@@ -66,7 +66,7 @@ export function useDocumentLoader(documentId: string) {
     startWatching();
 
     return () => {
-      mounted = false; // ✅ FIX: Mark as unmounted
+      mounted = false; // Mark as unmounted
       // cloudStoreManager.stopWatcher(`document-${documentId}`);
       if (watcher && typeof watcher.stop === 'function') {
         watcher.stop();

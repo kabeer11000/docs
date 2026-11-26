@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { editorInstance } from "@/state/editor";
+import { ToolbarButton } from "./toolbar-button";
 
 const _commonFontSizes = [
   8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 32, 36, 40, 44, 48, 54, 60,
@@ -71,87 +72,59 @@ export function FontSizeSelector({ disabled = false }: { disabled?: boolean }) {
   };
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-0.5">
+      <ToolbarButton
+        label="Decrease font size"
+        onClick={decrementSize}
+        disabled={disabled || currentSize <= 8}
+        className="size-7"
+      >
+        <Minus className="size-3.5" />
+      </ToolbarButton>
       {isCustomInput ? (
-        <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={decrementSize}
-            disabled={disabled || currentSize <= 8}
-            className="h-7 w-5 sm:h-8 sm:w-6 p-0 transition-all hover:bg-muted disabled:opacity-50"
-            aria-label="Decrease font size"
-          >
-            <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          </Button>
-          <Input
-            type="number"
-            min="8"
-            max="72"
-            value={currentSize}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value) {
-                handleCustomSizeSubmit(value);
-              }
-            }}
-            onBlur={() => setIsCustomInput(false)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleCustomSizeSubmit(e.currentTarget.value);
-              } else if (e.key === "Escape") {
-                setIsCustomInput(false);
-              }
-            }}
-            className="w-12 sm:w-16 h-7 sm:h-8 text-xs sm:text-sm text-center border-input"
-            disabled={disabled}
-            autoFocus
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={incrementSize}
-            disabled={disabled || currentSize >= 72}
-            className="h-7 w-5 sm:h-8 sm:w-6 p-0 transition-all hover:bg-muted disabled:opacity-50"
-            aria-label="Increase font size"
-          >
-            <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          </Button>
-        </div>
+        <Input
+          type="number"
+          min="8"
+          max="72"
+          value={currentSize}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value) {
+              handleCustomSizeSubmit(value);
+            }
+          }}
+          onBlur={() => setIsCustomInput(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleCustomSizeSubmit(e.currentTarget.value);
+            } else if (e.key === "Escape") {
+              setIsCustomInput(false);
+            }
+          }}
+          className="h-7 w-11 px-1 text-center text-[13px] tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          disabled={disabled}
+          aria-label="Font size"
+          autoFocus
+        />
       ) : (
-        <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={decrementSize}
-            disabled={disabled || currentSize <= 8}
-            className="h-7 w-5 sm:h-8 sm:w-6 p-0 transition-all hover:bg-muted disabled:opacity-50"
-            aria-label="Decrease font size"
-          >
-            <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCustomInput(true)}
-            disabled={disabled}
-            className="h-7 w-10 sm:h-8 sm:w-12 px-1 sm:px-2 text-xs sm:text-sm font-mono bg-muted/30 hover:bg-muted border border-input transition-all"
-            aria-label={`Font size ${currentSize}px`}
-          >
-            {currentSize}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={incrementSize}
-            disabled={disabled || currentSize >= 72}
-            className="h-7 w-5 sm:h-8 sm:w-6 p-0 transition-all hover:bg-muted disabled:opacity-50"
-            aria-label="Increase font size"
-          >
-            <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          onClick={() => setIsCustomInput(true)}
+          disabled={disabled}
+          className="h-7 w-11 rounded-md border border-border px-1 text-[13px] font-normal tabular-nums text-foreground hover:bg-accent"
+          aria-label={`Font size ${currentSize}px`}
+        >
+          {currentSize}
+        </Button>
       )}
+      <ToolbarButton
+        label="Increase font size"
+        onClick={incrementSize}
+        disabled={disabled || currentSize >= 72}
+        className="size-7"
+      >
+        <Plus className="size-3.5" />
+      </ToolbarButton>
     </div>
   );
 }

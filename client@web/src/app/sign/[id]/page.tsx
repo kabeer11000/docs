@@ -29,12 +29,17 @@ export default function SignPage({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold mb-4">Document Signing</h1>
-        <p className="text-neutral-600">Document ID: {documentId}</p>
-        <p className="mt-4 text-sm text-neutral-500">
-          This feature is under development
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="max-w-sm text-center">
+        <h1 className="mb-2 font-serif text-xl font-medium tracking-[-0.01em] text-foreground">
+          Document signing
+        </h1>
+        <p className="text-[13px] text-muted-foreground">
+          Signing from a link is not available yet. Open the document from
+          your home page to sign it.
+        </p>
+        <p className="mt-3 text-xs tabular-nums text-muted-foreground">
+          {documentId}
         </p>
       </div>
     </div>

@@ -18,7 +18,7 @@ export function useEditorInstance(documentId: string, config: EditorConfig) {
     }
 
     return () => {
-      // ✅ FIX: Proper cleanup to prevent memory leaks
+      // Proper cleanup to prevent memory leaks
       yDocRef.current?.destroy();
       yDocRef.current = null;
     };

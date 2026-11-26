@@ -7,44 +7,12 @@ import React, { useEffect } from "react";
 import { $auth } from "@/state/auth";
 import { editorUIState } from "@/state/editor";
 import { searchActions } from "@/state/search";
+import { EditorSkeleton as DocumentSkeleton } from "@/components/editor/editor-skeleton";
 
 // Lazy load heavy components
 const Editor = dynamic(() => import("@/components/editor/editor"), {
   ssr: true,
-  loading: () => (
-    <>
-      {/* Editor toolbar skeleton */}
-      <div className="sticky top-0 bg-background z-[10] editor-toolbar border-b">
-        <div className="flex items-center w-full px-4 gap-2 h-14">
-          <div className="flex-1 min-w-0 overflow-x-auto">
-            <div className="h-10 w-full bg-muted animate-pulse rounded" />
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto p-2 md:lg:p-8 bg-muted w-full">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-background w-full min-h-[calc(100vh-10rem)] rounded-lg p-2 md:lg:p-8">
-            <div className="space-y-4">
-              <div className="h-8 bg-muted/50 rounded w-3/4 animate-pulse"></div>
-              <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
-              <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
-              <div className="h-6 bg-muted/50 rounded w-5/6 animate-pulse"></div>
-              <div className="h-6 bg-muted/50 rounded w-4/6 animate-pulse"></div>
-              <div className="h-6 bg-muted/50 rounded w-5/6 animate-pulse"></div>
-              <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
-              <div className="h-6 bg-muted/50 rounded w-2/3 animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Status bar skeleton */}
-      <div className="sticky bottom-0 editor-status-bar border-t">
-        <div className="h-10 bg-muted animate-pulse rounded" />
-      </div>
-    </>
-  ),
+  loading: () => <DocumentSkeleton />,
 });
 
 const EditorHeaderContent = dynamic(
@@ -142,40 +110,14 @@ export default function DocumentPage({
         isEditorPage={true}
         hideSearch={true}
         editorHeaderContent={
-          <div className="flex items-center justify-between w-full">
-            <div className="h-8 w-64 bg-muted rounded animate-pulse" />
-            <div className="h-8 w-32 bg-muted rounded animate-pulse" />
+          <div className="flex items-center justify-between w-full gap-4">
+            <div className="h-6 w-56 rounded-md bg-muted animate-pulse" />
+            <div className="h-8 w-24 rounded-md bg-muted animate-pulse" />
           </div>
         }
       >
         <div className="bg-background h-full flex flex-col overflow-hidden relative">
-          {/* Editor toolbar skeleton */}
-          <div className="sticky top-0 bg-background z-[10] editor-toolbar border-b">
-            <div className="flex items-center w-full px-4 gap-2 h-14">
-              <div className="flex-1 min-w-0 overflow-x-auto">
-                <div className="h-10 w-full bg-muted animate-pulse rounded" />
-              </div>
-            </div>
-          </div>
-          
-          {/* Editor content skeleton */}
-          <div className="flex-1 overflow-y-auto bg-muted">
-            <div className="max-w-4xl mx-auto p-8">
-              <div className="bg-background w-full min-h-[calc(100vh-10rem)] rounded-lg">
-                <div className="space-y-4">
-                  <div className="h-8 bg-muted/50 rounded w-3/4 animate-pulse"></div>
-                  <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
-                  <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
-                  <div className="h-6 bg-muted/50 rounded w-5/6 animate-pulse"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Status bar skeleton */}
-          <div className="sticky bottom-0 editor-status-bar border-t">
-            <div className="h-10 bg-muted animate-pulse rounded" />
-          </div>
+          <DocumentSkeleton />
         </div>
       </ReactHome>
     );

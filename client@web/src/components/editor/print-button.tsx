@@ -236,13 +236,13 @@ export const PrintButton = React.forwardRef<HTMLButtonElement>((props, ref) => {
     <Button
       ref={ref}
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={handlePrintClick}
-      className="h-7 w-7 sm:h-8 sm:w-8 p-0 transition-all duration-200 ease-in-out hover:bg-muted hover:scale-105 active:scale-95"
-      aria-label="Print / Save as PDF"
+      className="text-muted-foreground"
+      aria-label="Print or save as PDF"
       {...props}
     >
-      <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-200 hover:rotate-12" />
+      <Printer />
     </Button>
   );
 });

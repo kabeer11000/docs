@@ -23,9 +23,9 @@ export function AnalysesHistory({
   onView,
 }: AnalysesHistoryProps) {
   const getRiskColor = (score: number) => {
-    if (score >= 70) return "text-red-600";
-    if (score >= 40) return "text-yellow-600";
-    return "text-green-600";
+    if (score >= 70) return "text-red-600 dark:text-red-400";
+    if (score >= 40) return "text-amber-600 dark:text-amber-400";
+    return "text-green-600 dark:text-green-400";
   };
 
   const getRiskLabel = (score: number) => {
@@ -39,12 +39,12 @@ export function AnalysesHistory({
       <SheetTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2">
           <History className="h-4 w-4" />
-          <span className="hidden sm:inline">Analysis History</span>
+          <span className="hidden sm:inline">Analysis history</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Contract Analysis History</SheetTitle>
+          <SheetTitle>Contract Analysis history</SheetTitle>
           <SheetDescription>
             View all past contract analyses for this document
           </SheetDescription>
@@ -53,7 +53,7 @@ export function AnalysesHistory({
         <div className="mt-6 space-y-4">
           {analyses.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <AlertTriangle className="mx-auto mb-3 size-6" />
               <p>No analyses yet</p>
               <p className="text-sm mt-2">
                 Select text and click "Analyze" to get started
@@ -63,14 +63,14 @@ export function AnalysesHistory({
             analyses.map((analysis) => (
               <div
                 key={analysis.id}
-                className="border rounded-lg p-4 space-y-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                className="cursor-pointer space-y-3 rounded-[2px] border border-border bg-paper p-4 transition-colors duration-150 hover:border-foreground/20"
                 onClick={() => onView?.(analysis)}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span
-                        className={`text-lg font-bold ${getRiskColor(analysis.riskScore)}`}
+                        className={`text-lg font-semibold tabular-nums ${getRiskColor(analysis.riskScore)}`}
                       >
                         {analysis.riskScore}/100
                       </span>
@@ -109,13 +109,13 @@ export function AnalysesHistory({
 
                   <div className="flex items-center gap-4 text-sm">
                     {analysis.redFlags?.length > 0 && (
-                      <div className="flex items-center gap-1 text-red-600">
+                      <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
                         <AlertTriangle className="h-3.5 w-3.5" />
                         <span>{analysis.redFlags.length} red flags</span>
                       </div>
                     )}
                     {analysis.greenFlags?.length > 0 && (
-                      <div className="flex items-center gap-1 text-green-600">
+                      <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                         <CheckCircle className="h-3.5 w-3.5" />
                         <span>{analysis.greenFlags.length} green flags</span>
                       </div>

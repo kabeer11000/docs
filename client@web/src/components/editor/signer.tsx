@@ -7,7 +7,7 @@ import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Download, MousePointer, RotateCcw, XIcon } from "lucide-react";
+import { Download, RotateCcw, XIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import {
@@ -18,7 +18,6 @@ import {
   TableRowPlus,
 } from "tiptap-pagination-plus";
 import * as Y from "yjs";
-import { cn } from "@/lib/utils";
 import { editorActions, editorUIState } from "@/state/editor";
 import { Button } from "../ui/button";
 
@@ -228,17 +227,17 @@ const DocumentEditor = ({
   ); // Recreate editor when provider changes
 
   return (
-    <div className="relative max-h-[calc(100vh-var(--header-height))] h-[calc(100vh-var(--header-height))] flex flex-col">
+    <div className="relative flex h-[calc(100vh-var(--header-height))] max-h-[calc(100vh-var(--header-height))] flex-col overflow-y-auto bg-paper-canvas">
       <div
-        className="max-w-2xl flex-1 w-full mx-auto relative my-4"
+        className="relative mx-auto my-6 w-full max-w-2xl flex-1"
         onClick={handleDocumentClick}
       >
         {/* Signature overlay for placement mode */}
         {placementMode && (
-          <div className="absolute inset-0 bg-blue-500/20 z-10 cursor-crosshair pointer-events-none">
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white p-3 rounded-lg shadow-lg pointer-events-auto">
-              <p className="text-sm font-medium mb-2">
-                Click anywhere to place signature
+          <div className="absolute inset-0 z-10 cursor-crosshair pointer-events-none bg-primary/5 outline outline-1 outline-primary/40">
+            <div className="pointer-events-auto absolute top-4 left-1/2 -translate-x-1/2 rounded-lg border border-border bg-popover p-3 shadow-float">
+              <p className="mb-2 text-[13px] font-medium">
+                Click where the signature should go
               </p>
               <Button
                 onClick={(e) => {
@@ -258,7 +257,7 @@ const DocumentEditor = ({
         {signatures.map((signature) => (
           <div
             key={signature.id}
-            className="absolute z-20 group border-2 border-transparent hover:border-blue-500"
+            className="absolute z-20 group border-2 border-transparent hover:border-primary"
             style={{
               left: signature.x,
               top: signature.y,
@@ -275,9 +274,10 @@ const DocumentEditor = ({
               onClick={() => removeSignature(signature.id)}
               size="icon"
               variant="destructive"
-              className="absolute -top-2 -right-2 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute -top-2 -right-2 size-6 opacity-0 transition-opacity group-hover:opacity-100"
+              aria-label="Remove signature"
             >
-              <XIcon className="w-3 h-3" />
+              <XIcon className="size-3" />
             </Button>
           </div>
         ))}
@@ -285,31 +285,25 @@ const DocumentEditor = ({
         <EditorContent
           readOnly={true}
           editor={editor}
-          className="w-full bg-white relative"
+          className="relative w-full rounded-[2px] bg-paper text-paper-foreground shadow-paper"
           id="editor"
         />
       </div>
-      <div className="z-3 bg-background w-full md:lg:max-w-[40rem] md:lg:w-[50%] sticky flex flex-col bottom-0 md:lg:bottom-4 left-0 md:lg:left-4 rounded-xl shadow sign-window h-[50vh]">
-        <div className="p-2 px-4 flex justify-between w-full items-center border-b">
+      <div className="sign-window sticky bottom-0 left-0 z-3 flex h-[50vh] w-full flex-col overflow-hidden rounded-t-lg border border-border bg-popover shadow-float md:bottom-4 md:left-4 md:w-[50%] md:max-w-[40rem] md:rounded-lg">
+        <div className="flex h-12 w-full shrink-0 items-center justify-between border-b border-border pl-4 pr-2">
           <div className="flex items-center gap-2">
-            <MousePointer className="w-4 h-4" />
-            <p className="font-medium">Sign Document</p>
+            <p className="font-serif text-base font-medium">Sign document</p>
             {signatures.length > 0 && (
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                {signatures.length} signature{signatures.length > 1 ? "s" : ""}
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {signatures.length} placed
               </span>
             )}
           </div>
-          <div className="flex items-center gap-x-2">
+          <div className="flex items-center gap-1">
             <Button
               disabled={!signActive}
               onClick={placeSignature}
-              size="sm"
               variant={"default"}
-              className={cn(
-                "transition-all",
-                placementMode && "bg-blue-600 hover:bg-blue-700",
-              )}
             >
               {placementMode ? "Placing..." : "Place"}
             </Button>
@@ -317,23 +311,25 @@ const DocumentEditor = ({
               disabled={!signActive}
               onClick={clearSignature}
               size="icon"
-              variant={"secondary"}
+              variant={"ghost"}
               title="Clear signature"
+              aria-label="Clear signature"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw />
             </Button>
             <Button
               disabled={signatures.length === 0}
               onClick={downloadSignedDocument}
               size="icon"
-              variant={"outline"}
+              variant={"ghost"}
               title="Download signed document"
+              aria-label="Download signed document"
             >
-              <Download className="w-4 h-4" />
+              <Download />
             </Button>
           </div>
         </div>
-        <div className="border-2 border-dashed border-gray-300 bg-gray-50 w-full flex-1 relative overflow-hidden">
+        <div className="relative w-full flex-1 overflow-hidden bg-muted">
           <SignatureCanvas
             onEnd={() => {
               console.log("Signature drawn");
@@ -352,7 +348,7 @@ const DocumentEditor = ({
           />
           {!signActive && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <p className="text-gray-500 text-sm">Draw your signature here</p>
+              <p className="text-muted-foreground text-sm">Draw your signature here</p>
             </div>
           )}
         </div>

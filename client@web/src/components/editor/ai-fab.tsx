@@ -20,8 +20,8 @@ export function AIFab({ hasUnreadMessages = false, className }: AIFabProps) {
     <div
       onClick={() => editorActions.setAIPanelOpen(true)}
       className={cn(
-        "fixed bottom-[56px] right-6 h-12 w-12 cursor-pointer z-[3] group",
-        "transition-all duration-300 ease-in-out shadow-sm",
+        "fixed bottom-[56px] right-6 size-10 cursor-pointer z-[3] group",
+        "transition-opacity duration-150",
         isOpen && "opacity-0 scale-75 pointer-events-none",
         className,
       )}
@@ -30,7 +30,7 @@ export function AIFab({ hasUnreadMessages = false, className }: AIFabProps) {
         className={cn(
           "relative h-full w-full overflow-hidden",
           "rounded-full transition-all duration-300 ease-in-out",
-          "bg-primary group-hover:bg-primary/90 hover:shadow-md",
+          "bg-primary group-hover:bg-primary/90",
           "flex items-center justify-center border border-primary/20",
         )}
       >
@@ -39,7 +39,7 @@ export function AIFab({ hasUnreadMessages = false, className }: AIFabProps) {
             className={cn(
               "h-5 w-5 text-primary-foreground",
               "transition-all duration-300 ease-in-out",
-              "group-hover:scale-110 group-hover:rotate-12",
+              "group- group-hover:rotate-12",
             )}
           />
           {hasUnreadMessages && (

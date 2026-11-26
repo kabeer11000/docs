@@ -66,23 +66,20 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] bg-background text-left">
+      <DialogContent className="sm:max-w-[440px] text-left">
         <DialogHeader className="text-left">
-          <DialogTitle className="text-lg font-semibold">Add Comment</DialogTitle>
+          <DialogTitle className="font-serif text-lg font-medium">Add comment</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-2">
           {/* Selected text preview */}
           {selectedText && (
-            <div className="text-sm bg-muted p-3 rounded-lg w-full border-l-4 border-primary overflow-hidden">
-              <div className="font-medium mb-1">Selected text:</div>
-              <div
-                className="italic line-clamp-2 overflow-hidden text-ellipsis"
-                title={selectedText}
-              >
-                "{selectedText}"
-              </div>
-            </div>
+            <p
+              className="line-clamp-2 border-l-2 border-highlight pl-3 text-[13px] text-muted-foreground"
+              title={selectedText}
+            >
+              {selectedText}
+            </p>
           )}
           
           {/* Comment input */}
@@ -91,14 +88,14 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Write your comment... (Ctrl+Enter to submit)"
+              placeholder="Write a comment. Ctrl+Enter to post."
               className="min-h-[100px] resize-none"
               autoFocus
             />
           </div>
         </div>
         
-        <div className="flex justify-end space-x-2 pt-2">
+        <div className="flex justify-end gap-2">
           <Button 
             variant="outline" 
             onClick={handleClose} 
@@ -110,7 +107,7 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
             onClick={handleSubmit} 
             disabled={!content.trim() || isSubmitting}
           >
-            {isSubmitting ? "Adding..." : "Add Comment"}
+            {isSubmitting ? "Posting..." : "Comment"}
           </Button>
         </div>
       </DialogContent>

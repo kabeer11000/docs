@@ -1,11 +1,10 @@
-import { Briefcase, Clock, Edit3, FileCheck, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCloudStore } from "@/hooks/use-cloudstore";
@@ -124,72 +123,59 @@ export function EditableTitle({
 
   if (isEditing || isLoading) {
     return (
-      <div className="w-full md:px-2 md:mt-0 mt-1">
-        <div className="relative w-full h-6 md:h-auto">
-          <Input
-            ref={inputRef}
-            value={localTitle}
-            onChange={(e) => {
-              setLocalTitle(e.target.value);
-              setError(null);
-            }}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            disabled={isLoading}
-            className={cn(
-              "h-full text-sm font-semibold border-none border-input bg-background md:px-3 md:py-1 rounded-none w-full",
-              "focus:ring-0 focus-visible:ring-0 focus-visible:outline-none focus:border-none",
-              "focus:bg-background focus:border-none transition-all duration-150",
-              "placeholder:text-muted-foreground/70 truncate",
-              error && "text-destructive bg-destructive/10 border-destructive",
-              isLoading && "opacity-60",
-            )}
-            placeholder="Enter document title..."
-            maxLength={100}
-          />
-          {isLoading && (
-            <div className="absolute right-2 top-1/2 -translate-y-1/2">
-              <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-            </div>
+      <div className="relative w-full">
+        <Input
+          ref={inputRef}
+          value={localTitle}
+          onChange={(e) => {
+            setLocalTitle(e.target.value);
+            setError(null);
+          }}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          disabled={isLoading}
+          aria-label="Document title"
+          className={cn(
+            "h-8 w-full min-w-[12rem] bg-paper px-2 font-serif text-base font-medium",
+            error && "border-destructive text-destructive",
+            isLoading && "pr-7 opacity-60",
           )}
-          {error && (
-            <p className="text-xs text-destructive absolute top-full left-0 mt-1 whitespace-nowrap">
-              {error}
-            </p>
-          )}
-        </div>
+          placeholder="Untitled document"
+          maxLength={100}
+        />
+        {isLoading && (
+          <Loader2 className="absolute right-2 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
+        )}
+        {error && (
+          <p className="absolute left-0 top-full mt-1 whitespace-nowrap text-xs text-destructive">
+            {error}
+          </p>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="w-full md:px-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              className={cn(
-                "flex items-center sm:gap-x-2 md:gap-2 md:px-3 md:py-1 rounded-md transition-all duration-200 w-full md:h-8 pt-1",
-                "bg-transparent border border-transparent",
-                (canRename) &&
-                  "hover:bg-accent hover:border-border cursor-pointer group",
-                !(canRename) && "cursor-default",
-              )}
-              onClick={() => canRename && setIsEditing(true)}
-            >
-              <h2 className="text-sm font-semibold truncate flex-1 text-foreground">
-                {title}
-              </h2>
-              {canRename && (
-                <Edit3 className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 flex-shrink-0" />
-              )}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            {canRename ? title : `${title} (read-only)`}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+    <Tooltip delayDuration={600}>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          disabled={!canRename}
+          onClick={() => canRename && setIsEditing(true)}
+          aria-label={canRename ? `Rename document: ${title}` : title}
+          className={cn(
+            "flex h-8 w-full min-w-0 items-center rounded-md border border-transparent px-2 text-left transition-colors duration-150 disabled:opacity-100",
+            canRename ? "cursor-text hover:border-border" : "cursor-default",
+          )}
+        >
+          <span className="truncate font-serif text-base font-medium tracking-[-0.01em] text-foreground">
+            {title || "Untitled document"}
+          </span>
+        </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">
+        {canRename ? "Rename" : `${title} (read-only)`}
+      </TooltipContent>
+    </Tooltip>
   );
 }

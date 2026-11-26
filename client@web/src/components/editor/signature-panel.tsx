@@ -1,6 +1,6 @@
 import { useStore } from "@nanostores/react";
 import type { Document } from "@shared-types";
-import { MousePointer, RotateCcw, Users } from "lucide-react";
+import { RotateCcw, Users } from "lucide-react";
 import { useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import {
@@ -61,11 +61,10 @@ export function SignaturePanel({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl bg-background">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MousePointer className="w-5 h-5" />
-            {isSignatureRequest ? "Signature Required" : "Sign Document"}
+          <DialogTitle className="font-serif text-lg font-medium">
+            {isSignatureRequest ? "Signature required" : "Sign document"}
           </DialogTitle>
           {isSignatureRequest && (
             <DialogDescription>
@@ -78,18 +77,16 @@ export function SignaturePanel({
         <div className="space-y-4">
           {/* Signature count badge */}
           {signatureCount > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                {signatureCount} signature{signatureCount > 1 ? "s" : ""} on
-                document
-              </span>
-            </div>
+            <p className="text-[13px] text-muted-foreground">
+              {signatureCount} signature{signatureCount > 1 ? "s" : ""} on this
+              document
+            </p>
           )}
 
           {canSign ? (
             <>
               {/* Signature canvas */}
-              <div className="border-2 border-dashed border-gray-300 bg-gray-50 w-full h-[250px] relative overflow-hidden rounded-md">
+              <div className="relative h-[250px] w-full overflow-hidden rounded-md border border-dashed border-border bg-muted">
                 <SignatureCanvas
                   onEnd={() => setSignActive(true)}
                   onBegin={() => console.log("Started drawing signature")}
@@ -103,7 +100,7 @@ export function SignaturePanel({
                 />
                 {!signActive && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-muted-foreground text-sm">
                       Draw your signature here
                     </p>
                   </div>
@@ -116,9 +113,8 @@ export function SignaturePanel({
                   disabled={!signActive}
                   onClick={clearSignature}
                   variant="outline"
-                  size="sm"
                 >
-                  <RotateCcw className="w-4 h-4 mr-2" />
+                  <RotateCcw />
                   Clear
                 </Button>
                 <div className="flex gap-2">
@@ -130,18 +126,18 @@ export function SignaturePanel({
                     onClick={placeSignature}
                     variant="default"
                   >
-                    Place Signature
+                    Place signature
                   </Button>
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-[250px] bg-gray-50 rounded-md">
-              <Users className="w-12 h-12 text-gray-400 mb-3" />
-              <p className="text-gray-600 font-medium">
+            <div className="flex h-[250px] flex-col items-center justify-center rounded-md border border-dashed border-border px-6 text-center">
+              <Users className="mb-3 size-6 text-muted-foreground" />
+              <p className="font-medium text-foreground">
                 You don't have permission to sign this document
               </p>
-              <p className="text-gray-500 text-sm mt-1">
+              <p className="text-muted-foreground text-sm mt-1">
                 Only invited collaborators can add signatures
               </p>
             </div>

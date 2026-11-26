@@ -45,9 +45,9 @@ export function PageWrapper({ children }: PageWrapperProps) {
   const isDebug = process.env.NODE_ENV === "development";
 
   return (
-    <div className="flex justify-center w-full bg-neutral-300 min-h-screen py-6">
+    <div className="flex justify-center w-full bg-paper-canvas min-h-screen py-6">
       <div
-        className={`bg-white shadow-lg relative ${isDebug ? "border-2 border-blue-500" : ""}`}
+        className={`relative rounded-[2px] bg-paper text-paper-foreground shadow-paper ${isDebug ? "outline outline-1 outline-primary/40" : ""}`}
         style={{
           width: `${pageWidth}px`,
           minHeight: `${pageHeight}px`,
@@ -55,7 +55,7 @@ export function PageWrapper({ children }: PageWrapperProps) {
         }}
       >
         {isDebug && (
-          <div className="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 z-10">
+          <div className="absolute top-0 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 z-10">
             {pageSettings.pageSize.toUpperCase()} -{" "}
             {dimensions.width.toFixed(1)}" × {dimensions.height.toFixed(1)}"
           </div>

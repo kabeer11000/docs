@@ -109,26 +109,26 @@ export function DocumentHeader({
     const roleConfig = {
       owner: {
         label: "Owner",
-        bgColor: "bg-purple-100",
-        textColor: "text-purple-700",
-        borderColor: "border-purple-200",
-        dotColor: "bg-purple-500",
+        bgColor: "bg-primary/10",
+        textColor: "text-primary",
+        borderColor: "border-primary/40",
+        dotColor: "bg-primary/100",
         tooltip: "Full access - Can edit, share, and delete",
       },
       editor: {
         label: "Editor",
-        bgColor: "bg-blue-100",
-        textColor: "text-blue-700",
-        borderColor: "border-blue-200",
-        dotColor: "bg-blue-500",
+        bgColor: "bg-primary/10",
+        textColor: "text-primary",
+        borderColor: "border-primary/40",
+        dotColor: "bg-primary/100",
         tooltip: "Can edit and comment",
       },
       viewer: {
         label: "Viewer",
-        bgColor: "bg-gray-100",
-        textColor: "text-gray-700",
-        borderColor: "border-gray-200",
-        dotColor: "bg-gray-500",
+        bgColor: "bg-muted",
+        textColor: "text-foreground",
+        borderColor: "border-border",
+        dotColor: "bg-muted0",
         tooltip: "Read-only access with commenting",
       },
       signer: {
@@ -148,12 +148,9 @@ export function DocumentHeader({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${config.bgColor} ${config.textColor} ${config.borderColor} cursor-help`}
-            >
-              <div className={`w-1.5 h-1.5 rounded-full ${config.dotColor}`} />
+            <span className="cursor-help text-xs text-muted-foreground">
               {config.label}
-            </div>
+            </span>
           </TooltipTrigger>
           <TooltipContent>
             <p>{config.tooltip}</p>
@@ -220,7 +217,7 @@ export function DocumentHeader({
                         {req.status === "signed" ? (
                           <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
                         ) : (
-                          <Clock className="h-3 w-3 text-neutral-400 flex-shrink-0" />
+                          <Clock className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                         )}
                         <span
                           className={
@@ -237,7 +234,7 @@ export function DocumentHeader({
                   {document.signatureRequests.every(
                     (req) => req.status === "signed",
                   ) && (
-                    <div className="flex items-center gap-1.5 mt-2 px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
+                    <div className="flex items-center gap-1.5 mt-2 px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded text-xs font-medium">
                       <Lock className="h-3 w-3" />
                       <span>Document Locked</span>
                     </div>

@@ -10,7 +10,6 @@ import {
   MessageSquare,
   Scale,
   Send,
-  Sparkles,
   X,
 } from "lucide-react";
 import { nanoid } from "nanoid";
@@ -25,7 +24,6 @@ import {
 import { MessageItem } from "@/components/ai/message-item";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { AIAdapter } from "@/lib/ai/ai-adapter";
 import { API_CONFIG } from "@/lib/api-config";
@@ -302,139 +300,113 @@ export function EditorAIChatPanel({
 
   return (
     <>
-      {/* Mobile backdrop overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
           onClick={handleCloseAIPanel}
         />
       )}
-      {/* AI Panel */}
-      <div
+      <aside
+        aria-label="Ask AI"
+        inert={!isOpen}
         className={cn(
-          "fixed top-0 right-0 h-full w-full md:w-80 bg-background border-l transition-transform duration-300 ease-in-out z-50 flex flex-col",
-          "md:translate-x-0",
-          isOpen ? "translate-x-0" : "translate-x-full md:translate-x-full"
+          "fixed top-0 right-0 z-50 flex h-full w-full flex-col border-l border-border bg-background transition-transform duration-150 ease-out md:w-80",
+          isOpen ? "translate-x-0" : "translate-x-full",
         )}
       >
-      {/* Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Sparkles className="h-4 w-4 text-primary" />
-          </div>
-          <h3 className="text-sm font-medium text-foreground">AI Assistant</h3>
-        </div>
-        <div className="flex items-center gap-1">
+        <div className="flex h-12 shrink-0 items-center justify-between pl-4 pr-2">
+          <h3 className="text-[13px] font-medium text-foreground">Ask AI</h3>
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={handleCloseAIPanel}
-            className="h-8 w-8 p-0 rounded-full hover:bg-accent"
-            aria-label="Close AI Assistant"
+            aria-label="Close Ask AI"
           >
-            <X className="h-4 w-4" />
+            <X />
           </Button>
         </div>
-      </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div
-            className="px-4 py-4 space-y-6"
-            role="log"
-            aria-live="polite"
-            aria-label="Chat conversation"
-          >
-            {messages.length === 0 ? (
-              <div className="min-h-[60vh] flex items-center justify-center">
-              <div className="flex flex-col items-center gap-y-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-primary" />
-                </div>
-
-                {/* Suggested Prompts */}
-                <div className="grid grid-cols-1 gap-2 w-full max-w-2xl">
-                  {[
-                    {
-                      icon: File,
-                      prompt: "Summarize this document",
-                    },
-                    {
-                      icon: MessageSquare,
-                      prompt: "Improve writing style",
-                    },
-                  ].map((suggestion, index) => (
-                    <button
-                      key={index}
-                      onClick={() =>
-                        aiChatActions.setInputValue(suggestion.prompt)
-                      }
-                      className="p-3 text-left rounded-lg hover:bg-accent transition-all duration-200 group border border-transparent hover:border-border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <suggestion.icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <p className="text-sm text-foreground font-medium group-hover:text-primary transition-colors">
-                          {suggestion.prompt}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              </div>
-            ) : (
-              <>
-                {messages.map((message) => (
-                  <div key={message.id} className="text-sm">
-                    <MessageItem message={message} onInsert={handleInsert} />
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </>
-            )}
-          </div>
-        </ScrollArea>
-      </div>
-
-      <Separator className="mx-4" />
-
-      {/* Input Area */}
-      <div className="px-4 py-4 border-t">
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="relative">
-            <Textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => aiChatActions.setInputValue(e.target.value)}
-              placeholder="Ask about this document, request edits, or get help..."
-              disabled={isTyping || isStreaming}
-              className="min-h-[60px] max-h-32 resize-none pr-12 text-sm border border-input bg-background rounded-md py-3 px-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e as any);
-                }
-              }}
-              aria-label="Type your message to AI Assistant"
-            />
-            <Button
-              type="submit"
-              size="sm"
-              disabled={!inputValue.trim() || isTyping || isStreaming}
-              className="absolute right-3 bottom-3 h-8 w-8 p-0 rounded-full bg-primary hover:bg-primary/90"
-              aria-label="Send message"
+        <div className="min-h-0 flex-1">
+          <ScrollArea className="h-full">
+            <div
+              className="space-y-6 p-4"
+              role="log"
+              aria-live="polite"
+              aria-label="Chat conversation"
             >
-              <Send className="h-4 w-4 text-primary-foreground" />
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground text-center">
-            Press Enter to send, Shift+Enter for new line
-          </p>
-        </form>
-      </div>
-      </div>
+              {messages.length === 0 ? (
+                <div className="pt-6">
+                  <p className="mb-1 font-serif text-base font-medium text-foreground">
+                    Ask about this document
+                  </p>
+                  <p className="mb-4 text-[13px] text-muted-foreground">
+                    Get a summary, rewrite a passage, or check the wording.
+                  </p>
+                  <div className="space-y-1">
+                    {[
+                      { icon: File, prompt: "Summarize this document" },
+                      { icon: MessageSquare, prompt: "Improve writing style" },
+                    ].map((suggestion) => (
+                      <button
+                        type="button"
+                        key={suggestion.prompt}
+                        onClick={() =>
+                          aiChatActions.setInputValue(suggestion.prompt)
+                        }
+                        className="flex h-9 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[13px] text-foreground transition-colors duration-150 hover:bg-accent"
+                      >
+                        <suggestion.icon className="size-4 shrink-0 text-muted-foreground" />
+                        {suggestion.prompt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {messages.map((message) => (
+                    <div key={message.id} className="text-sm">
+                      <MessageItem message={message} onInsert={handleInsert} />
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+
+        <div className="shrink-0 p-3">
+          <form onSubmit={handleSubmit}>
+            <div className="relative">
+              <Textarea
+                ref={textareaRef}
+                value={inputValue}
+                onChange={(e) => aiChatActions.setInputValue(e.target.value)}
+                placeholder="Ask about this document..."
+                disabled={isTyping || isStreaming}
+                className="max-h-32 min-h-[72px] resize-none rounded-md border-border bg-paper py-2.5 pl-3 pr-11 text-[13px] placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e as any);
+                  }
+                }}
+                aria-label="Message"
+              />
+              <Button
+                type="submit"
+                size="icon-sm"
+                disabled={!inputValue.trim() || isTyping || isStreaming}
+                className="absolute right-2 bottom-2"
+                aria-label="Send message"
+                title="Send (Enter). Shift+Enter for a new line"
+              >
+                <Send />
+              </Button>
+            </div>
+          </form>
+        </div>
+      </aside>
     </>
   );
 }

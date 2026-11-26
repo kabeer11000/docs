@@ -10,7 +10,7 @@ import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Lock, X as XIcon } from "lucide-react";
+import { CheckCircle2, Flag, Lightbulb, Sparkles } from "lucide-react";
 import { computed } from "nanostores";
 import {
   Fragment,
@@ -47,9 +47,11 @@ import { EditorControls, EditorStatusBar } from "./editor-controls";
 import { CustomHeading } from "./extensions/custom-heading";
 import { GreenFlag, RedFlag } from "./extensions/flag-mark";
 import { FontFamily } from "./extensions/font-family";
+import { EditorSkeleton } from "./editor-skeleton";
 import { SelectionMenu } from "./selection-menu";
+import { ToolbarSeparator } from "./toolbar-button";
+import { Button } from "@/components/ui/button";
 import { showToast } from "@/lib/toast"; // Import showToast
-import { AIFab } from "./ai-fab";
 import { EditorAIChatPanel } from "./editor-ai-chat-panel";
 
 // Fixed pagination config to prevent memory leaks
@@ -57,7 +59,7 @@ const PAGINATION_CONFIG = {
   pageHeight: 842,
   pageGap: 20,
   pageGapBorderSize: 1,
-  pageBreakBackground: "var(--color-neutral-900)",
+  pageBreakBackground: "var(--paper-canvas)",
   pageHeaderHeight: 0,
   pageFooterHeight: 0,
   footerRight: "",
@@ -78,83 +80,53 @@ const debug = (...args: any[]) => DEBUG && console.log("[Editor]", ...args);
 const debugError = (...args: any[]) =>
   DEBUG && console.error("[Editor]", ...args);
 
-// Memoized loading skeleton component
-const EditorSkeleton = memo(() => (
-  <Fragment>
-    <div className="sticky top-0 bg-background z-[10] editor-toolbar border-b">
-      <div className="flex items-center w-full px-4 gap-2 h-14">
-        <div className="flex-1 min-w-0 overflow-x-auto">
-          <div className="h-10 w-full bg-muted animate-pulse rounded" />
-        </div>
-      </div>
-    </div>
-    <div className="flex-1 overflow-y-auto md:lg:p-8 p-2 transition-all bg-muted duration-300 relative">
-      <div className="max-w-4xl mx-auto relative">
-        <div className="bg-background w-full min-h-[calc(100vh-10rem)] rounded-lg p-2 md:lg:p-8">
-          <div className="space-y-4">
-            <div className="h-8 bg-muted/50 rounded w-3/4 animate-pulse"></div>
-            <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
-            <div className="h-6 bg-muted/50 rounded w-full animate-pulse"></div>
-            <div className="h-6 bg-muted/50 rounded w-5/6 animate-pulse"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div className="sticky bottom-0 editor-status-bar border-t transition-all duration-300">
-      <div className="h-10 bg-muted animate-pulse rounded" />
-    </div>
-  </Fragment>
-));
-EditorSkeleton.displayName = "EditorSkeleton";
 
 // Memoized flag tooltip component
 const FlagTooltip = memo(({ flagTooltip, onMouseLeave }: any) => {
   if (!flagTooltip) return null;
-  
+  const isRed = flagTooltip.type === "red";
+  const Icon = isRed ? Flag : CheckCircle2;
+
   return (
     <div
       data-flag-tooltip
-      className="fixed z-50 bg-background border border-border shadow-lg rounded-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-      style={{
-        left: flagTooltip.position.x,
-        top: flagTooltip.position.y,
-        maxWidth: "320px",
-      }}
-      onMouseEnter={() => {}}
+      className="fixed z-50 max-w-[320px] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-float animate-in fade-in duration-150"
+      style={{ left: flagTooltip.position.x, top: flagTooltip.position.y }}
       onMouseLeave={onMouseLeave}
     >
-      <div className={`p-3 ${flagTooltip.type === "red" ? "bg-red-50" : "bg-green-50"}`}>
-        <div className="flex items-start gap-2">
-          {flagTooltip.type === "red" ? (
-            <span className="text-red-600 font-bold text-lg">🚩</span>
-          ) : (
-            <span className="text-green-600 font-bold text-lg">✅</span>
+      <div className="flex items-start gap-2.5">
+        <Icon
+          className={cn(
+            "mt-0.5 size-4 shrink-0",
+            isRed ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400",
           )}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h4 className={`font-semibold text-xs ${flagTooltip.type === "red" ? "text-red-900" : "text-green-900"}`}>
-                {flagTooltip.type === "Red Flag" ? "Red Flag" : "Green Flag"}
-              </h4>
-              <span className={`text-xs px-1.5 py-0.5 rounded ${
+        />
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex items-center gap-2">
+            <h4 className="text-xs font-medium">{isRed ? "Red flag" : "Green flag"}</h4>
+            <span
+              className={cn(
+                "rounded px-1.5 py-0.5 text-[11px] font-medium capitalize",
                 flagTooltip.severity === "high"
-                  ? "bg-red-200 text-red-800"
+                  ? "bg-red-500/10 text-red-600 dark:text-red-400"
                   : flagTooltip.severity === "medium"
-                    ? "bg-yellow-200 text-yellow-800"
-                    : "bg-blue-200 text-blue-800"
-              }`}>
-                {flagTooltip.severity}
-              </span>
-            </div>
-            <p className={`text-xs leading-relaxed ${flagTooltip.type === "red" ? "text-red-800" : "text-green-800"}`}>
-              {flagTooltip.reason}
-            </p>
-            {flagTooltip.recommendation && flagTooltip.type === "red" && (
-              <div className="mt-2 pt-2 border-t border-red-200">
-                <p className="text-xs font-medium text-red-900 mb-0.5">💡 Recommendation:</p>
-                <p className="text-xs text-red-700 leading-relaxed">{flagTooltip.recommendation}</p>
-              </div>
-            )}
+                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                    : "bg-primary/10 text-primary",
+              )}
+            >
+              {flagTooltip.severity}
+            </span>
           </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">{flagTooltip.reason}</p>
+          {flagTooltip.recommendation && isRed && (
+            <div className="mt-2 border-t border-border pt-2">
+              <p className="mb-0.5 flex items-center gap-1 text-xs font-medium">
+                <Lightbulb className="size-3.5 text-amber-600 dark:text-amber-400" />
+                Recommendation
+              </p>
+              <p className="text-xs leading-relaxed text-muted-foreground">{flagTooltip.recommendation}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -449,7 +421,8 @@ const DocumentEditor = ({
       setTimeout(() => {
         if (editor && !editor.isDestroyed && editor.view?.dom) {
           try {
-            editor.commands.setContent(content);
+            // Keep the initial load out of undo history, otherwise Ctrl+Z wipes the document.
+            editor.chain().setMeta("addToHistory", false).setContent(content).run();
           } catch (error) {
             console.error("[Editor] Failed to set content:", error);
             showToast.error("Failed to load document content.");
@@ -703,51 +676,51 @@ const DocumentEditor = ({
   return (
     <Fragment>
       {/* Editor Toolbar */}
-      <div className={cn("sticky top-0 bg-background z-[10] editor-toolbar border-b", responsiveMargins)}>
-        <div className="flex items-center w-full px-4 gap-2 h-14">
-          <div className="flex-1 min-w-0 overflow-x-auto">
+      <div
+        data-tour="editor-toolbar"
+        className={cn("sticky top-0 z-10 shrink-0 bg-background editor-toolbar", responsiveMargins)}
+      >
+        <div className="flex h-11 items-center gap-1 px-2 md:px-3">
+          <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hidden">
             {permissions.canEdit ? (
-              <Suspense fallback={<div className="h-10 w-full bg-muted animate-pulse rounded" />}>
-                <div className="h-10 flex items-center">
-                  <EditorControls canEdit={permissions.canEdit} />
-                </div>
-              </Suspense>
+              <EditorControls canEdit={permissions.canEdit} />
             ) : (
-              <div className="h-10 flex items-center justify-center text-sm text-muted-foreground">
-                View-only mode
-              </div>
+              <span className="px-2 text-[13px] text-muted-foreground">View only</span>
             )}
           </div>
+          <CollaborationAvatars provider={provider} />
+          <ToolbarSeparator className="hidden sm:block" />
+          <Button
+            data-tour="editor-ai"
+            variant="ghost"
+            onClick={() => editorActions.setAIPanelOpen(true)}
+            aria-label="Ask AI"
+            className={cn("shrink-0 gap-1.5 px-2.5 text-muted-foreground", isAIPanelOpen && "bg-accent text-foreground")}
+          >
+            <Sparkles />
+            <span className="hidden sm:inline">Ask AI</span>
+          </Button>
         </div>
       </div>
 
-      {/* Document Content Area */}
+      {/* Document canvas */}
       <div
         ref={editorContainerRef}
-        className={cn(
-          "flex-1 overflow-y-auto md:lg:p-8 p-2 bg-muted relative",
-          responsiveMargins
-        )}
+        className={cn("relative flex-1 overflow-y-auto bg-paper-canvas px-2 pt-3 pb-8 md:px-8", responsiveMargins)}
       >
-        <div className="max-w-4xl mx-auto relative">
-          <EditorContent 
-            editor={editor} 
-            className="bg-background w-full min-h-[calc(100vh-10rem)] editor-paper" 
+        <div className="relative mx-auto max-w-4xl">
+          <EditorContent
+            editor={editor}
+            className="editor-paper min-h-[calc(100vh-10rem)] w-full rounded-[2px] bg-paper text-paper-foreground shadow-paper"
           />
         </div>
       </div>
 
       {/* Status Bar */}
-      <div className={cn("sticky bottom-0 editor-status-bar border-t", responsiveMargins)}>
-        <Suspense fallback={<div className="h-10 bg-background animate-pulse rounded" />}>
-          <EditorStatusBar />
-        </Suspense>
+      <div className={cn("shrink-0 bg-background editor-status-bar", responsiveMargins)}>
+        <EditorStatusBar />
       </div>
 
-      {/* AI Components */}
-      <Suspense fallback={null}>
-        <AIFab />
-      </Suspense>
       <Suspense fallback={null}>
         <EditorAIChatPanel />
       </Suspense>
@@ -758,11 +731,6 @@ const DocumentEditor = ({
         position={selectionMenuPosition}
         onComment={handleCommentClick}
       />
-
-      {/* Collaboration Avatars */}
-      <Suspense fallback={null}>
-        <CollaborationAvatars provider={provider} />
-      </Suspense>
 
       {/* Comment Dialog */}
       <CommentDialog

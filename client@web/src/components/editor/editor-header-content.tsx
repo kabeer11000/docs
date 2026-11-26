@@ -5,13 +5,15 @@ import type { Document } from "@shared-types";
 import {
   Check,
   Clock,
+  FileText,
   Lock,
   MessagesSquare,
   MoreVertical,
   PenTool,
-  Share,
+  Star,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +23,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCloudStore } from "@/hooks/use-cloudstore";
@@ -146,342 +147,174 @@ export function EditorHeaderContent({
     }
   }, [documentData, duplicateDocument]);
 
-  // Listen for copy, print, and star events from toolbar
-  useEffect(() => {
-    const handleCopyEvent = () => {
-      handleCopy();
-    };
-    const handlePrintEvent = () => {
-      printButtonRef.current?.click();
-    };
-    const handleStarEvent = async () => {
-      if (!documentData) return;
-      
-      try {
-        // Toggle the starred status
-        const newStarredStatus = !documentData.isStarred;
-        const success = await updateDocument(documentData.id, { 
-          isStarred: newStarredStatus,
-          updatedAt: new Date().toISOString()
-        });
-        
-        if (success) {
-          showToast.success(newStarredStatus ? "Added to starred" : "Removed from starred");
-        } else {
-          showToast.error("Failed to update document");
-        }
-      } catch (error) {
-        console.error("Error updating starred status:", error);
+  const handleToggleStar = useCallback(async () => {
+    if (!documentData) return;
+    try {
+      const newStarredStatus = !documentData.isStarred;
+      const success = await updateDocument(documentData.id, {
+        isStarred: newStarredStatus,
+        updatedAt: new Date().toISOString(),
+      });
+      if (success) {
+        showToast.success(newStarredStatus ? "Added to starred" : "Removed from starred");
+      } else {
         showToast.error("Failed to update document");
       }
-    };
-    
+    } catch (error) {
+      console.error("Error updating starred status:", error);
+      showToast.error("Failed to update document");
+    }
+  }, [documentData, updateDocument]);
+
+  // Listen for copy, print, and star events from the toolbar
+  useEffect(() => {
+    const handleCopyEvent = () => handleCopy();
+    const handlePrintEvent = () => printButtonRef.current?.click();
     window.addEventListener("document-copy-requested", handleCopyEvent);
     window.addEventListener("document-print-requested", handlePrintEvent);
-    window.addEventListener("document-star-requested", handleStarEvent);
+    window.addEventListener("document-star-requested", handleToggleStar);
     return () => {
       window.removeEventListener("document-copy-requested", handleCopyEvent);
       window.removeEventListener("document-print-requested", handlePrintEvent);
-      window.removeEventListener("document-star-requested", handleStarEvent);
+      window.removeEventListener("document-star-requested", handleToggleStar);
     };
-  }, [handleCopy, documentData, updateDocument]);
+  }, [handleCopy, handleToggleStar]);
 
   if (!documentData) {
     return (
-      <div className="flex items-center justify-between w-full">
-        <div className="flex-shrink-0">
-          <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-        </div>
-        <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+      <div className="flex w-full items-center justify-between gap-4">
+        <div className="h-6 w-56 rounded-md bg-muted animate-pulse" />
+        <div className="h-8 w-24 rounded-md bg-muted animate-pulse" />
       </div>
     );
   }
 
+  const access = permissions?.accessLevel ? ACCESS_LABELS[permissions.accessLevel] : null;
+  const signatureRequests = documentData.signatureRequests ?? [];
+  const signedCount = signatureRequests.filter((req) => req.status === "signed").length;
+  const signatureCount = documentData.signatures?.length ?? 0;
+
   return (
     <>
-      {/* Left: Document Title */}
-      <div className="flex-shrink-0 max-w-md">
-        <EditableTitle
-          title={documentData.title}
-          onTitleChange={handleTitleChange}
-          documentId={documentData.id}
-          onTemplateSelect={handleTemplateSelect}
-          canRename={permissions.canRename && !isDocumentLocked}
-        />
-        
-        {/* Mobile: Owner tag and share button below input */}
-        <div className="md:hidden flex items-center gap-2 mt-1">
-          {/* Owner Role as simple text tag */}
-          {permissions?.accessLevel && (
-            <span
-              className={cn(
-                "text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap",
-                permissions.accessLevel === "owner" && "bg-purple-100 text-purple-800",
-                permissions.accessLevel === "editor" && "bg-blue-100 text-blue-800", 
-                permissions.accessLevel === "viewer" && "bg-gray-100 text-gray-800",
-                permissions.accessLevel === "signer" && "bg-signer/10 text-signer/80",
-              )}
-            >
-              {permissions.accessLevel === "owner" && "Owner"}
-              {permissions.accessLevel === "editor" && "Editor"}
-              {permissions.accessLevel === "viewer" && "Viewer"}
-              {permissions.accessLevel === "signer" && "Signer"}
-            </span>
-          )}
-          
-          {/* Share as simple link button */}
-          {permissions?.canShare && (
-            <button
-              onClick={() => setShowShareDialog(true)}
-              className="text-xs text-primary hover:underline underline-offset-4 font-medium whitespace-nowrap"
-            >
-              Share
-            </button>
-          )}
+      {/* Left: identity */}
+      <div className="flex min-w-0 flex-1 items-center gap-1">
+        <Link
+          href="/home"
+          aria-label="Back to documents"
+          className="hidden size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
+        >
+          <FileText className="size-[18px]" />
+        </Link>
+        <div className="min-w-0 max-w-[min(28rem,45vw)]">
+          <EditableTitle
+            title={documentData.title}
+            onTitleChange={handleTitleChange}
+            documentId={documentData.id}
+            onTemplateSelect={handleTemplateSelect}
+            canRename={permissions.canRename && !isDocumentLocked}
+          />
         </div>
-        
-        {/* Mobile: Save status indicator below everything else */}
-        <div className="md:hidden">
-          {saveStatus && (
-            <div className="text-xs text-muted-foreground mt-1">
-              {saveStatus === "saved" && lastSaved && (
-                <span>
-                  Saved {lastSaved.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              )}
-              {saveStatus === "error" && (
-                <span className="text-destructive">Save failed</span>
-              )}
-              {saveStatus === "saving" && (
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                  Saving...
-                </span>
-              )}
-            </div> 
-          )}
-        </div>
-      </div>
-
-      {/* Right: Desktop Actions (hidden on mobile) */}
-      <div className="hidden md:flex items-center gap-3">
-        {/* Save Status Indicator */}
-        {saveStatus && (
-          <div className="flex items-center gap-2 text-sm">
-            {saveStatus === "saving" && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-xs whitespace-nowrap">Saving...</span>
-              </div>
-            )}
-            {saveStatus === "saved" && lastSaved && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-xs whitespace-nowrap">
-                  Last saved:{" "}
-                  {lastSaved.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-            )}
-            {saveStatus === "error" && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2 text-destructive cursor-help">
-                      <div className="w-2 h-2 bg-destructive rounded-full"></div>
-                      <span className="text-xs whitespace-nowrap">
-                        Save failed
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{errorMessage || "Unknown error occurred"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
-        )}
-
-        {/* Desktop Actions */}
-        <div className="flex items-center gap-2">
-          {/* Owner Role Badge */}
-          {permissions?.accessLevel && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border cursor-help bg-transparent h-8",
-                      permissions.accessLevel === "owner" &&
-                        "text-purple-300 border-purple-500/50",
-                      permissions.accessLevel === "editor" &&
-                        "text-blue-300 border-blue-500/50",
-                      permissions.accessLevel === "viewer" &&
-                        "text-gray-300 border-gray-500/50",
-                      permissions.accessLevel === "signer" &&
-                        "text-signer/70 border-signer/50",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "w-1.5 h-1.5 rounded-full",
-                        permissions.accessLevel === "owner" && "bg-purple-400",
-                        permissions.accessLevel === "editor" && "bg-blue-400",
-                        permissions.accessLevel === "viewer" && "bg-gray-400",
-                        permissions.accessLevel === "signer" && "bg-signer/70",
-                      )}
-                    />
-                    {permissions.accessLevel === "owner" && "Owner"}
-                    {permissions.accessLevel === "editor" && "Editor"}
-                    {permissions.accessLevel === "viewer" && "Viewer"}
-                    {permissions.accessLevel === "signer" && "Signer"}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    {permissions.accessLevel === "owner" &&
-                      "Full access - Can edit, share, and delete"}
-                    {permissions.accessLevel === "editor" &&
-                      "Can edit and comment"}
-                    {permissions.accessLevel === "viewer" &&
-                      "Read-only access with commenting"}
-                    {permissions.accessLevel === "signer" &&
-                      "Can view and sign document"}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-
-          {/* Share Button */}
-          {permissions?.canShare && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setShowShareDialog(true)}
-              className="h-8 min-h-8 px-3"
-            >
-              <Share className="w-3.5 h-3.5 mr-1.5" />
-              Share
-            </Button>
-          )}
-
-          {/* Comments Toggle Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              editorActions.setCommentsSidebarOpen(!isCommentsSidebarOpen)
-            }
-            className={cn(
-              "relative h-8 w-8 p-0",
-              isCommentsSidebarOpen && "bg-accent",
-            )}
-          >
-            <MessagesSquare className="w-4 h-4" />
-            {comments.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                {comments.length}
-              </span>
-            )}
-          </Button>
-
-          {/* Signatures Toggle Button - Only show for signers */}
-          {userSignatureRequest && (
+        <Tooltip delayDuration={400}>
+          <TooltipTrigger asChild>
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => setIsSignaturePanelOpen(!isSignaturePanelOpen)}
-              className={cn(
-                "relative h-8 w-8 p-0",
-                isSignaturePanelOpen && "bg-accent",
-              )}
+              size="icon"
+              onClick={handleToggleStar}
+              aria-label={documentData.isStarred ? "Remove from starred" : "Add to starred"}
+              aria-pressed={!!documentData.isStarred}
+              className="shrink-0 text-muted-foreground"
             >
-              <PenTool className="w-4 h-4" />
-              {(documentData?.signatures?.length || 0) > 0 && (
-                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {documentData?.signatures?.length}
-                </span>
-              )}
+              <Star
+                className={cn(documentData.isStarred && "fill-current text-foreground")}
+              />
             </Button>
-          )}
-
-          {/* Signature Status - Only show for documents with signature requests */}
-          {documentData.signatureRequests &&
-            documentData.signatureRequests.length > 0 &&
-            (permissions?.accessLevel === "owner" ||
-              permissions?.accessLevel === "editor") && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <div className="px-2 py-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-muted-foreground">
-                        Signature Status
-                      </span>
-                      <span className="text-xs font-medium">
-                        {
-                          documentData.signatureRequests.filter(
-                            (req) => req.status === "signed",
-                          ).length
-                        }
-                        /{documentData.signatureRequests.length}
-                      </span>
-                    </div>
-                    <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                      {documentData.signatureRequests.map((req) => (
-                        <div
-                          key={req.id}
-                          className="flex items-center gap-2 text-xs"
-                        >
-                          {req.status === "signed" ? (
-                            <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
-                          ) : (
-                            <Clock className="h-3 w-3 text-neutral-400 flex-shrink-0" />
-                          )}
-                          <span
-                            className={
-                              req.status === "signed"
-                                ? "text-foreground"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            {req.email}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {documentData.signatureRequests.every(
-                      (req) => req.status === "signed",
-                    ) && (
-                      <div className="flex items-center gap-1.5 mt-2 px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">
-                        <Lock className="h-3 w-3" />
-                        <span>Document Locked</span>
-                      </div>
-                    )}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-        </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{documentData.isStarred ? "Starred" : "Star"}</TooltipContent>
+        </Tooltip>
+        {access && (
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <span className="ml-1 hidden shrink-0 cursor-default items-center gap-1 text-xs text-muted-foreground md:inline-flex">
+                {isDocumentLocked && <Lock className="size-3" />}
+                {access.label}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{access.hint}</TooltipContent>
+          </Tooltip>
+        )}
+        <SaveStatus status={saveStatus} lastSaved={lastSaved} errorMessage={errorMessage} />
       </div>
 
-      {/* Share Dialog */}
-      <ShareDialog
-        open={showShareDialog}
-        onOpenChange={setShowShareDialog}
-        document={documentData}
-      />
+      {/* Right: actions */}
+      <div className="flex shrink-0 items-center gap-1">
+        <CountButton
+          label="Comments"
+          icon={<MessagesSquare />}
+          count={comments.length}
+          active={isCommentsSidebarOpen}
+          onClick={() => editorActions.setCommentsSidebarOpen(!isCommentsSidebarOpen)}
+        />
+
+        {userSignatureRequest && (
+          <CountButton
+            label="Signatures"
+            icon={<PenTool />}
+            count={signatureCount}
+            active={isSignaturePanelOpen}
+            onClick={() => setIsSignaturePanelOpen(!isSignaturePanelOpen)}
+          />
+        )}
+
+        {signatureRequests.length > 0 &&
+          (permissions?.accessLevel === "owner" || permissions?.accessLevel === "editor") && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Signature status" className="text-muted-foreground">
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <div className="p-2">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Signature status</span>
+                    <span className="text-xs font-medium tabular-nums">
+                      {signedCount}/{signatureRequests.length}
+                    </span>
+                  </div>
+                  <div className="max-h-32 space-y-1.5 overflow-y-auto">
+                    {signatureRequests.map((req) => (
+                      <div key={req.id} className="flex items-center gap-2 text-xs">
+                        {req.status === "signed" ? (
+                          <Check className="size-3 shrink-0 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <Clock className="size-3 shrink-0 text-muted-foreground" />
+                        )}
+                        <span className={req.status === "signed" ? "text-foreground" : "text-muted-foreground"}>
+                          {req.email}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {isDocumentLocked && (
+                    <div className="mt-2 flex items-center gap-1.5 rounded-md bg-green-500/10 px-2 py-1 text-xs font-medium text-green-600 dark:text-green-400">
+                      <Lock className="size-3" />
+                      Document locked
+                    </div>
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+        {permissions?.canShare && (
+          <Button data-tour="share-button" onClick={() => setShowShareDialog(true)} className="ml-1 px-3">
+            <Lock className="hidden sm:block" />
+            Share
+          </Button>
+        )}
+      </div>
+
+      <ShareDialog open={showShareDialog} onOpenChange={setShowShareDialog} document={documentData} />
 
       {/* Hidden PrintButton - accessed via ref by toolbar */}
       <div style={{ display: "none" }}>
@@ -489,4 +322,87 @@ export function EditorHeaderContent({
       </div>
     </>
   );
+}
+
+const ACCESS_LABELS: Record<string, { label: string; hint: string }> = {
+  owner: { label: "Owner", hint: "Full access - can edit, share, and delete" },
+  editor: { label: "Editor", hint: "Can edit and comment" },
+  viewer: { label: "Viewer", hint: "Read-only access with commenting" },
+  signer: { label: "Signer", hint: "Can view and sign document" },
+};
+
+function CountButton({
+  label,
+  icon,
+  count,
+  active,
+  onClick,
+}: {
+  label: string;
+  icon: ReactNode;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Tooltip delayDuration={400}>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          onClick={onClick}
+          aria-label={`${label} (${count})`}
+          aria-pressed={active}
+          className={cn(
+            "min-w-8 gap-1.5 px-2 text-muted-foreground tabular-nums",
+            active && "bg-accent text-foreground",
+          )}
+        >
+          {icon}
+          {count > 0 && <span className="text-[13px]">{count}</span>}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+const statusClass = "ml-1 hidden shrink-0 items-center gap-1.5 text-xs sm:inline-flex";
+
+function SaveStatus({
+  status,
+  lastSaved,
+  errorMessage,
+}: {
+  status: "idle" | "saving" | "saved" | "error";
+  lastSaved: Date | null;
+  errorMessage: string | null;
+}) {
+  if (status === "error") {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={cn(statusClass, "cursor-help text-destructive")}>
+            Save failed
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{errorMessage || "Unknown error occurred"}</TooltipContent>
+      </Tooltip>
+    );
+  }
+  if (status === "saving") {
+    return (
+      <span className={cn(statusClass, "text-muted-foreground")}>
+        Saving...
+      </span>
+    );
+  }
+  if (status === "saved") {
+    const time = lastSaved?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return (
+      <span className={cn(statusClass, "text-muted-foreground")} title={time ? `Last saved ${time}` : undefined}>
+        Saved
+      </span>
+    );
+  }
+  return null;
 }

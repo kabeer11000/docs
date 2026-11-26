@@ -1,6 +1,6 @@
 "use client";
 import { useStore } from "@nanostores/react";
-import { AlertTriangle, FileText, RotateCcw, Settings } from "lucide-react";
+import { AlertTriangle, FileText, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -142,20 +142,17 @@ export function PageSetup({
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          size="sm"
-          className="h-7 w-7 sm:h-8 sm:w-8 p-0 transition-all duration-200 ease-in-out hover:bg-muted hover:scale-105 active:scale-95"
+          size="icon"
+          className="text-muted-foreground"
           aria-label="Page setup"
         >
-          <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-200" />
+          <FileText />
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="bg-white max-w-4xl rounded-none md:rounded-md max-h-screen overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-screen overflow-y-auto rounded-none bg-popover md:rounded-lg">
         <DialogHeader className="sticky top-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Page Setup
-          </DialogTitle>
+          <DialogTitle className="font-serif text-lg font-medium">Page setup</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -163,7 +160,7 @@ export function PageSetup({
           <div className="lg:col-span-3 space-y-6">
             {/* Quick Presets */}
             <div className="space-y-3">
-              <Label className="text-base font-medium">Quick Presets</Label>
+              <Label className="text-[13px] font-medium">Presets</Label>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(PAGE_PRESETS).map(([key, preset]) => (
                   <Button
@@ -185,7 +182,7 @@ export function PageSetup({
 
             {/* Page Size */}
             <div className="space-y-3">
-              <Label className="text-base font-medium">Page Size</Label>
+              <Label className="text-[13px] font-medium">Page size</Label>
               <Select
                 value={tempSettings.pageSize}
                 onValueChange={(value: PageSizeId) =>
@@ -253,7 +250,7 @@ export function PageSetup({
 
             {/* Orientation */}
             <div className="space-y-3">
-              <Label className="text-base font-medium">Orientation</Label>
+              <Label className="text-[13px] font-medium">Orientation</Label>
               <div className="flex gap-2">
                 {(["portrait", "landscape"] as Orientation[]).map(
                   (orientation) => (
@@ -280,7 +277,7 @@ export function PageSetup({
             {/* Margins */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-medium">
+                <Label className="text-[13px] font-medium">
                   Margins (inches)
                 </Label>
                 <Button
@@ -345,26 +342,26 @@ export function PageSetup({
 
           {/* Preview Panel - 2 columns */}
           <div className="lg:col-span-2 space-y-4">
-            <Label className="text-base font-medium">Live Preview</Label>
+            <Label className="text-[13px] font-medium">Preview</Label>
 
             {/* Page Info */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Page Size:</span>
+                <span className="text-muted-foreground">Page size</span>
                 <Badge variant="outline">
                   {pageDimensions.width.toFixed(1)}" ×{" "}
                   {pageDimensions.height.toFixed(1)}"
                 </Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Content Area:</span>
+                <span className="text-muted-foreground">Content area</span>
                 <Badge variant="outline">
                   {contentDimensions.width.toFixed(1)}" ×{" "}
                   {contentDimensions.height.toFixed(1)}"
                 </Badge>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Margins:</span>
+                <span className="text-muted-foreground">Margins</span>
                 <Badge variant="outline">
                   T:{tempSettings.margins.top}" R:{tempSettings.margins.right}"
                   B:{tempSettings.margins.bottom}" L:{tempSettings.margins.left}
@@ -374,11 +371,11 @@ export function PageSetup({
             </div>
 
             {/* Visual Preview */}
-            <div className="border rounded-lg p-6 bg-muted/20 flex justify-center items-center min-h-[400px]">
+            <div className="flex min-h-[400px] items-center justify-center rounded-md bg-paper-canvas p-6">
               <div className="relative">
                 {/* Page Preview */}
                 <div
-                  className="bg-white border-2 border-border shadow-lg relative overflow-hidden"
+                  className="relative overflow-hidden rounded-[2px] bg-paper shadow-paper"
                   style={{
                     width: `${Math.min(200, pageDimensions.width * 16)}px`,
                     height: `${Math.min(280, pageDimensions.height * 16)}px`,
@@ -387,7 +384,7 @@ export function PageSetup({
                 >
                   {/* Margin Indicators */}
                   <div
-                    className="absolute bg-blue-50 border border-blue-200 border-dashed"
+                    className="absolute border border-dashed border-border"
                     style={{
                       top: `${(tempSettings.margins.top / pageDimensions.height) * 100}%`,
                       left: `${(tempSettings.margins.left / pageDimensions.width) * 100}%`,
@@ -397,7 +394,7 @@ export function PageSetup({
                   >
                     {/* Content Area Label */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-white px-2 py-1 rounded text-xs text-muted-foreground shadow-sm">
+                      <div className="rounded bg-paper px-2 py-1 text-xs text-muted-foreground">
                         Content Area
                       </div>
                     </div>
@@ -413,12 +410,12 @@ export function PageSetup({
                     }}
                   >
                     {/* Title */}
-                    <div className="h-2 bg-neutral-800 rounded w-3/4 mb-2"></div>
+                    <div className="h-2 bg-foreground rounded w-3/4 mb-2"></div>
                     {/* Content lines */}
                     {[...Array(12)].map((_, i) => (
                       <div
                         key={i}
-                        className="h-1 bg-neutral-400 rounded"
+                        className="h-1 bg-muted-foreground rounded"
                         style={{
                           width: `${Math.max(40, Math.random() * 90)}%`,
                         }}

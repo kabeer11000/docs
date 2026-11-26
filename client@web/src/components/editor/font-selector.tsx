@@ -7,7 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { editorInstance } from "@/state/editor";
+import { toolbarSelectClass } from "./toolbar-button";
 
 const fontFamilies = [
   { value: "Inter", label: "Inter", category: "Sans Serif" },
@@ -65,28 +67,29 @@ export function FontSelector({ disabled = false }: { disabled?: boolean }) {
       disabled={disabled}
     >
       <SelectTrigger
-        className="w-full max-w-[200px] sm:w-36 h-7 sm:h-8 text-xs sm:text-sm border-input bg-background hover:bg-muted/50 transition-colors"
+        className={cn(toolbarSelectClass, "w-[124px]")}
+        aria-label="Font"
         disabled={disabled}
       >
         <SelectValue>
           <span className="truncate">{currentFont}</span>
         </SelectValue>
       </SelectTrigger>
-      <SelectContent className="max-h-64 overflow-y-auto min-w-[220px] sm:min-w-[240px]">
+      <SelectContent className="max-h-72 min-w-[220px]">
         {Object.entries(groupedFonts).map(([category, fonts]) => (
           <div key={category}>
-            <div className="px-3 py-1.5 sm:py-2 text-xs font-medium text-muted-foreground border-b bg-muted/30">
+            <div className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground">
               {category}
             </div>
             {fonts.map((font) => (
               <SelectItem
                 key={font.value}
                 value={font.value}
-                className="cursor-pointer hover:bg-accent transition-colors py-2 sm:py-3 px-2 sm:px-3 min-h-[40px] sm:min-h-[44px] flex items-center"
+                className="min-h-8 cursor-pointer"
               >
                 <span
                   style={{ fontFamily: font.value }}
-                  className="text-xs sm:text-sm truncate"
+                  className="truncate text-sm"
                 >
                   {font.label}
                 </span>

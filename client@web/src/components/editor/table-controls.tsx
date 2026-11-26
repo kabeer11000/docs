@@ -29,6 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { editorActions, editorUIState } from "@/state/editor";
+import { ToolbarButton } from "./toolbar-button";
 
 export function TableControls({ disabled = false }: { disabled?: boolean }) {
   const uiState = useStore(editorUIState);
@@ -52,20 +53,15 @@ export function TableControls({ disabled = false }: { disabled?: boolean }) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            className="h-8 w-8 p-0 transition-all duration-200 ease-in-out hover:bg-muted hover:scale-105 active:scale-95"
-          >
-            <Grid3X3 className="h-3.5 w-3.5 transition-transform duration-200" />
-          </Button>
+          <ToolbarButton label="Table options" active disabled={disabled}>
+            <Grid3X3 />
+          </ToolbarButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Column
+              <Plus />
+              Add column
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               <DropdownMenuItem onClick={editorActions.addColumnBefore}>
@@ -79,8 +75,8 @@ export function TableControls({ disabled = false }: { disabled?: boolean }) {
 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Row
+              <Plus />
+              Add row
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               <DropdownMenuItem onClick={editorActions.addRowBefore}>
@@ -98,8 +94,8 @@ export function TableControls({ disabled = false }: { disabled?: boolean }) {
             onClick={editorActions.deleteTable}
             className="text-destructive focus:text-destructive"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Table
+            <Trash2 />
+            Delete table
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -111,25 +107,19 @@ export function TableControls({ disabled = false }: { disabled?: boolean }) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={disabled}
-            className="h-8 w-8 p-0 transition-all duration-200 ease-in-out hover:bg-muted hover:scale-105 active:scale-95"
-            aria-label="Insert table"
-          >
-            <TableIcon className="h-3.5 w-3.5 transition-transform duration-200" />
-          </Button>
+          <ToolbarButton label="Insert table" disabled={disabled}>
+            <TableIcon />
+          </ToolbarButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={handleInsertTable}>
-            <Grid3X3 className="h-4 w-4 mr-2" />
-            Insert 3×4 Table
+            <Grid3X3 />
+            Insert 3 x 4 table
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setInsertDialogOpen(true)}>
-            <Settings className="h-4 w-4 mr-2" />
-            Custom Size...
+            <Settings />
+            Custom size...
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -137,7 +127,7 @@ export function TableControls({ disabled = false }: { disabled?: boolean }) {
       <Dialog open={insertDialogOpen} onOpenChange={setInsertDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Insert Table</DialogTitle>
+            <DialogTitle>Insert table</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -202,14 +192,14 @@ export function TableControls({ disabled = false }: { disabled?: boolean }) {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
                 onClick={() => setInsertDialogOpen(false)}
               >
                 Cancel
               </Button>
-              <Button onClick={handleInsertCustomTable}>Insert Table</Button>
+              <Button onClick={handleInsertCustomTable}>Insert table</Button>
             </div>
           </div>
         </DialogContent>
