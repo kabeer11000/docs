@@ -1,98 +1,3 @@
-import type { SVGProps } from 'react';
-
-type IconProps = SVGProps<SVGSVGElement> & { size?: number };
-
-const paths = {
-  users: (
-    <>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </>
-  ),
-  pages: (
-    <>
-      <path d="M15 2H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
-      <path d="M15 2v5h5" />
-      <path d="M2 7v13a2 2 0 0 0 2 2h12" />
-    </>
-  ),
-  template: (
-    <>
-      <rect width="18" height="7" x="3" y="3" rx="1" />
-      <rect width="9" height="7" x="3" y="14" rx="1" />
-      <rect width="5" height="7" x="16" y="14" rx="1" />
-    </>
-  ),
-  comment: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
-  signature: (
-    <>
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </>
-  ),
-  sparkles: (
-    <>
-      <path d="M11 3l1.8 4.9L17.7 9.7l-4.9 1.8L11 16.4l-1.8-4.9L4.3 9.7l4.9-1.8z" />
-      <path d="M19 14v6" />
-      <path d="M22 17h-6" />
-    </>
-  ),
-  arrowRight: (
-    <>
-      <path d="M5 12h14" />
-      <path d="m12 5 7 7-7 7" />
-    </>
-  ),
-  menu: <path d="M4 6h16M4 12h16M4 18h16" />,
-  close: <path d="M18 6 6 18M6 6l12 12" />,
-  check: <path d="M20 6 9 17l-5-5" />,
-  undo: (
-    <>
-      <path d="M9 14 4 9l5-5" />
-      <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
-    </>
-  ),
-  redo: (
-    <>
-      <path d="m15 14 5-5-5-5" />
-      <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
-    </>
-  ),
-  alignLeft: <path d="M21 6H3M15 12H3M17 18H3" />,
-  list: <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />,
-  link: (
-    <>
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-    </>
-  ),
-  chevronDown: <path d="m6 9 6 6 6-6" />,
-} as const;
-
-export type IconName = keyof typeof paths;
-
-export function Icon({ name, size = 16, ...rest }: IconProps & { name: IconName }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-      {...rest}
-    >
-      {paths[name]}
-    </svg>
-  );
-}
-
 export function GitHubIcon({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false">
@@ -101,13 +6,13 @@ export function GitHubIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-export function LogoMark({ size = 24 }: { size?: number }) {
+export function LogoMark({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <rect width="24" height="24" rx="6" fill="var(--accent)" />
-      <path d="M8 5.5h5.5L17 9v9.5H8z" fill="var(--on-accent)" />
-      <path d="M13.5 5.5V9H17" fill="none" stroke="var(--accent)" strokeWidth="1.25" strokeLinejoin="round" />
-      <path d="M10 12.5h5M10 15h3.5" stroke="var(--accent)" strokeWidth="1.25" strokeLinecap="round" />
+      <path d="M5 2.5h9.5L19 7v14.5H5z" fill="var(--paper)" stroke="var(--graphite)" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M14.5 2.5V7H19" fill="none" stroke="var(--graphite)" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M8 12h8" stroke="var(--ink)" strokeWidth="1.75" strokeLinecap="round" />
+      <path d="M8 16h5" stroke="var(--graphite)" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
