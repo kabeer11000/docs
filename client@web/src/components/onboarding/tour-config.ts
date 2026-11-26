@@ -8,7 +8,7 @@ export const STEPS: Record<TourName, DriveStep[]> = {
       element: '[data-tour="new-document"]',
       popover: {
         title: "Start a document",
-        description: "Create a blank document, or open the menu to start from a template or upload a file.",
+        description: "Create a blank document, or open the menu to pick a template or make a folder.",
       },
     },
     {
