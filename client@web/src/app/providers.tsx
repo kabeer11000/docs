@@ -4,6 +4,7 @@ import { SettingsDialog } from "@/components/common/setting-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { PWASupport } from "@/components/PWASupport";
 import { ThemeProvider } from "next-themes";
+import { ProductTour } from "@/components/onboarding/product-tour";
 
 // Initialize global CloudStore watchers (subscription starts automatically)
 import "@/state/cloudstore-data";
@@ -15,6 +16,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthInitializer />
       <SettingsDialog />
       <Toaster />
+      <ProductTour />
       {children}
     </ThemeProvider>
   );
