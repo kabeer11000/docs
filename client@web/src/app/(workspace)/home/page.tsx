@@ -2,80 +2,27 @@
 
 import { useStore } from "@nanostores/react";
 import { Upload } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { PageBody } from "@/components/home/page-body";
 import { useViewMode, ViewToggle } from "@/components/home/view-toggle";
+import { LiveFoldersView } from "@/components/shared/ui/live-folders-view";
+import { LiveListView } from "@/components/shared/ui/live-list-view";
 import { useDocumentUpload } from "@/hooks/use-document-upload";
 import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
 
-// Lazy load heavy components
-const ReactHome = dynamic(() => import("@/components/home"), {
-  ssr: true,
-  loading: () => <div className="h-svh bg-background" />,
-});
-
-const LiveFoldersView = dynamic(
-  () =>
-    import("@/components/shared/ui/live-folders-view").then((m) => ({
-      default: m.LiveFoldersView,
-    })),
-  { ssr: false },
-);
-
-const LiveListView = dynamic(
-  () =>
-    import("@/components/shared/ui/live-list-view").then((m) => ({
-      default: m.LiveListView,
-    })),
-  { ssr: false },
-);
-
-const Banner = dynamic(
-  () => import("@/components/home/banner").then((m) => ({ default: m.Banner })),
-  { ssr: false },
-);
-
 export default function HomePage() {
   const router = useRouter();
-  const authState = useStore($auth);
-  const [showBanner, setShowBanner] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
+  const { user } = useStore($auth);
   const [isDragOver, setIsDragOver] = useState(false);
   const [_dragCounter, setDragCounter] = useState(0);
   const { uploadFiles, isUploading, uploadingFiles } = useDocumentUpload();
   const [view, setView] = useViewMode();
 
   useEffect(() => {
-    // Give auth state time to initialize
-    const timeout = setTimeout(() => {
-      setIsChecking(false);
-    }, 100);
-
-    return () => clearTimeout(timeout);
+    searchActions.setCurrentPage("home");
   }, []);
-
-  useEffect(() => {
-    // Don't redirect while still checking
-    if (isChecking) return;
-
-    // Check if user is authenticated
-    if (!authState.user && !authState.isLoading) {
-      router.push("/auth/login");
-      return;
-    }
-
-    if (authState.user) {
-      // Set the current page context for search
-      searchActions.setCurrentPage("home");
-
-      // Check if banner should be shown (check cookie)
-      const bannerClosed = document.cookie.includes("lx.popups.0152.cl=true");
-      setShowBanner(!bannerClosed);
-    }
-  }, [authState.user, authState.isLoading, router, isChecking]);
 
   // Drag and drop handlers
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -129,13 +76,10 @@ export default function HomePage() {
     [uploadFiles, router],
   );
 
-  // Show loading while checking auth
-  if (isChecking || authState.isLoading || !authState.user) {
-    return <div className="h-svh bg-background" />;
-  }
+  // The workspace layout only renders pages once signed in.
+  if (!user) return null;
 
   return (
-    <ReactHome pathname="/home">
       <div
         className="relative min-h-full"
         onDragEnter={handleDragEnter}
@@ -215,12 +159,12 @@ export default function HomePage() {
               mode="recent-folders"
               defaultSortField="modified"
               collapsible={false}
-              creationParent={authState.user.id}
+              creationParent={user.id}
               sortable={true}
             />
             <LiveListView
               showHeadline={false}
-              creationParent={authState.user.id}
+              creationParent={user.id}
               defaultSortField="modified"
               collapsible={false}
               sortable={true}
@@ -230,6 +174,5 @@ export default function HomePage() {
           </div>
         </PageBody>
       </div>
-    </ReactHome>
   );
 }

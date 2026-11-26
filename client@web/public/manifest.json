@@ -35,11 +35,6 @@
   "lang": "en",
   "dir": "ltr",
   "id": "/",
-  "serviceworker": {
-    "src": "/sw.js",
-    "scope": "/",
-    "update_via_cache": "all"
-  },
   "shortcuts": [
     {
       "name": "Create New Document",

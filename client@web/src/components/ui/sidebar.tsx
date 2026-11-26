@@ -27,7 +27,6 @@ const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "17rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "4rem";
-const SIDEBAR_KEYBOARD_SHORTCUT = "d";
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -90,7 +89,6 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen]);
 
-  // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
     typeof window !== "undefined" &&
       // @ts-expect-error - Adding custom property to window
@@ -98,19 +96,8 @@ function SidebarProvider({
       // @ts-expect-error - Adding custom property to window
       (window.__q = "2p:3c:1c:3c:1a:3a:2t:36:");
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar]);
+    // Ctrl+D is the browser bookmark key; the workspace shell binds Ctrl+\ instead.
+  }, []);
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.

@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useFolders } from "@/hooks/use-folders";
 import { FoldersView } from "./folders-view";
 
@@ -19,15 +20,14 @@ export function LiveFoldersView({
   collapsible = true,
   mode = "folder-contents",
 }: LiveFoldersViewProps) {
+  const router = useRouter();
   const { folders, isLoading } = useFolders(parent, mode);
 
   return (
     <FoldersView
       headlineText={headlineText}
       folders={folders}
-      onFolderOpen={(folder) => {
-        window.location.href = `/folder/${folder.id}`;
-      }}
+      onFolderOpen={(folder) => router.push(`/folder/${folder.id}`)}
       showHeadline={showHeadline}
       collapsible={collapsible}
       isLoading={isLoading}

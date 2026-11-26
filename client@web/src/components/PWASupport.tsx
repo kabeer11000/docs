@@ -2,42 +2,17 @@
 
 import { useEffect } from 'react';
 
+/**
+ * The app no longer uses a service worker (installability does not need one).
+ * Removes any worker registered by older builds so it cannot serve stale bundles.
+ */
 export function PWASupport() {
   useEffect(() => {
-    // Check if service worker is supported
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('ServiceWorker registered successfully:', registration.scope);
-          })
-          .catch((error) => {
-            console.log('ServiceWorker registration failed:', error);
-          });
-      });
-    }
-
-    // Add event listener for 'beforeinstallprompt' to enable PWA installation
-    let deferredPrompt: Event | null = null;
-    
-    const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later
-      deferredPrompt = e;
-      
-      // Show install button or notification to user
-      console.log('PWA installation is available');
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Clean up event listener
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    if (!('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) registration.unregister();
+    });
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 }

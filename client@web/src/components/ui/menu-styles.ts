@@ -7,7 +7,7 @@ const enter =
 export const menuSurface = `z-50 min-w-[13rem] overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-float ${enter}`;
 
 export const menuItem =
-  "relative flex h-8 w-full cursor-default select-none items-center gap-2.5 rounded-[5px] px-2 text-[13px] leading-none text-foreground outline-none transition-colors duration-75 focus:bg-accent data-[highlighted]:bg-accent data-[state=open]:bg-accent data-[selected=true]:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[15px] [&_svg:not([class*='text-'])]:text-muted-foreground";
+  "relative flex h-8 w-full cursor-default select-none items-center gap-2.5 rounded-[5px] px-2 text-[13px] leading-none text-foreground outline-none transition-colors duration-75 focus:bg-accent data-[highlighted]:bg-accent data-[state=open]:bg-accent data-[selected=true]:bg-accent data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-40 data-[disabled='']:pointer-events-none data-[disabled='']:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[15px] [&_svg:not([class*='text-'])]:text-muted-foreground";
 
 export const menuItemDestructive =
   "data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:data-[highlighted]:bg-destructive/10 data-[variant=destructive]:[&_svg]:!text-destructive";

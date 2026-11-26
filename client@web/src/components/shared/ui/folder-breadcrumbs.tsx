@@ -1,4 +1,5 @@
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { Fragment } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFolderBreadcrumbs } from "@/hooks/use-folder-breadcrumbs";
@@ -28,12 +29,12 @@ export function FolderBreadcrumbs({ folderId }: FolderBreadcrumbsProps) {
           {trail.map((item, index) => (
             <Fragment key={item.id}>
               {index > 0 && <ChevronRight className="size-3 shrink-0" />}
-              <a
-                href={`/folder/${item.id}`}
+              <Link
+                href={index === 0 ? "/vault" : `/folder/${item.id}`}
                 className="truncate transition-colors hover:text-foreground"
               >
                 {item.name}
-              </a>
+              </Link>
             </Fragment>
           ))}
         </nav>

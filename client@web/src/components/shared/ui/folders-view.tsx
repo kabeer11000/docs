@@ -1,5 +1,6 @@
 import type { IFolderItem, IMenuAction } from "@shared-types";
 import { Copy, Edit, ExternalLink, Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Fragment, type ReactNode, useState } from "react";
 import { FolderTab } from "@/components/home/folder-tab";
 import { ItemMenu } from "@/components/home/item-menu";
@@ -73,6 +74,7 @@ export function FoldersView({
   enableCopy = true,
   enableDelete = true,
 }: IFolderViewProps) {
+  const router = useRouter();
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     folder?: IFolderItem;
@@ -344,9 +346,7 @@ export function FoldersView({
       variant="ghost"
       size="sm"
       className="text-muted-foreground"
-      onClick={() => {
-        window.location.href = "/vault";
-      }}
+      onClick={() => router.push("/vault")}
     >
       View all
     </Button>

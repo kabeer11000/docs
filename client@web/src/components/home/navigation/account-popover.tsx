@@ -12,7 +12,7 @@ import {
   User,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,7 +42,18 @@ const menuItems: { icon: LucideIcon; label: string; section: SettingsSection }[]
 const itemClass =
   "flex h-8 w-full items-center gap-2 rounded-md px-2 text-sm text-foreground transition-colors hover:bg-accent [&_svg]:size-4 [&_svg]:text-muted-foreground";
 
-export function AccountPopover() {
+interface AccountPopoverProps {
+  /** Custom trigger (rendered asChild); defaults to an avatar icon button. */
+  children?: ReactNode;
+  side?: "top" | "bottom";
+  align?: "start" | "end";
+}
+
+export function AccountPopover({
+  children,
+  side = "bottom",
+  align = "end",
+}: AccountPopoverProps) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { user } = useStore($auth);
@@ -63,20 +74,21 @@ export function AccountPopover() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full"
-          aria-label="Account menu"
-          data-tour="account-menu"
-        >
-          <Avatar className="size-7 bg-muted">
-            <AvatarImage src={photo} alt="" />
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-          </Avatar>
-        </Button>
+        {children ?? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            aria-label="Account menu"
+          >
+            <Avatar className="size-7 bg-muted">
+              <AvatarImage src={photo} alt="" />
+              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            </Avatar>
+          </Button>
+        )}
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-1" align="end" sideOffset={6}>
+      <PopoverContent className="w-64 p-1" side={side} align={align} sideOffset={6}>
         <div className="flex items-center gap-2.5 px-2 py-2">
           <Avatar className="size-8 bg-muted">
             <AvatarImage src={photo} alt="" />

@@ -8,6 +8,7 @@ import type {
   SortField,
 } from "@shared-types";
 import { formatDistanceToNow } from "date-fns";
+import { useRouter } from "next/navigation";
 import {
   ArrowDown,
   ArrowUp,
@@ -175,6 +176,7 @@ export const ListView = React.memo(function ListView({
   enableBulkSelection = false,
   view = "list",
 }: IListViewProps) {
+  const router = useRouter();
   const { user } = useStore($auth);
   const { getUserName, getUserInitials } = useUserNames();
   const [isOpen, setIsOpen] = useState(true);
@@ -259,7 +261,7 @@ export const ListView = React.memo(function ListView({
             icon: ExternalLink,
             onClick: (item: IListItem) => {
               if (item.itemType === "folder") {
-                window.location.href = `/folder/${item.id}`;
+                router.push(`/folder/${item.id}`);
               } else {
                 window.location.href = `/document/${item.id}`;
               }
@@ -354,6 +356,7 @@ export const ListView = React.memo(function ListView({
       updateFolder,
       duplicateDocument,
       duplicateFolder,
+      router,
     ],
   );
 
@@ -599,11 +602,11 @@ export const ListView = React.memo(function ListView({
 
   const handleItemClick = useCallback((item: IListItem) => {
     if (item.itemType === "folder") {
-      window.location.href = `/folder/${item.id}`;
+      router.push(`/folder/${item.id}`);
     } else {
       window.location.href = `/document/${item.id}`;
     }
-  }, []);
+  }, [router]);
 
   // Bulk selection handlers
   const toggleItemSelection = useCallback((itemId: string) => {
@@ -895,10 +898,11 @@ export const ListView = React.memo(function ListView({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              window.location.href =
+              router.push(
                 item.location && item.location !== "root"
                   ? `/folder/${item.location}`
-                  : "/vault";
+                  : "/vault",
+              );
             }}
             title={`Go to ${locationName}`}
           >

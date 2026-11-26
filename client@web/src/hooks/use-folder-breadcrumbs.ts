@@ -9,9 +9,13 @@ interface BreadcrumbItem {
   name: string;
 }
 
+// Last chain per folder, so revisiting a folder shows its title at once.
+const lastChain = new Map<string, BreadcrumbItem[]>();
+
 export function useFolderBreadcrumbs(folderId?: string) {
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const cached = folderId ? lastChain.get(folderId) : undefined;
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(cached ?? []);
+  const [isLoading, setIsLoading] = useState(!cached);
   const { user } = useStore($auth);
 
   useEffect(() => {
@@ -24,7 +28,9 @@ export function useFolderBreadcrumbs(folderId?: string) {
 
     const startWatching = async () => {
       try {
-        setIsLoading(true);
+        const known = lastChain.get(folderId);
+        setBreadcrumbs(known ?? []);
+        setIsLoading(!known);
 
         // First get the current folder to find all parent IDs
         const foldersCollection = cloudStore.collection("folders");
@@ -79,6 +85,7 @@ export function useFolderBreadcrumbs(folderId?: string) {
               name: currentFolder.name,
             });
 
+            lastChain.set(folderId, breadcrumbChain);
             setBreadcrumbs(breadcrumbChain);
             setIsLoading(false);
           },

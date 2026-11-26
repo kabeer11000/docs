@@ -86,23 +86,32 @@ function stopGlobalWatchers() {
     documentsWatcher = null;
   }
 
-  // Reset loading states
-  $foldersLoading.set(true);
-  $documentsLoading.set(true);
 }
 
 // ============================================================================
 // AUTH SUBSCRIPTION - START/STOP WATCHERS
 // ============================================================================
 
+// $auth is set for every loading/profile tweak; only a new user or token needs new
+// watchers (lib/cloudstore swaps its client per token). Data stays on screen while
+// the new watchers catch up.
+let activeSession: string | null = null;
+
 $auth.subscribe((authState) => {
-  if (authState.isAuthenticated && authState.user && cloudStore) {
-    // User logged in - start watchers
+  const session =
+    authState.isAuthenticated && authState.user
+      ? `${authState.user.id}:${authState.tokens?.accessToken}`
+      : null;
+  if (session === activeSession) return;
+  activeSession = session;
+
+  if (session && authState.user) {
     startGlobalWatchers(authState.user.id);
   } else {
-    // User logged out or auth cleared - stop watchers and clear data
     stopGlobalWatchers();
     $folders.set([]);
     $documents.set([]);
+    $foldersLoading.set(true);
+    $documentsLoading.set(true);
   }
 });
