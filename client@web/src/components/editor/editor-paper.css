@@ -1,0 +1,105 @@
+/* Paper layout of the editor. The print frame loads the app stylesheets, so these rules
+   apply there too; print-only overrides live in lib/export/print.ts. */
+
+.paper-sheet {
+  position: relative;
+  margin: 0 auto;
+  width: var(--page-w);
+}
+
+.paper-sheet .ProseMirror {
+  position: relative;
+  box-sizing: border-box;
+  padding: var(--m-top) var(--m-right) var(--m-bottom) var(--m-left);
+  min-height: var(--sheet-h);
+  color: var(--paper-foreground);
+}
+
+/* Flex column: no margin collapsing, so block positions follow from heights (see lib/paper/paginate). */
+.ProseMirror.paged {
+  display: flex;
+  flex-direction: column;
+}
+
+.ProseMirror.paged > * {
+  flex-shrink: 0;
+}
+
+.ProseMirror.paged > :first-child,
+.ProseMirror.paged > .pg-break + * {
+  margin-top: 0 !important;
+}
+
+.pg-break {
+  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ProseMirror .page-break {
+  position: relative;
+  height: 0;
+  margin: 12px 0;
+  border-top: 1px dashed var(--border);
+}
+
+.ProseMirror .page-break.ProseMirror-selectednode {
+  border-top-color: var(--primary);
+}
+
+.ProseMirror ul[data-type="taskList"] {
+  padding-left: 2px;
+}
+
+.ProseMirror ul[data-type="taskList"] > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label {
+  margin-top: 0.3em;
+  user-select: none;
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input {
+  width: 0.95em;
+  height: 0.95em;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.ProseMirror ul[data-type="taskList"] > li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] > li[data-checked="true"] > div {
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.ProseMirror a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--muted-foreground);
+}
