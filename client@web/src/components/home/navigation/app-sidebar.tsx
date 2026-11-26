@@ -440,6 +440,8 @@ function StarredFolders() {
   );
 }
 
+const FREE_FILE_LIMIT = 200;
+
 export function AccountStorage() {
   const [size, setSize] = useState(0);
   const authState = useStore($auth);
@@ -470,12 +472,12 @@ export function AccountStorage() {
       <div className="relative mb-2 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div 
           className="h-full bg-primary transition-all"
-          style={{ width: `${100 * (Math.min(size, 20) / 20)}%` }}
+          style={{ width: `${100 * (Math.min(size, FREE_FILE_LIMIT) / FREE_FILE_LIMIT)}%` }}
         />
       </div>
       </div>
       <p className="px-2 text-xs text-muted-foreground pb-2 font-medium">
-        {size} out of 20 free files used
+        {size} out of {FREE_FILE_LIMIT} free files used
       </p>
       <div className="border-t px-2- mt-2 border-border pt-2 text-xs text-muted-foreground">
               <span>(c) Libre Docs by Kabeer's Network</span>
