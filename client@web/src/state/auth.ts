@@ -1,5 +1,6 @@
 import type { IAuthTokens, IUser } from "@shared-types";
-import { atom } from "nanostores";
+import type { WritableAtom } from "nanostores";
+import { authManager } from "@/lib/auth/manager";
 import { clientCookies } from "@/lib/auth/cookies";
 import { authService } from "@/services/auth.service";
 
@@ -20,59 +21,16 @@ interface AuthState {
   };
 }
 
-const initialState: AuthState = {
-  isAuthenticated: false,
-  user: null,
-  tokens: null,
-  isLoading: false,
-  isInitialized: false,
-  error: null,
-  loginForm: { email: "", password: "", tenant_id: "1234" },
-  onboardForm: {
-    displayName: "",
-    email: "",
-    password: "",
-    tenant_id: '1234',
-    confirmPassword: "",
-  },
-};
-
-export const $auth = atom<AuthState>(initialState);
+// Single source of truth: the session lives in authManager; this module keeps the
+// form-driven login/sign-up API that components already use.
+export const $auth = authManager.$state as unknown as WritableAtom<AuthState>;
 
 function saveAuth(user: IUser, tokens: IAuthTokens): void {
-  const currentState = $auth.get();
-
-  // Avoid unnecessary state updates if nothing changed
-  if (
-    currentState.isAuthenticated &&
-    currentState.user?.id === user.id &&
-    currentState.tokens?.accessToken === tokens.accessToken
-  ) {
-    console.log("Auth: State unchanged, skipping update");
-    return;
-  }
-
-  console.log("Auth: Saving auth state for user:", user.email);
-
-  $auth.set({
-    ...currentState,
-    user,
-    tokens,
-    isAuthenticated: true,
-    isLoading: false,
-    isInitialized: true,
-    error: null,
-  });
-  clientCookies.setAuthCookies(tokens, user);
-  startTokenRefreshTimer();
+  authManager.adoptSession(user, tokens);
 }
 
 function clearAuth(): void {
-  console.log("Auth: Clearing auth state");
-  console.trace("Auth: clearAuth stack trace");
-  $auth.set(initialState);
-  clientCookies.clearAuthCookies();
-  stopTokenRefreshTimer();
+  authManager.endSession();
 }
 
 export function getAuthHeader(): string | null {
@@ -89,96 +47,6 @@ export function getUserInitials(user: IUser | null): string | null {
     .map((n) => n[0])
     .join("")
     .toUpperCase();
-}
-
-function isTokenNearExpiry(tokens: IAuthTokens): boolean {
-  const payload = authService.decodeToken(tokens.accessToken);
-  if (!payload?.exp) return true;
-
-  const now = Date.now() / 1000;
-  const fiveMinutes = 5 * 60; // 5 minutes
-
-  return payload.exp - now < fiveMinutes;
-}
-
-let tokenRefreshTimer: NodeJS.Timeout | null = null;
-let visibilityChangeHandler: (() => Promise<void>) | null = null;
-
-function startTokenRefreshTimer(): void {
-  stopTokenRefreshTimer();
-
-  const authState = $auth.get();
-  if (!authState.tokens) return;
-
-  // Calculate when token will expire
-  const payload = authService.decodeToken(authState.tokens.accessToken);
-  if (!payload?.exp) return;
-
-  const now = Date.now() / 1000;
-  const fiveMinutesBeforeExpiry = 5 * 60; // Refresh 5 minutes before expiry
-  const secondsUntilRefresh = payload.exp - now - fiveMinutesBeforeExpiry;
-
-  // Only set timer if token needs refresh in the future
-  if (secondsUntilRefresh > 0) {
-    console.log(
-      `Token refresh scheduled in ${Math.round(secondsUntilRefresh / 60)} minutes`,
-    );
-
-    // Set single timeout to refresh at the right time
-    tokenRefreshTimer = setTimeout(async () => {
-      console.log("Token near expiry, refreshing proactively...");
-      try {
-        await auth.refreshToken();
-        // After refresh, schedule the next refresh
-        startTokenRefreshTimer();
-      } catch (error) {
-        console.warn("Proactive token refresh failed:", error);
-      }
-    }, secondsUntilRefresh * 1000);
-  } else {
-    // Token expires soon, refresh immediately
-    console.log("Token near expiry, refreshing immediately...");
-    auth.refreshToken().catch((error) => {
-      console.warn("Immediate token refresh failed:", error);
-    });
-  }
-
-  // Handle page visibility changes (check if refresh needed when page becomes visible)
-  if (typeof document !== "undefined") {
-    visibilityChangeHandler = async () => {
-      if (!document.hidden) {
-        const authState = $auth.get();
-        if (
-          authState.isAuthenticated &&
-          authState.tokens &&
-          isTokenNearExpiry(authState.tokens)
-        ) {
-          console.log(
-            "Page visible and token near expiry, refreshing immediately...",
-          );
-          try {
-            await auth.refreshToken();
-          } catch (error) {
-            console.warn("Visibility-triggered token refresh failed:", error);
-          }
-        }
-      }
-    };
-
-    document.addEventListener("visibilitychange", visibilityChangeHandler);
-  }
-}
-
-function stopTokenRefreshTimer(): void {
-  if (tokenRefreshTimer) {
-    clearTimeout(tokenRefreshTimer);
-    tokenRefreshTimer = null;
-  }
-
-  if (visibilityChangeHandler && typeof document !== "undefined") {
-    document.removeEventListener("visibilitychange", visibilityChangeHandler);
-    visibilityChangeHandler = null;
-  }
 }
 
 export const auth = {
@@ -278,45 +146,7 @@ export const auth = {
   },
 
   init(): void {
-    try {
-      const currentState = $auth.get();
-
-      // If already loading, skip to prevent race conditions
-      if (currentState.isLoading) {
-        console.log("Auth: Already initializing, skipping");
-        return;
-      }
-
-      const { tokens, user } = clientCookies.getAuthFromCookies();
-
-      // If already authenticated with the same tokens, skip
-      if (
-        currentState.isAuthenticated &&
-        currentState.user?.id === user?.id &&
-        currentState.tokens?.accessToken === tokens?.accessToken
-      ) {
-        console.log(
-          "Auth: Already initialized with same credentials, skipping",
-        );
-        return;
-      }
-
-      // Set loading state during initialization
-      $auth.set({ ...currentState, isLoading: true });
-
-      if (tokens && user && !authService.isTokenExpired(tokens.accessToken)) {
-        console.log("Auth: Initializing with valid tokens from cookies");
-        saveAuth(user, tokens);
-      } else {
-        console.log("Auth: No valid tokens found, clearing cookies");
-        clientCookies.clearAuthCookies();
-        $auth.set({ ...initialState, isLoading: false, isInitialized: true });
-      }
-    } catch (error) {
-      console.error("Failed to initialize auth:", error);
-      clientCookies.clearAuthCookies();
-      $auth.set({ ...initialState, isLoading: false, isInitialized: true });
-    }
+    void authManager.init();
   },
 
   clearError(): void {
@@ -324,7 +154,7 @@ export const auth = {
   },
 
   cleanup(): void {
-    stopTokenRefreshTimer();
+    authManager.cleanup();
   },
 
   async updateProfile(userData: Partial<IUser>): Promise<boolean> {
@@ -361,26 +191,7 @@ export const auth = {
     }
   },
 
-  async refreshToken(): Promise<boolean> {
-    const currentState = $auth.get();
-    const tokens = currentState.tokens;
-    const user = currentState.user;
-
-    if (!tokens?.refreshToken || !user) return false;
-
-    try {
-      const response = await authService.refreshToken(tokens.refreshToken);
-      saveAuth(user, {
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-        idToken: response.idToken,
-        expiresIn: response.expiresIn,
-        tokenType: response.tokenType,
-      });
-      return true;
-    } catch (_error) {
-      clearAuth();
-      return false;
-    }
+  refreshToken(): Promise<boolean> {
+    return authManager.refreshToken();
   },
 };

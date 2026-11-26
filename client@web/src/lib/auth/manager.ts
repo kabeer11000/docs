@@ -11,7 +11,7 @@ interface AuthState {
   isLoading: boolean
   isInitialized: boolean
   error: string | null
-  loginForm: { email: string; password: string }
+  loginForm: { email: string; password: string; tenant_id: string }
   onboardForm: {
     displayName: string
     email: string
@@ -28,7 +28,7 @@ const initialState: AuthState = {
   isLoading: false,
   isInitialized: false,
   error: null,
-  loginForm: { email: "", password: "" },
+  loginForm: { email: "", password: "", tenant_id: "1234" },
   onboardForm: {
     displayName: "",
     email: "",
@@ -373,11 +373,11 @@ class AuthService {
 export class AuthManager {
   private state = atom<AuthState>(initialState)
   private refreshTimer: NodeJS.Timeout | null = null
-  private initPromise: Promise<void> | null = null // ✅ Prevents race conditions
+  private initPromise: Promise<void> | null = null // Prevents race conditions
   private authService = new AuthService()
 
   async init(): Promise<void> {
-    // ✅ FIX: Prevent multiple simultaneous init calls
+    // FIX: Prevent multiple simultaneous init calls
     if (this.initPromise) {
       return this.initPromise
     }
@@ -412,7 +412,7 @@ export class AuthManager {
       }
     } catch (error) {
       console.error('Auth init failed:', error)
-      showToast.error('Authentication Error', 'Failed to restore session') // ✅ User notification
+      showToast.error('Authentication Error', 'Failed to restore session') // User notification
       this.clearAuth()
     }
   }
@@ -429,12 +429,12 @@ export class AuthManager {
         expiresIn: response.expiresIn,
         tokenType: response.tokenType,
       })
-      showToast.success('Welcome back!', `Logged in as ${response.user.displayName}`) // ✅ Toast
+      showToast.success('Welcome back!', `Logged in as ${response.user.displayName}`)
       return true
     } catch (error) {
       const message = error instanceof HttpError ? error.message : 'Login failed'
       this.state.set({ ...this.state.get(), error: message, isLoading: false })
-      showToast.error('Login Failed', message) // ✅ Toast
+      showToast.error('Login Failed', message)
       return false
     }
   }
@@ -457,12 +457,12 @@ export class AuthManager {
         expiresIn: response.expiresIn,
         tokenType: response.tokenType,
       })
-      showToast.success('Account Created', `Welcome, ${response.user.displayName}!`) // ✅ Toast
+      showToast.success('Account Created', `Welcome, ${response.user.displayName}!`)
       return true
     } catch (error) {
       const message = error instanceof HttpError ? error.message : 'Sign up failed'
       this.state.set({ ...this.state.get(), error: message, isLoading: false })
-      showToast.error('Sign Up Failed', message) // ✅ Toast
+      showToast.error('Sign Up Failed', message)
       return false
     }
   }
@@ -477,7 +477,7 @@ export class AuthManager {
       }
     }
     this.clearAuth()
-    showToast.info('Logged out', 'See you next time!') // ✅ Toast
+    showToast.info('Logged out', 'See you next time!')
   }
 
   handleLoginFormChange(field: string, value: string) {
@@ -528,7 +528,7 @@ export class AuthManager {
         clientCookies.setAuthCookies(tokens, updatedUser)
       }
 
-      showToast.success('Profile Updated', 'Your profile has been updated successfully') // ✅ Toast
+      showToast.success('Profile Updated', 'Your profile has been updated successfully')
       return true
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Profile update failed'
@@ -537,15 +537,24 @@ export class AuthManager {
         error: message,
         isLoading: false,
       })
-      showToast.error('Profile Update Failed', message) // ✅ Toast
+      showToast.error('Profile Update Failed', message)
       return false
     }
+  }
+
+  /** Public entry for callers that perform the login request themselves. */
+  adoptSession(user: IUser, tokens: IAuthTokens): void {
+    this.setAuth(user, tokens)
+  }
+
+  endSession(): void {
+    this.clearAuth()
   }
 
   private setAuth(user: IUser, tokens: IAuthTokens): void {
     const current = this.state.get()
 
-    // ✅ Prevent unnecessary updates
+    // Prevent unnecessary updates
     if (current.isAuthenticated &&
         current.user?.id === user.id &&
         current.tokens?.accessToken === tokens.accessToken) {
