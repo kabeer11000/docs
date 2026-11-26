@@ -12,6 +12,7 @@ interface LiveListViewProps {
   creationParent?: string,
   parent?: string; // parent-folder.id
   mode?: "recent-files" | "folder-contents" | "shared-with-me";
+  view?: "list" | "grid";
 }
 
 export const LiveListView = React.memo(function LiveListView({
@@ -23,6 +24,7 @@ export const LiveListView = React.memo(function LiveListView({
   sortable = true,
   mode = "folder-contents",
   creationParent,
+  view,
 }: LiveListViewProps) {
   const { documents, isLoading } = useDocuments(parent, mode);
 
@@ -46,6 +48,7 @@ export const LiveListView = React.memo(function LiveListView({
       enableDelete={true}
       enableSorting={true}
       enableBulkSelection={true}
+      view={view}
     />
   );
 });

@@ -5,19 +5,16 @@ import { Upload } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { PageBody } from "@/components/home/page-body";
+import { useViewMode, ViewToggle } from "@/components/home/view-toggle";
 import { useDocumentUpload } from "@/hooks/use-document-upload";
-import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
 
 // Lazy load heavy components
 const ReactHome = dynamic(() => import("@/components/home"), {
   ssr: true,
-  loading: () => (
-    <div className="flex items-center justify-center h-full">
-      {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /> */}
-    </div>
-  ),
+  loading: () => <div className="h-svh bg-background" />,
 });
 
 const LiveFoldersView = dynamic(
@@ -49,6 +46,7 @@ export default function HomePage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [_dragCounter, setDragCounter] = useState(0);
   const { uploadFiles, isUploading, uploadingFiles } = useDocumentUpload();
+  const [view, setView] = useViewMode();
 
   useEffect(() => {
     // Give auth state time to initialize
@@ -133,17 +131,13 @@ export default function HomePage() {
 
   // Show loading while checking auth
   if (isChecking || authState.isLoading || !authState.user) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        {/* <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /> */}
-      </div>
-    );
+    return <div className="h-svh bg-background" />;
   }
 
   return (
     <ReactHome pathname="/home">
       <div
-        className={cn("px-4 sm:px-6 md:px-8 lg:px-12 pb-8 md:pb-12 relative")}
+        className="relative min-h-full"
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -154,23 +148,20 @@ export default function HomePage() {
         {/* Drag Overlay */}
         {isDragOver && (
           <div
-            className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-background/50 dark:bg-background/50 pointer-events-none"
+            className="pointer-events-none absolute inset-2 z-50 flex items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-card/90"
             role="status"
             aria-live="polite"
             aria-label="Drop zone active"
           >
             <div className="text-center px-4">
-              <div className="w-20 h-20 mx-auto mb-4 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center shadow-lg border-2 border-primary/30">
-                <Upload className="w-10 h-10 text-primary" />
+              <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                <Upload className="size-5 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
+              <h3 className="mb-1 text-sm font-medium text-foreground">
                 Drop documents to upload
               </h3>
               <p className="text-muted-foreground text-sm max-w-md">
                 PDF and Word documents will be converted and added to your vault
-              </p>
-              <p className="text-muted-foreground text-xs mt-2">
-                Or press Escape to cancel
               </p>
             </div>
           </div>
@@ -179,13 +170,13 @@ export default function HomePage() {
         {/* Upload Progress Indicator */}
         {isUploading && uploadingFiles.size > 0 && (
           <div
-            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 bg-card dark:bg-card rounded-xl shadow-2xl border border-border p-4 min-w-[300px] max-w-[90vw] sm:max-w-[400px]"
+            className="fixed right-4 bottom-4 z-50 w-80 max-w-[90vw] rounded-lg border border-border bg-popover p-3 shadow-float"
             role="status"
             aria-live="polite"
             aria-label="Upload progress"
           >
-            <h4 className="font-semibold text-sm mb-3 text-foreground">
-              Uploading Documents
+            <h4 className="mb-2 text-sm font-medium text-foreground">
+              Uploading documents
             </h4>
             <div className="space-y-3">
               {Array.from(uploadingFiles.entries()).map(([id, fileInfo]) => (
@@ -198,9 +189,9 @@ export default function HomePage() {
                       {fileInfo.progress}%
                     </span>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                  <div className="h-0.5 w-full overflow-hidden rounded-full bg-muted">
                     <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
+                      className="h-full bg-primary transition-all duration-300 ease-out"
                       style={{ width: `${fileInfo.progress}%` }}
                       role="progressbar"
                       aria-valuenow={fileInfo.progress}
@@ -214,26 +205,30 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="w-full flex flex-col gap-y-10 md:gap-y-12">
-          {/* {showBanner && <Banner />} */}
-
-          <LiveFoldersView
-            showHeadline={true}
-            headlineText="Recent Folders"
-            mode="recent-folders"
-            defaultSortField="modified"
-            collapsible={true} creationParent={authState.user.id}
-            sortable={true}
-          />
-          <LiveListView
-            headlineText="Quick Access"
-            showHeadline={true} creationParent={authState.user.id}
-            defaultSortField="modified"
-            collapsible={true}
-            sortable={true}
-            mode="recent-files"
-          />
-        </div>
+        <PageBody
+          title="Your documents"
+          actions={<ViewToggle view={view} onChange={setView} />}
+        >
+          <div className="flex flex-col gap-10">
+            <LiveFoldersView
+              showHeadline={false}
+              mode="recent-folders"
+              defaultSortField="modified"
+              collapsible={false}
+              creationParent={authState.user.id}
+              sortable={true}
+            />
+            <LiveListView
+              showHeadline={false}
+              creationParent={authState.user.id}
+              defaultSortField="modified"
+              collapsible={false}
+              sortable={true}
+              mode="recent-files"
+              view={view}
+            />
+          </div>
+        </PageBody>
       </div>
     </ReactHome>
   );

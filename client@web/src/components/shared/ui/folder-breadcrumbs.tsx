@@ -1,3 +1,6 @@
+import { ChevronRight } from "lucide-react";
+import { Fragment } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useFolderBreadcrumbs } from "@/hooks/use-folder-breadcrumbs";
 
 interface FolderBreadcrumbsProps {
@@ -8,33 +11,36 @@ export function FolderBreadcrumbs({ folderId }: FolderBreadcrumbsProps) {
   const { breadcrumbs, isLoading } = useFolderBreadcrumbs(folderId);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center text-sm text-muted-foreground">
-        Loading...
-      </div>
-    );
+    return <Skeleton className="h-7 w-48 rounded bg-muted" />;
   }
 
-  if (breadcrumbs.length === 0) {
-    return null;
-  }
+  const current = breadcrumbs.at(-1);
+  if (!current) return null;
+  const trail = breadcrumbs.slice(0, -1);
 
   return (
-    <div className="flex items-center text-sm text-muted-foreground">
-      {breadcrumbs.map((item, index) => (
-        <span key={item.id} className="flex items-center">
-          {index > 0 && <span className="mx-2">/</span>}
-          <span
-            className={
-              index === breadcrumbs.length - 1
-                ? "text-foreground font-medium"
-                : ""
-            }
-          >
-            {item.name}
-          </span>
-        </span>
-      ))}
+    <div className="min-w-0">
+      {trail.length > 0 && (
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-1 flex min-w-0 items-center gap-1 text-[13px] text-muted-foreground"
+        >
+          {trail.map((item, index) => (
+            <Fragment key={item.id}>
+              {index > 0 && <ChevronRight className="size-3 shrink-0" />}
+              <a
+                href={`/folder/${item.id}`}
+                className="truncate transition-colors hover:text-foreground"
+              >
+                {item.name}
+              </a>
+            </Fragment>
+          ))}
+        </nav>
+      )}
+      <h1 className="truncate font-serif text-2xl font-medium tracking-tight">
+        {current.name}
+      </h1>
     </div>
   );
 }

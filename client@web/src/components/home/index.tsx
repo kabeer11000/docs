@@ -19,30 +19,24 @@ export default function HomePage({
   editorHeaderContent,
   ...props
 }: PageProps) {
-  // Use larger header only for home page
-  const isHomePage = pathname === "/home";
-  const headerHeight = isHomePage
-    ? "calc(var(--spacing) * 14)"
-    : "calc(var(--spacing) * 12)";
-
   return (
     <SidebarProvider
       defaultOpen={!isEditorPage}
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": headerHeight,
+          "--sidebar-width": "calc(var(--spacing) * 60)",
+          "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
     >
       <AppSidebar pathname={pathname} {...props} variant="inset" />
-      <SidebarInset className="overflow-hidden border">
+      <SidebarInset className="h-svh overflow-hidden bg-background md:peer-data-[variant=inset]:rounded-none md:peer-data-[variant=inset]:shadow-none">
         <SiteHeader
           hideSearch={hideSearch}
           isEditorPage={isEditorPage}
           editorHeaderContent={editorHeaderContent}
         />
-        <div className="w-full h-[calc(100vh-var(--header-height))] overflow-y-auto scrollbar-hide">
+        <div className="min-h-0 w-full flex-1 overflow-y-auto scrollbar-hide">
           {children}
         </div>
       </SidebarInset>

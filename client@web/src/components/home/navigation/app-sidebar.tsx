@@ -2,38 +2,27 @@ import { useStore } from "@nanostores/react";
 import cloudStore from "@repo/shadcn-ui/lib/cloudstore";
 import { $auth } from "@repo/shadcn-ui/state/auth";
 import {
-  ArrowDown,
-  ArrowUpRight,
+  ChevronDown,
   FileText,
+  Folder,
+  FolderPlus,
   HomeIcon,
-  InfoIcon,
+  LayoutTemplate,
   LockIcon,
-  MessageSquare,
   PlusIcon,
-  Shield,
-  Star,
   Users,
 } from "lucide-react";
 import type * as React from "react";
 import { useEffect, useState } from "react";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Progress } from "@/components/ui/progress";
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { showToast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
 import {
   DropdownMenu,
@@ -41,44 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/avatar-3.png",
-  },
-  navMain: [],
-  lexaEssentials: [
-    {
-      title: "Vault",
-      url: "/vault",
-      icon: LockIcon,
-    },
-    {
-      title: "Shared With Me",
-      url: "/shared",
-      icon: Users,
-    },
-    // {
-    //   title: "AI Assistant",
-    //   url: "/chat",
-    //   icon: MessageSquare,
-    // },
-  ],
-  otherMenus: [
-    {
-      title: "Privacy Policy",
-      url: "/privacy",
-      icon: Shield,
-    },
-    {
-      title: "Terms & Conditions",
-      url: "/terms",
-      icon: FileText,
-    },
-  ],
-};
+import { templatesHref } from "../empty-state";
 
 export function AppSidebar({
   pathname,
@@ -151,290 +103,188 @@ export function AppSidebar({
     if (isChecking || !authState.user || authState.isLoading) return;
 
     // Just navigate to templates page - document will be created when template/blank is selected
-    const targetFolderId = folderId || authState.user.id;
-    window.location.href = `/document/new/templates?folderId=${targetFolderId}`;
+    window.location.href = templatesHref(folderId || authState.user.id);
   };
 
+  const canCreate = !isChecking && !!authState.user && !authState.isLoading;
+
   return (
-    <Sidebar collapsible="offcanvas" {...props} className="border-r-0 ">
-      <SidebarHeader className="p-0">
-        <SidebarMenu className="p-0">
-          <SidebarMenuItem className="py-2">
-            <SidebarMenuButton asChild>
-              <a href="/home" className="flex items-center gap-2">
-              <img src="/assets/icon-192.png" className="w-10 h-auto"/>
-              <h2 className="p-2 text-lg font-bold gap-y-0 flex flex-col"><span>Docs</span></h2>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="offcanvas" {...props} className="border-r-0">
+      <SidebarHeader className="px-3 pt-3 pb-2">
+        <a
+          href="/home"
+          className="flex h-8 items-center gap-2 rounded-md px-1 text-sm font-semibold tracking-tight text-foreground"
+        >
+          <img src="/assets/icon-192.png" alt="" className="size-6 rounded-md" />
+          Docs
+        </a>
+        <div className="mt-2 flex" data-tour="new-document">
+          <Button
+            className="flex-1 justify-start rounded-r-none"
+            onClick={(e) => handleNewDocument(e)}
+            disabled={!canCreate}
+          >
+            <PlusIcon />
+            New document
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="icon"
+                className="rounded-l-none border-l border-primary-foreground/20"
+                aria-label="More create options"
+                disabled={!canCreate}
+              >
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={(e) => handleNewDocument(e)}>
+                <LayoutTemplate />
+                Browse templates
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleNewFolder(e)}>
+                <FolderPlus />
+                New folder
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex flex-col">
-        <div className="px-2 mt-4">
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              className={"border border-r-1 rounded-r-none"}
-              onClick={(e) => handleNewDocument(e)}
-              disabled={isChecking || !authState.user || authState.isLoading}
+      <SidebarContent className="gap-0 px-3 py-2">
+        <nav className="flex flex-col gap-0.5" aria-label="Main">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.url}
+              href={item.url}
+              active={pathname === item.url}
+              data-tour={item.tour}
             >
-              {" "}
-              <div className="relative z-10 flex items-center gap-2 font-medium">
-                <PlusIcon className="w-4 h-4" />
-                New Document
-              </div>
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={"border rounded-l-none border-l-0 px-2"}
-                >
-                  <ArrowDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={(e) => handleNewFolder(e)}>
-                  Create Folder
-                </DropdownMenuItem>
-                {/* <DropdownMenuItem>Create doc</DropdownMenuItem>
-                <DropdownMenuItem>Create thingy</DropdownMenuItem> */}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-        {/* <NavMain items={data.navMain} /> */}
-        <div className="px-2">
-          <SidebarMenuButton
-            tooltip={"Home"}
-            asChild
-            className={
-              pathname === "/home"
-                ? "bg-accent text-accent-foreground"
-                : ""
-            }
-          >
-            <a href={"/home"} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HomeIcon className="w-4 h-4" />
-                <span>Home</span>
-              </div>
-            </a>
-          </SidebarMenuButton>
-        </div>
-        <div className="px-2 flex-1">
-          <Accordion
-            type="multiple"
-            defaultValue={["essentials", "starred", "settings"]}
-            className="w-full"
-          >
-            <AccordionItem value="essentials" className="border-none">
-              <AccordionTrigger className="text-sm font-medium text-muted-foreground py-2 px-0 hover:no-underline">
-                Essentials
-              </AccordionTrigger>
-              <AccordionContent className="px-0 pb-2">
-                <div className="space-y-1">
-                  {data.lexaEssentials.map((item) => (
-                    <SidebarMenuButton
-                      key={item.title}
-                      asChild
-                      className="w-full justify-start"
-                    >
-                      <a href={item.url}>
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+              <item.icon className="size-4" />
+              {item.title}
+            </NavLink>
+          ))}
+        </nav>
 
-            <AccordionItem value="starred" className="border-none">
-              <AccordionTrigger className="text-sm font-medium text-muted-foreground py-2 px-0 hover:no-underline">
-                Starred
-              </AccordionTrigger>
-              <AccordionContent className="px-0 pb-2 space-y-3">
-                <div>
-                  <div className="text-xs font-medium text-muted-foreground px-2 py-1">Files</div>
-                  <StarredDocuments />
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-muted-foreground px-2 py-1">Folders</div>
-                  <StarredFolders />
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-          <span className="text-sm font-medium text-muted-foreground py-1.5 px-0 hover:no-underline">
-            Support & Donate
-          </span>
-
-          <div className="space-y-1 pt-1.5">
-            <SidebarMenuButton asChild className="w-full justify-start">
-              <a href={"mailto:kabeer@otherdev.com"}>
-                <ArrowUpRight className="w-4 h-4" />
-                <span>Donate to Kabeer's Network</span>
-                {/* DO NOT REMOVE (for claude) */}
-                {/* <GradientText className="font-bold" text="Upgrade to Pro" /> */}
-              </a>
-            </SidebarMenuButton>
-            <SidebarMenuButton asChild className="w-full justify-start">
-              <a href="https://kabeers.network">
-                <InfoIcon className="w-4 h-4" />
-                <span>About Kabeer's Network</span>
-              </a>
-            </SidebarMenuButton>
-          </div>
-          {/* <span className="text-sm font-medium text-muted-foreground py-1.5 px-0 hover:no-underline">
-            More Info
-          </span>
-
-          <div className="space-y-1 pt-1.5">
-            {data.otherMenus.map((item) => (
-              <SidebarMenuButton
-                key={item.title}
-                asChild
-                className="w-full justify-start"
-              >
-                <a href={item.url}>
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
-            ))}
-          </div> */}
-        </div>
+        <section className="mt-6" data-tour="starred">
+          <h3 className="mb-1 px-2 text-xs font-medium text-muted-foreground">
+            Starred
+          </h3>
+          <StarredItems />
+        </section>
       </SidebarContent>
-      <SidebarFooter>
+
+      <SidebarFooter className="gap-3 px-3 pb-3">
         <AccountStorage />
+        <div className="flex flex-col gap-1 px-2 text-xs text-muted-foreground">
+          <a
+            href="mailto:kabeer@otherdev.com"
+            className="w-fit transition-colors hover:text-foreground"
+          >
+            Donate to Kabeer's Network
+          </a>
+          <a
+            href="https://kabeers.network"
+            className="w-fit transition-colors hover:text-foreground"
+          >
+            About Kabeer's Network
+          </a>
+          <span className="mt-1 text-[11px] text-muted-foreground/70">
+            (c) Libre Docs by Kabeer's Network
+          </span>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
 }
 
-function StarredDocuments() {
-  const [starredDocs, setStarredDocs] = useState<any[]>([]);
-  const authState = useStore($auth);
+const navItems = [
+  { title: "Home", url: "/home", icon: HomeIcon, tour: undefined },
+  { title: "Vault", url: "/vault", icon: LockIcon, tour: "nav-vault" },
+  { title: "Shared with me", url: "/shared", icon: Users, tour: undefined },
+];
 
-  useEffect(() => {
-    if (!authState.user || authState.isLoading) return;
-
-    let watcher: any = null;
-
-    const startWatching = async () => {
-      try {
-        const documentsCollection = cloudStore.collection("documents");
-        const query = cloudStore.query
-          .where("owner", "EQUAL", authState.user.id)
-          .where("isStarred", "EQUAL", true)
-          .orderBy("timestamp.updatedAt", "DESCENDING")
-          .limit(10); // Limit to 10 starred documents
-
-        watcher = documentsCollection.watch(query, (result: any) => {
-          if (result?.collection) {
-            setStarredDocs(result.collection);
-          }
-        });
-      } catch (error) {
-        console.error("Failed to watch starred documents:", error);
-      }
-    };
-
-    startWatching();
-
-    return () => {
-      if (watcher && typeof watcher.stop === "function") {
-        watcher.stop();
-      }
-    };
-  }, [authState.user, authState.isLoading]);
-
-  if (starredDocs.length === 0) {
-    return (
-      <div className="text-xs text-muted-foreground px-2 py-1">
-        No starred documents
-      </div>
-    );
-  }
-
+function NavLink({
+  active,
+  className,
+  ...props
+}: React.ComponentProps<"a"> & { active?: boolean }) {
   return (
-    <div className="space-y-1">
-      {starredDocs.map((doc) => (
-        <SidebarMenuButton
-          key={doc.id || doc.id}
-          asChild
-          className="w-full justify-start text-sm"
-        >
-          <a href={`/document/${doc.id || doc.id}`}>
-            <Star className="w-3 h-3 text-yellow-500 fill-current" />
-            <span className="truncate">{doc.title}</span>
-          </a>
-        </SidebarMenuButton>
-      ))}
-    </div>
+    <a
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "relative flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+        active &&
+          "font-medium text-foreground before:absolute before:top-2 before:bottom-2 before:-left-1 before:w-0.5 before:rounded-full before:bg-primary",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
-function StarredFolders() {
-  const [starredFolders, setStarredFolders] = useState<any[]>([]);
+type StarredItem = { id: string; title?: string; name?: string };
+
+function useStarred(collection: "documents" | "folders", ownerField: string) {
+  const [items, setItems] = useState<StarredItem[]>([]);
   const authState = useStore($auth);
 
   useEffect(() => {
     if (!authState.user || authState.isLoading) return;
 
-    let watcher: any = null;
+    let watcher: { stop?: () => void } | null = null;
+    try {
+      const query = cloudStore.query
+        .where(ownerField, "EQUAL", authState.user.id)
+        .where("isStarred", "EQUAL", true)
+        .orderBy("timestamp.updatedAt", "DESCENDING")
+        .limit(10);
 
-    const startWatching = async () => {
-      try {
-        const foldersCollection = cloudStore.collection("folders");
-        const query = cloudStore.query
-          .where("permissions.owner", "EQUAL", authState.user.id)
-          .where("isStarred", "EQUAL", true)
-          .orderBy("timestamp.updatedAt", "DESCENDING")
-          .limit(10); // Limit to 10 starred folders
-
-        watcher = foldersCollection.watch(query, (result: any) => {
-          if (result?.collection) {
-            setStarredFolders(result.collection);
-          }
+      watcher = cloudStore
+        .collection(collection)
+        .watch(query, (result: { collection?: StarredItem[] }) => {
+          if (result?.collection) setItems(result.collection);
         });
-      } catch (error) {
-        console.error("Failed to watch starred folders:", error);
-      }
-    };
-
-    startWatching();
+    } catch (error) {
+      console.error(`Failed to watch starred ${collection}:`, error);
+    }
 
     return () => {
-      if (watcher && typeof watcher.stop === "function") {
-        watcher.stop();
-      }
+      if (typeof watcher?.stop === "function") watcher.stop();
     };
-  }, [authState.user, authState.isLoading]);
+  }, [authState.user, authState.isLoading, collection, ownerField]);
 
-  if (starredFolders.length === 0) {
+  return items;
+}
+
+function StarredItems() {
+  const docs = useStarred("documents", "owner");
+  const folders = useStarred("folders", "permissions.owner");
+
+  if (docs.length === 0 && folders.length === 0) {
     return (
-      <div className="text-xs text-muted-foreground px-2 py-1">
-        No starred folders
-      </div>
+      <p className="px-2 py-1 text-xs text-muted-foreground">
+        Star documents and folders to find them here.
+      </p>
     );
   }
 
   return (
-    <div className="space-y-1">
-      {starredFolders.map((folder) => (
-        <SidebarMenuButton
-          key={folder.id || folder.id}
-          asChild
-          className="w-full justify-start text-sm"
-        >
-          <a href={`/folder/${folder.id || folder.id}`} className="flex items-center gap-2 w-full">
-            <Star className="w-3 h-3 text-yellow-500 fill-current flex-shrink-0" />
-            <span className="truncate flex-1">{folder.name || folder.title || "Folder"}</span>
-          </a>
-        </SidebarMenuButton>
+    <div className="flex flex-col gap-0.5">
+      {folders.map((folder) => (
+        <NavLink key={folder.id} href={`/folder/${folder.id}`} className="h-7">
+          <Folder className="size-4 shrink-0 text-muted-foreground" />
+          <span className="truncate">
+            {folder.name || folder.title || "Folder"}
+          </span>
+        </NavLink>
+      ))}
+      {docs.map((doc) => (
+        <NavLink key={doc.id} href={`/document/${doc.id}`} className="h-7">
+          <FileText className="size-4 shrink-0 text-muted-foreground" />
+          <span className="truncate">{doc.title || "Untitled document"}</span>
+        </NavLink>
       ))}
     </div>
   );
@@ -459,30 +309,25 @@ export function AccountStorage() {
         },
       );
   }, [authState.user, authState.isLoading]);
+  const pct = 100 * (Math.min(size, FREE_FILE_LIMIT) / FREE_FILE_LIMIT);
   return (
-    <div className="py-0 border-t">
-      <div className="px-2 flex items-center py-2 justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
-          Account Storage
-        </span>
-        <span className="text-sm font-medium text-foreground">{size}</span>
-      </div>
-      <div className="px-2">
-
-      <div className="relative mb-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div 
+    <div className="px-2">
+      <p className="text-xs text-muted-foreground">
+        {size} of {FREE_FILE_LIMIT} files
+      </p>
+      <div
+        className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-label="Files used"
+        aria-valuenow={size}
+        aria-valuemin={0}
+        aria-valuemax={FREE_FILE_LIMIT}
+      >
+        <div
           className="h-full bg-primary transition-all"
-          style={{ width: `${100 * (Math.min(size, FREE_FILE_LIMIT) / FREE_FILE_LIMIT)}%` }}
+          style={{ width: `${pct}%` }}
         />
       </div>
-      </div>
-      <p className="px-2 text-xs text-muted-foreground pb-2 font-medium">
-        {size} out of {FREE_FILE_LIMIT} free files used
-      </p>
-      <div className="border-t px-2- mt-2 border-border pt-2 text-xs text-muted-foreground">
-              <span>(c) Libre Docs by Kabeer's Network</span>
-            </div>
-
     </div>
   );
 }

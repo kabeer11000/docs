@@ -6,6 +6,8 @@ import { useEffect } from "react";
 import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
 import ReactHome from "@/components/home";
+import { PageBody } from "@/components/home/page-body";
+import { useViewMode, ViewToggle } from "@/components/home/view-toggle";
 
 const LiveListView = dynamic(
   () =>
@@ -17,6 +19,7 @@ const LiveListView = dynamic(
 
 export default function SharedPage() {
   const authState = useStore($auth);
+  const [view, setView] = useViewMode();
 
   useEffect(() => {
     if (authState.isInitialized && authState.user) {
@@ -26,25 +29,21 @@ export default function SharedPage() {
 
   // Show loading while auth is initializing
   if (!authState.isInitialized || !authState.user) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-      </div>
-    );
+    return <div className="h-svh bg-background" />;
   }
 
   return (
     <ReactHome pathname="/shared">
-      <div className="px-2 md:px-4 py-2">
-        <div className="mx-auto max-w-7xl flex flex-col gap-y-8">
-          <LiveListView
-            headlineText="Shared with me"
-            showHeadline={true} creationParent={authState.user.id}
-            defaultSortField="modified"
-            collapsible={true}
-            mode="shared-with-me"
-          />
-        </div>
-      </div>
+      <PageBody title="Shared with me" actions={<ViewToggle view={view} onChange={setView} />}>
+        <LiveListView
+          showHeadline={false}
+          creationParent={authState.user.id}
+          defaultSortField="modified"
+          collapsible={false}
+          mode="shared-with-me"
+          view={view}
+        />
+      </PageBody>
     </ReactHome>
   );
 }

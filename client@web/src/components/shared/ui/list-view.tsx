@@ -12,14 +12,12 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
-  ChevronDown,
   Copy,
   Download,
   Edit,
   ExternalLink,
-  FileText,
   Folder,
-  MoreVertical,
+  MoreHorizontal,
   Share,
   Trash,
   Users,
@@ -33,14 +31,13 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { PiFilePdf, PiFileText, PiInfo } from "react-icons/pi";
+import { PiFilePdf, PiFileText } from "react-icons/pi";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
   DeleteConfirmationDialog,
@@ -54,11 +51,8 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Sheet,
@@ -76,19 +70,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useLocationNames } from "@/hooks/use-location-names";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserNames } from "@/hooks/use-user-names";
-import cloudStore from "@/lib/cloudstore";
 import { FolderIcon } from "@/lib/folder-icons";
 import { $auth } from "@/state/auth";
-import { Avatar } from "../../ui/avatar";
+import { EmptyState } from "@/components/home/empty-state";
+import { FolderTab } from "@/components/home/folder-tab";
+import { ItemMenu } from "@/components/home/item-menu";
+import { PaperSheet } from "@/components/home/paper-sheet";
+import { SectionHeader } from "@/components/home/section-header";
+import { $documents } from "@/state/cloudstore-data";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "../../ui/avatar";
 
 export interface IListItem extends Omit<IFileItem, "meta"> {
   // Extend with folder-specific properties when it's a folder
@@ -139,6 +136,8 @@ export interface IListViewProps {
   defaultSortDirection?: SortDirection;
   // Bulk selection
   enableBulkSelection?: boolean;
+  /** "grid" shows files as paper thumbnails and folders as tabs. */
+  view?: "list" | "grid";
 }
 
 function getFileIcon(fileName: string) {
@@ -174,6 +173,7 @@ export const ListView = React.memo(function ListView({
   defaultSortDirection = "asc",
   creationParent,
   enableBulkSelection = false,
+  view = "list",
 }: IListViewProps) {
   const { user } = useStore($auth);
   const { getUserName, getUserInitials } = useUserNames();
@@ -219,6 +219,11 @@ export const ListView = React.memo(function ListView({
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const isMobile = useIsMobile();
   const { getLocationName } = useLocationNames();
+  const allDocuments = useStore($documents);
+  const firstPageById = useMemo(
+    () => new Map(allDocuments.map((d) => [d.id, d.pages?.[0]?.content])),
+    [allDocuments],
+  );
   const {
     deleteDocument,
     deleteFolder,
@@ -441,12 +446,12 @@ export const ListView = React.memo(function ListView({
   const getSortIcon = useCallback(
     (field: SortField) => {
       if (!enableSorting || sortField !== field) {
-        return <ArrowUpDown className="w-4 h-4 opacity-50" />;
+        return <ArrowUpDown className="size-3 opacity-0 group-hover:opacity-60" />;
       }
       return sortDirection === "asc" ? (
-        <ArrowUp className="w-4 h-4" />
+        <ArrowUp className="size-3" />
       ) : (
-        <ArrowDown className="w-4 h-4" />
+        <ArrowDown className="size-3" />
       );
     },
     [enableSorting, sortField, sortDirection],
@@ -734,7 +739,7 @@ export const ListView = React.memo(function ListView({
                 : ""
             }
           >
-            <action.icon className="mr-2 h-4 w-4" />
+            <action.icon />
             {typeof action.label === "function"
               ? action.label(item)
               : action.label}
@@ -748,741 +753,461 @@ export const ListView = React.memo(function ListView({
     [menuActions, handleItemAction],
   );
 
-  const ItemRowSkeleton = () => (
-    <TableRow className="group border-t-border hover:bg-muted transition-colors">
-      <TableCell className="p-0 sm:p-4 md:p-6 rounded-l-md">
-        <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
-          <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-            <Skeleton className="h-6 w-6 rounded" />
-          </div>
-          <div className="flex flex-col min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-4 w-32 rounded" />
-            </div>
-            <div className="sm:hidden mt-1">
-              <Skeleton className="h-3 w-24 rounded" />
-            </div>
-          </div>
-        </div>
-      </TableCell>
-
-      <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
-        <Skeleton className="h-3 w-28 rounded" />
-      </TableCell>
-
-      <TableCell className="hidden md:table-cell p-2 md:p-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Skeleton className="h-6 w-6 rounded-full" />
-          <Skeleton className="h-3 w-6 rounded" />
-        </div>
-      </TableCell>
-
-      <TableCell className="hidden lg:table-cell p-2 md:p-2">
-        <div className="flex items-center transition-colors rounded-full">
-          <Skeleton className="h-3 w-3 rounded-full mr-1" />
-          <Skeleton className="h-3 w-16 rounded" />
-        </div>
-      </TableCell>
-
-      <TableCell className="text-center rounded-r-md p-2 md:p-2">
-        <Skeleton className="h-4 w-4 rounded mx-auto" />
-      </TableCell>
-    </TableRow>
+  const anySelected = selectedItems.size > 0;
+  const allSelected =
+    sortedItems.length > 0 && selectedItems.size === sortedItems.length;
+  const columnCount = enableBulkSelection ? 6 : 5;
+  const checkboxClass = cn(
+    "size-4 rounded-[4px] transition-opacity data-[state=checked]:opacity-100",
+    anySelected ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
   );
 
-  const EmptyState = () => {
-    const getEmptyStateContent = () => {
-      const folderId = creationParent || parent || "root";
-      if (mode === "recent-files") {
-        return {
-          icon: FileText,
-          title: "No recent files",
-          description: "Create your first document to get started",
-          action: "Create Document",
-          actionLink: `/document/new/templates?folderId=${folderId}`,
-        };
-      } else {
-        return {
-          icon: FileText,
-          title: "This folder is empty",
-          description: "Create your first document to get started",
-          action: "Create Document",
-          actionLink: `/document/new/templates?folderId=${folderId}`,
-        };
-      }
-    };
-
-    const {
-      icon: Icon,
-      title,
-      description,
-      action,
-      actionLink,
-    } = getEmptyStateContent();
-
+  const emptyState = (() => {
+    if (mode === "shared-with-me") {
+      return (
+        <EmptyState
+          title="Nothing shared with you yet"
+          description="When someone shares a document with you, it shows up here."
+        />
+      );
+    }
+    const folderId = creationParent || parent || user?.id || "";
+    if (mode === "folder-contents" && parent && parent !== user?.id) {
+      return (
+        <EmptyState
+          title="This folder is empty"
+          description="Start a document here or pick a template."
+          folderId={folderId}
+        />
+      );
+    }
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="mb-6 p-4 rounded-2xl bg-muted dark:bg-muted/50">
-          <Icon className="w-12 h-12 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
-        <p className="text-sm text-muted-foreground max-w-sm mb-6">
-          {description}
-        </p>
-        <Button asChild size="lg">
-          <a href={actionLink}>{action}</a>
-        </Button>
-      </div>
+      <EmptyState
+        title="Start your first document"
+        description="Write on a blank page or pick a template."
+        folderId={folderId}
+      />
     );
-  };
+  })();
 
-  // Memoized individual row component for maximum performance
-  const _TableRowItem = React.memo(({ item }: { item: IListItem }) => {
+  const sortHeader = (field: SortField, label: string) =>
+    enableSorting ? (
+      <button
+        type="button"
+        className="-ml-1 inline-flex h-7 items-center gap-1 rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+        onClick={() => handleSort(field)}
+      >
+        {label}
+        {getSortIcon(field)}
+      </button>
+    ) : (
+      label
+    );
+
+  const renderItem = (item: IListItem & { formattedDate?: string }) => {
     const isItemProcessing = isProcessing.has(item.id);
+    const isSelected = selectedItems.has(item.id);
+    const isOwner = !!user && item.owner === user.id;
+    const ownerName = isOwner ? "You" : getUserName(item.owner);
+    const isSharedWithMe = !!item.sharing?.isShared && !isOwner;
+    const locationName = isSharedWithMe
+      ? "Shared with me"
+      : getLocationName(item.location);
+    const detail =
+      item.itemType === "folder"
+        ? `${item.meta?.fileCount || 0} files`
+        : `Edited ${item.formattedDate}`;
+    const FileIcon = getFileIcon(item.name);
+
     const itemElement = (
       <TableRow
-        className={`group border-t-border hover:bg-muted transition-colors cursor-pointer ${isItemProcessing ? "opacity-50 pointer-events-none" : ""}`}
+        key={item.id}
+        data-state={isSelected ? "selected" : undefined}
+        className={cn(
+          "group h-10 cursor-pointer border-border/60 hover:bg-accent data-[state=selected]:bg-accent",
+          isItemProcessing && "pointer-events-none opacity-50",
+        )}
+        onClick={() => handleItemClick(item)}
       >
-        <TableCell
-          className="p-0 sm:p-2 md:p-2 rounded-tl-md rounded-bl-md"
-          onClick={() => handleItemClick(item)}
-        >
-          <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
-            <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-              {item.itemType === "folder" ? (
-                <FolderIcon
-                  folder={item as unknown as IFolderItem}
-                  className="w-6 h-6"
-                />
-              ) : (
-                (() => {
-                  const IconComponent = getFileIcon(item.name);
-                  return (
-                    <IconComponent className="w-6 h-6 text-muted-foreground" />
-                  );
-                })()
-              )}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-foreground truncate">
+        {enableBulkSelection && (
+          <TableCell
+            className="w-9 py-0 pr-0 pl-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => toggleItemSelection(item.id)}
+              aria-label={`Select ${item.name}`}
+              className={checkboxClass}
+            />
+          </TableCell>
+        )}
+        <TableCell className={cn("py-0", !enableBulkSelection && "pl-3")}>
+          <div className="flex min-w-0 items-center gap-2.5">
+            {item.itemType === "folder" ? (
+              <FolderIcon
+                folder={item as unknown as IFolderItem}
+                className="size-4 shrink-0"
+              />
+            ) : (
+              <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+            )}
+            <div className="flex min-w-0 flex-col">
+              <span className="flex items-center gap-1.5">
+                <span className="truncate font-serif text-[14px] font-medium text-foreground">
                   {item.name}
                 </span>
                 {item.sharing?.isShared && (
-                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <Users
+                    className="size-3.5 shrink-0 text-muted-foreground"
+                    aria-label="Shared"
+                  />
                 )}
-              </div>
-              <div className="sm:hidden text-sm text-muted-foreground mt-1">
-                {item.itemType === "folder"
-                // ${item.category} • 
-                  ? `${item.meta?.fileCount || 0} Files`
-                  : `You edited • ${formatDistanceToNow(new Date(item.timestamp.createdAt), { addSuffix: true })}`}
-              </div>
+              </span>
+              <span className="truncate text-xs text-muted-foreground sm:hidden">
+                {detail}
+              </span>
             </div>
           </div>
         </TableCell>
 
-        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
-          {item.itemType === "folder"
-          // ${item.category} • 
-            ? `${item.meta?.fileCount || 0} Files`
-            : `You edited • ${formatDistanceToNow(new Date(item.timestamp.createdAt), { addSuffix: true })}`}
-        </TableCell>
-
-        <TableCell className="hidden md:table-cell p-2 md:p-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Tooltip>
-              <TooltipTrigger>
-                <Avatar className="bg-primary/60 text-white border text-center items-center flex justify-center">
+        <TableCell className="hidden py-0 text-muted-foreground md:table-cell">
+          <span className="flex min-w-0 items-center gap-2">
+            {!isOwner && (
+              <Avatar className="size-5 shrink-0">
+                <AvatarFallback className="text-[10px] font-medium text-muted-foreground">
                   {getUserInitials(item.owner)}
-                </Avatar>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{getUserName(item.owner)}</p>
-              </TooltipContent>
-            </Tooltip>
-            <span className="truncate">{getUserName(item.owner)}</span>
-          </div>
+                </AvatarFallback>
+              </Avatar>
+            )}
+            <span className="truncate">{ownerName}</span>
+          </span>
         </TableCell>
 
-        <TableCell className="hidden lg:table-cell p-2 md:p-2">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"ghost"}
-                size={"sm"}
-                className="flex items-center transition-colors rounded-full cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // Navigate to the actual folder location
-                  if (item.location && item.location !== "root") {
-                    window.location.href = `/folder/${item.location}`;
-                  } else {
-                    // If no location or root, go to vault
-                    window.location.href = "/vault";
-                  }
-                }}
-              >
-                <Folder className="w-3 h-3" />
-                <span className="truncate">
-                  {item.sharing?.isShared && item.owner !== user?.id
-                    ? "Shared with me"
-                    : getLocationName(item.location)}
-                </span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                Go to{" "}
-                {item.sharing?.isShared && item.owner !== user?.id
-                  ? "Shared with me"
-                  : getLocationName(item.location)}
-              </p>
-            </TooltipContent>
-          </Tooltip>
+        <TableCell className="hidden py-0 text-muted-foreground sm:table-cell">
+          {item.itemType === "folder" ? detail : item.formattedDate}
         </TableCell>
 
-        <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-2">
-          {isMobile ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="p-1 h-auto aspect-square text-muted-foreground group-hover:text-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity rounded-full"
-              onClick={(e) => handleDotsClick(item, e)}
-              aria-label={`More actions for ${item.name}`}
-            >
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          ) : (
-            enableDropdownMenu && (
-              <DropdownMenu
-                open={openDropdowns.has(item.id)}
-                onOpenChange={(open) => toggleDropdown(item.id, open)}
-              >
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="p-1 aspect-square h-auto text-muted-foreground group-hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    aria-label={`More actions for ${item.name}`}
-                  >
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {renderMenuItems(item, false)}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )
-          )}
+        <TableCell className="hidden py-0 lg:table-cell">
+          <button
+            type="button"
+            className="inline-flex max-w-48 items-center gap-1.5 truncate text-xs text-muted-foreground transition-colors hover:text-foreground hover:underline"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href =
+                item.location && item.location !== "root"
+                  ? `/folder/${item.location}`
+                  : "/vault";
+            }}
+            title={`Go to ${locationName}`}
+          >
+            <Folder className="size-3.5 shrink-0" />
+            <span className="truncate">{locationName}</span>
+          </button>
+        </TableCell>
+
+        <TableCell
+          className="w-10 py-0 pr-2 text-right"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {itemMenu(item)}
         </TableCell>
       </TableRow>
     );
 
-    if (enableContextMenu) {
-      return (
-        <ContextMenu key={item.id}>
-          <ContextMenuTrigger asChild>{itemElement}</ContextMenuTrigger>
-          <ContextMenuContent>{renderMenuItems(item, true)}</ContextMenuContent>
-        </ContextMenu>
-      );
-    }
+    return wrapWithContextMenu(item, itemElement);
+  };
 
-    return itemElement;
-  });
+  const wrapWithContextMenu = (item: IListItem, element: React.ReactElement) =>
+    enableContextMenu ? (
+      <ContextMenu key={item.id}>
+        <ContextMenuTrigger asChild>{element}</ContextMenuTrigger>
+        <ContextMenuContent>{renderMenuItems(item, true)}</ContextMenuContent>
+      </ContextMenu>
+    ) : (
+      <Fragment key={item.id}>{element}</Fragment>
+    );
 
-  const renderItem = useCallback(
-    (item: IListItem) => {
-      const isItemProcessing = isProcessing.has(item.id);
-      const isSelected = selectedItems.has(item.id);
-      const itemElement = (
-        <TableRow
-          key={item.id}
-          className={`group border-t-border hover:bg-muted transition-colors cursor-pointer align-middle ${isItemProcessing ? "opacity-50 pointer-events-none" : ""} ${isSelected ? "bg-primary/10" : ""}`}
+  const itemMenu = (item: IListItem) =>
+    isMobile ? (
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="text-muted-foreground"
+        onClick={(e) => handleDotsClick(item, e)}
+        aria-label={`More actions for ${item.name}`}
+      >
+        <MoreHorizontal />
+      </Button>
+    ) : (
+      enableDropdownMenu && (
+        <ItemMenu
+          label={`More actions for ${item.name}`}
+          open={openDropdowns.has(item.id)}
+          onOpenChange={(open) => toggleDropdown(item.id, open)}
         >
-          {enableBulkSelection && (
-            <TableCell
-              className="w-16 p-1 sm:p-2 md:p-3 rounded-tl-md rounded-bl-md cursor-pointer [&>[role=checkbox]]:translate-y-0"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={() => toggleItemSelection(item.id)}
-                aria-label={`Select ${item.name}`}
-                className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-primary/50 bg-background/70 rounded-md data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
-              />
-            </TableCell>
-          )}
-          <TableCell
-            className={`p-0 sm:p-2 md:p-3 ${!enableBulkSelection ? "rounded-tl-md rounded-bl-md" : ""}`}
-            onClick={() => handleItemClick(item)}
-          >
-            <div className="flex items-center gap-3 min-w-0 p-2 sm:p-0">
-              <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                {item.itemType === "folder" ? (
-                  <FolderIcon
-                    folder={item as unknown as IFolderItem}
-                    className="w-6 h-6"
-                  />
-                ) : (
-                  (() => {
-                    const IconComponent = getFileIcon(item.name);
-                    return (
-                      <IconComponent className="w-6 h-6 text-muted-foreground" />
-                    );
-                  })()
-                )}
-              </div>
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-foreground truncate">
-                    {item.name}
-                  </span>
-                  {item.sharing?.isShared && (
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="sm:hidden text-sm text-muted-foreground mt-1">
-                  {item.itemType === "folder"
-                  // ${item.category} • 
-                    ? `${item.meta?.fileCount || 0} Files`
-                    : `You edited • ${(item as any).formattedDate}`}
-                </div>
-              </div>
-            </div>
-          </TableCell>
+          {renderMenuItems(item, false)}
+        </ItemMenu>
+      )
+    );
 
-          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground p-2 md:p-2">
-            {item.itemType === "folder"
-            // ${item.category} • 
-              ? `${item.meta?.fileCount || 0} Files`
-              : `You edited • ${(item as any).formattedDate}`}
-          </TableCell>
-
-          <TableCell className="hidden md:table-cell p-2 md:p-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Tooltip>
-                <TooltipTrigger>
-                  <Avatar className="bg-primary text-primary-foreground border text-center items-center flex justify-center">
-                    {getUserInitials(item.owner)}
-                  </Avatar>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{getUserName(item.owner)}</p>
-                </TooltipContent>
-              </Tooltip>
-              <span className="truncate">{getUserName(item.owner)}</span>
-            </div>
-          </TableCell>
-
-          <TableCell className="hidden lg:table-cell p-2 md:p-3">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={"ghost"}
-                  size={"sm"}
-                  className="flex items-center transition-colors rounded-full cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    // Navigate to the actual folder location
-                    if (item.location && item.location !== "root") {
-                      window.location.href = `/folder/${item.location}`;
-                    } else {
-                      // If no location or root, go to vault
-                      window.location.href = "/vault";
-                    }
-                  }}
-                >
-                  <Folder className="w-3 h-3" />
-                  <span className="truncate">
-                    {item.sharing?.isShared && item.owner !== user?.id
-                      ? "Shared with me"
-                      : getLocationName(item.location)}
-                  </span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Go to{" "}
-                  {item.sharing?.isShared && item.owner !== user?.id
-                    ? "Shared with me"
-                    : getLocationName(item.location)}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TableCell>
-
-          <TableCell className="text-center rounded-tr-md rounded-br-md p-2 md:p-2">
-            {isMobile ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="p-1 h-auto aspect-square text-muted-foreground group-hover:text-foreground opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity rounded-full"
-                onClick={(e) => handleDotsClick(item, e)}
-                aria-label={`More actions for ${item.name}`}
-              >
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            ) : (
-              enableDropdownMenu && (
-                <DropdownMenu
-                  open={openDropdowns.has(item.id)}
-                  onOpenChange={(open) => toggleDropdown(item.id, open)}
-                >
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="p-1 aspect-square h-auto text-muted-foreground group-hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity rounded-full"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      aria-label={`More actions for ${item.name}`}
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {renderMenuItems(item, false)}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )
-            )}
-          </TableCell>
-        </TableRow>
-      );
-
-      if (enableContextMenu) {
-        return (
-          <ContextMenu key={item.id}>
-            <ContextMenuTrigger asChild>{itemElement}</ContextMenuTrigger>
-            <ContextMenuContent>
-              {renderMenuItems(item, true)}
-            </ContextMenuContent>
-          </ContextMenu>
-        );
-      }
-
-      return itemElement;
-    },
-    [
-      isProcessing,
-      selectedItems,
-      openDropdowns,
-      isMobile,
-      enableBulkSelection,
-      enableDropdownMenu,
-      enableContextMenu,
-      renderMenuItems,
-      handleDotsClick,
-      handleItemClick,
-      toggleItemSelection,
-      getLocationName,
-      getUserInitials,
-      getUserName,
-      toggleDropdown,
-    ],
-  );
-
-  // Bulk action toolbar
-  const bulkActionToolbar = enableBulkSelection && selectedItems.size > 0 && (
-    <div className="sticky top-0 z-10 bg-background outline-b outline outline-muted md:lg:px-2 py-2 flex items-center justify-between shadow-sm">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={clearSelection}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-        <span className="text-sm font-medium">
-          {selectedItems.size} item{selectedItems.size > 1 ? "s" : ""} selected
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        {enableDelete && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleBulkDelete}
-            disabled={selectedItems.size === 0}
-          >
-            <Trash className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
+  const renderGridFile = (item: IListItem & { formattedDate?: string }) =>
+    wrapWithContextMenu(
+      item,
+      // biome-ignore lint/a11y/useSemanticElements: card contains a nested menu button
+      <div
+        role="link"
+        tabIndex={0}
+        aria-label={`Open ${item.name}`}
+        className={cn(
+          "group flex cursor-pointer flex-col gap-3 outline-none",
+          isProcessing.has(item.id) && "pointer-events-none opacity-50",
         )}
-      </div>
-    </div>
-  );
+        onClick={() => handleItemClick(item)}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          if (e.key === "Enter") handleItemClick(item);
+        }}
+      >
+        <PaperSheet
+          title={item.name}
+          content={firstPageById.get(item.id)}
+          className="transition-[box-shadow,transform] duration-150 group-hover:-translate-y-px group-hover:ring-1 group-hover:ring-foreground/20 group-focus-visible:ring-2 group-focus-visible:ring-ring"
+        />
+        <div className="flex items-start gap-1">
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-serif text-[14px] font-medium leading-snug text-foreground">
+              {item.name}
+            </p>
+            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="truncate">Edited {item.formattedDate}</span>
+              {item.sharing?.isShared && (
+                <Users className="size-3 shrink-0" aria-label="Shared" />
+              )}
+            </p>
+          </div>
+          <div className="-mt-0.5 -mr-1.5" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+            {itemMenu(item)}
+          </div>
+        </div>
+      </div>,
+    );
 
-  const content = (
-    <div className="rounded-lg overflow-hidden">
-      {enableBulkSelection && (
-        <div className={`${selectedItems.size > 0 ? "" : "scale-y-0 -h-16"}`}>
-          {bulkActionToolbar}
+  const renderGridFolder = (item: IListItem) =>
+    wrapWithContextMenu(
+      item,
+      <FolderTab
+        name={item.name}
+        fileCount={item.meta?.fileCount || 0}
+        onOpen={() => handleItemClick(item)}
+        disabled={isProcessing.has(item.id)}
+        actions={itemMenu(item)}
+      />,
+    );
+
+  const gridFolders = sortedItems.filter((i) => i.itemType === "folder");
+  const gridFiles = sortedItems.filter((i) => i.itemType === "file");
+
+  const gridContent = isLoading ? (
+    <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {Array.from({ length: 5 }, (_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static placeholders
+        <div key={i} className="flex flex-col gap-3">
+          <Skeleton className="aspect-[8.5/11] w-full rounded-[2px] bg-muted" />
+          <Skeleton className="h-3 w-3/4 rounded bg-muted" />
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="flex flex-col gap-8">
+      {gridFolders.length > 0 && (
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {gridFolders.map(renderGridFolder)}
         </div>
       )}
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            {enableBulkSelection && (
-              <TableHead className="w-16 p-1 sm:p-2 md:p-3">
-                <Checkbox
-                  checked={
-                    selectedItems.size === sortedItems.length &&
-                    sortedItems.length > 0
-                  }
-                  onCheckedChange={toggleSelectAll}
-                  aria-label="Select all"
-                  className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-primary/50 bg-background/70 rounded-md data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer"
-                />
-              </TableHead>
-            )}
-            <TableHead className="text-muted-foreground font-medium p-2 md:p-2">
-              {enableSorting ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto font-medium text-muted-foreground hover:text-foreground"
-                  onClick={() => handleSort("name")}
-                >
-                  Name
-                  {getSortIcon("name")}
-                </Button>
-              ) : (
-                "Name"
-              )}
-            </TableHead>
-            <TableHead className="text-muted-foreground font-medium hidden sm:table-cell p-2 md:p-2">
-              {enableSorting ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto font-medium text-muted-foreground hover:text-foreground"
-                  onClick={() => handleSort("modified")}
-                >
-                  Details
-                  {getSortIcon("modified")}
-                </Button>
-              ) : (
-                "Details"
-              )}
-            </TableHead>
-            <TableHead className="text-muted-foreground font-medium hidden md:table-cell p-2 md:p-2">
-              {enableSorting ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto font-medium text-muted-foreground hover:text-foreground"
-                  onClick={() => handleSort("owner")}
-                >
-                  Owner
-                  {getSortIcon("owner")}
-                </Button>
-              ) : (
-                "Owner"
-              )}
-            </TableHead>
-            <TableHead className="text-muted-foreground font-medium hidden lg:table-cell p-2 md:p-2">
-              {enableSorting ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto font-medium text-muted-foreground hover:text-foreground"
-                  onClick={() => handleSort("location")}
-                >
-                  Location
-                  {getSortIcon("location")}
-                </Button>
-              ) : (
-                "Location"
-              )}
-            </TableHead>
-            <TableHead className="w-12 p-2 md:p-2"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            Array.from({ length: 5 }, (_, i) => <ItemRowSkeleton key={i} />)
-          ) : sortedItems.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={enableBulkSelection ? 6 : 5} className="p-0">
-                <EmptyState />
-              </TableCell>
-            </TableRow>
-          ) : (
-            sortedItems.map(renderItem)
-          )}
-        </TableBody>
-      </Table>
+      {gridFiles.length > 0 && (
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {gridFiles.map(renderGridFile)}
+        </div>
+      )}
     </div>
   );
 
-  if (!collapsible) {
-    return (
-      <Fragment>
-        {showHeadline && (
-          <div className="flex items-center justify-between mb-0">
-            <h2 className="text-lg font-semibold mb-0">{headlineText}</h2>
+  const skeletonRows = Array.from({ length: 6 }, (_, i) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder rows
+    <TableRow key={i} className="h-10 border-border/60 hover:bg-transparent">
+      {enableBulkSelection && <TableCell className="w-9 py-0 pl-3" />}
+      <TableCell className={cn("py-0", !enableBulkSelection && "pl-3")}>
+        <div className="flex items-center gap-2.5">
+          <Skeleton className="size-4 rounded bg-muted" />
+          <Skeleton
+            className="h-3 rounded bg-muted"
+            style={{ width: `${[45, 30, 55, 38, 48, 26][i]}%` }}
+          />
+        </div>
+      </TableCell>
+      <TableCell className="hidden py-0 md:table-cell">
+        <Skeleton className="h-3 w-10 rounded bg-muted" />
+      </TableCell>
+      <TableCell className="hidden py-0 sm:table-cell">
+        <Skeleton className="h-3 w-28 rounded bg-muted" />
+      </TableCell>
+      <TableCell className="hidden py-0 lg:table-cell">
+        <Skeleton className="h-3 w-16 rounded bg-muted" />
+      </TableCell>
+      <TableCell className="w-10 py-0" />
+    </TableRow>
+  ));
+
+  const showTable = isLoading || sortedItems.length > 0;
+
+  const content = (
+    <div>
+      {enableBulkSelection && anySelected && view === "list" && (
+        <div className="mb-2 flex h-9 items-center gap-2 rounded-md bg-accent px-1.5">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={clearSelection}
+            aria-label="Clear selection"
+          >
+            <X />
+          </Button>
+          <span className="text-sm font-medium">
+            {selectedItems.size} selected
+          </span>
+          {enableDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={handleBulkDelete}
+            >
+              <Trash />
+              Delete
+            </Button>
+          )}
+        </div>
+      )}
+      {!showTable ? (
+        emptyState
+      ) : view === "grid" ? (
+        gridContent
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="group h-9 border-border hover:bg-transparent">
+              {enableBulkSelection && (
+                <TableHead className="w-9 pr-0 pl-3">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all"
+                    className={checkboxClass}
+                    disabled={isLoading}
+                  />
+                </TableHead>
+              )}
+              <TableHead className={cn(!enableBulkSelection && "pl-3")}>
+                {sortHeader("name", "Name")}
+              </TableHead>
+              <TableHead className="hidden w-40 md:table-cell">
+                {sortHeader("owner", "Owner")}
+              </TableHead>
+              <TableHead className="hidden w-48 sm:table-cell">
+                {sortHeader("modified", "Last edited")}
+              </TableHead>
+              <TableHead className="hidden w-44 lg:table-cell">
+                {sortHeader("location", "Location")}
+              </TableHead>
+              <TableHead className="w-10" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? skeletonRows : sortedItems.map(renderItem)}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+
+  const overlays = (
+    <>
+      {enableDelete && (
+        <DeleteConfirmationDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => setDeleteDialog({ open })}
+          itemName={deleteDialog.item?.name || ""}
+          itemType={deleteDialog.item?.itemType || "file"}
+          onConfirm={handleDeleteConfirm}
+          isLoading={
+            deleteDialog.isBulk
+              ? Array.from(selectedItems).some((id) => isProcessing.has(id))
+              : deleteDialog.item
+                ? isProcessing.has(deleteDialog.item.id)
+                : false
+          }
+          count={deleteDialog.isBulk ? selectedItems.size : undefined}
+        />
+      )}
+
+      {enableRename && (
+        <RenameDialog
+          open={renameDialog.open}
+          onOpenChange={(open) => setRenameDialog({ open })}
+          itemName={renameDialog.item?.name || ""}
+          itemType={renameDialog.item?.itemType || "file"}
+          onConfirm={handleRename}
+          isLoading={
+            renameDialog.item ? isProcessing.has(renameDialog.item.id) : false
+          }
+        />
+      )}
+
+      <Sheet open={sheetOpen.open} onOpenChange={(open) => setSheetOpen({ open })}>
+        <SheetContent side="bottom" className="h-auto">
+          <SheetHeader>
+            <SheetTitle className="text-left">{sheetOpen.item?.name}</SheetTitle>
+          </SheetHeader>
+          <div className="grid gap-1 px-2 pb-4">
+            {menuActions.map((action) => (
+              <Button
+                key={action.id}
+                variant="ghost"
+                className={cn(
+                  "justify-start",
+                  action.variant === "destructive" &&
+                    "text-destructive hover:text-destructive",
+                )}
+                onClick={(e) =>
+                  sheetOpen.item && handleItemAction(action, sheetOpen.item, e)
+                }
+              >
+                <action.icon />
+                {typeof action.label === "function" && sheetOpen.item
+                  ? action.label(sheetOpen.item)
+                  : (action.label as ReactNode)}
+              </Button>
+            ))}
           </div>
-        )}
-        {content}
-
-        {enableDelete && (
-          <DeleteConfirmationDialog
-            open={deleteDialog.open}
-            onOpenChange={(open) => setDeleteDialog({ open })}
-            itemName={deleteDialog.item?.name || ""}
-            itemType={deleteDialog.item?.itemType || "file"}
-            onConfirm={handleDeleteConfirm}
-            isLoading={
-              deleteDialog.isBulk
-                ? Array.from(selectedItems).some((id) => isProcessing.has(id))
-                : deleteDialog.item
-                  ? isProcessing.has(deleteDialog.item.id)
-                  : false
-            }
-            count={deleteDialog.isBulk ? selectedItems.size : undefined}
-          />
-        )}
-
-        {enableRename && (
-          <RenameDialog
-            open={renameDialog.open}
-            onOpenChange={(open) => setRenameDialog({ open })}
-            itemName={renameDialog.item?.name || ""}
-            itemType={renameDialog.item?.itemType || "file"}
-            onConfirm={handleRename}
-            isLoading={
-              renameDialog.item ? isProcessing.has(renameDialog.item.id) : false
-            }
-          />
-        )}
-
-
-        <Sheet
-          open={sheetOpen.open}
-          onOpenChange={(open) => setSheetOpen({ open })}
-        >
-          <SheetContent side="bottom" className="h-auto rounded-t-lg">
-            <SheetHeader>
-              <SheetTitle className="text-left">
-                Actions for {sheetOpen.item?.name}
-              </SheetTitle>
-            </SheetHeader>
-            <div className="grid gap-2 py-4">
-              {menuActions.map((action) => (
-                <Button
-                  key={action.id}
-                  variant="ghost"
-                  className={`justify-start ${action.variant === "destructive" ? "text-destructive hover:text-destructive" : ""}`}
-                  onClick={(e) =>
-                    sheetOpen.item &&
-                    handleItemAction(action, sheetOpen.item, e)
-                  }
-                >
-                  <action.icon className="mr-2 h-4 w-4" />
-                  {typeof action.label === "function"
-                    ? action.label(sheetOpen.item!)
-                    : action.label}
-                </Button>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
-      </Fragment>
-    );
-  }
+        </SheetContent>
+      </Sheet>
+    </>
+  );
 
   return (
     <TooltipProvider>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Collapsible open={collapsible ? isOpen : true} onOpenChange={setIsOpen}>
         {showHeadline && (
-          <div className="flex sticky top-2 z-[10] items-center justify-between mb-0">
-            <div className="flex-1">
-              <CollapsibleTrigger className="backdrop-blur-sm flex items-center gap-2 text-left rounded-full border px-4 py-2 hover:bg-accent hover:text-accent-foreground w-fit">
-                <h2 className="text-lg font-semibold">{headlineText}</h2>
-                <ChevronDown
-                  className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                />
-              </CollapsibleTrigger>
-            </div>
-          </div>
+          <SectionHeader
+            title={headlineText}
+            collapsible={collapsible}
+            open={isOpen}
+          />
         )}
         <CollapsibleContent>{content}</CollapsibleContent>
-
-        {enableDelete && (
-          <DeleteConfirmationDialog
-            open={deleteDialog.open}
-            onOpenChange={(open) => setDeleteDialog({ open })}
-            itemName={deleteDialog.item?.name || ""}
-            itemType={deleteDialog.item?.itemType || "file"}
-            onConfirm={handleDeleteConfirm}
-            isLoading={
-              deleteDialog.isBulk
-                ? Array.from(selectedItems).some((id) => isProcessing.has(id))
-                : deleteDialog.item
-                  ? isProcessing.has(deleteDialog.item.id)
-                  : false
-            }
-            count={deleteDialog.isBulk ? selectedItems.size : undefined}
-          />
-        )}
-
-        {enableRename && (
-          <RenameDialog
-            open={renameDialog.open}
-            onOpenChange={(open) => setRenameDialog({ open })}
-            itemName={renameDialog.item?.name || ""}
-            itemType={renameDialog.item?.itemType || "file"}
-            onConfirm={handleRename}
-            isLoading={
-              renameDialog.item ? isProcessing.has(renameDialog.item.id) : false
-            }
-          />
-        )}
-
-
-        <Sheet
-          open={sheetOpen.open}
-          onOpenChange={(open) => setSheetOpen({ open })}
-        >
-          <SheetContent side="bottom" className="h-auto">
-            <SheetHeader>
-              <SheetTitle className="text-left">
-                Actions for {sheetOpen.item?.name}
-              </SheetTitle>
-            </SheetHeader>
-            <div className="grid gap-2 py-4">
-              {menuActions.map((action) => (
-                <Button
-                  key={action.id}
-                  variant="ghost"
-                  className={`justify-start ${action.variant === "destructive" ? "text-destructive hover:text-destructive" : ""}`}
-                  onClick={(e) =>
-                    sheetOpen.item &&
-                    handleItemAction(action, sheetOpen.item, e)
-                  }
-                >
-                  <action.icon className="mr-2 h-4 w-4" />
-                  {typeof action.label === "function"
-                    ? action.label(sheetOpen.item!)
-                    : action.label}
-                </Button>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
+        {overlays}
       </Collapsible>
     </TooltipProvider>
   );

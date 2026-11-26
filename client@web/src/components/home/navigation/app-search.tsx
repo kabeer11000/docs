@@ -47,7 +47,7 @@ const getIconByType = (type: SearchResultType, iconName?: string) => {
 };
 export function AppSearch({
   placeholder = "Search documents, templates, clients...",
-  shortcut = ["⌘", "K"],
+  shortcut = ["Ctrl", "K"],
   children,
   className,
 }: SearchModalProps) {
@@ -195,8 +195,8 @@ export function AppSearch({
             variant="secondary"
             tabIndex={-1}
             className={cn(
-              "relative h-11 w-full justify-start text-sm items-center px-4 py-2.5 text-sm text-muted-foreground hover:shadow-md border bg-card hover:bg-muted border-border hover:border-border/70 ring-0 rounded-xl hover:rounded-2xl transition-all duration-300",
-              open ? "rounded-b-none rounded-t-3xl border-b-0 shadow-lg" : "",
+              "relative h-9 w-full justify-start gap-2 rounded-md border border-transparent bg-muted px-3 text-sm font-normal text-muted-foreground shadow-none transition-colors hover:bg-accent",
+              open && "border-border bg-card hover:bg-card",
               className,
             )}
             type="button"
@@ -213,7 +213,7 @@ export function AppSearch({
                 onChange={handleInputChange}
                 placeholder={placeholder}
                 autoFocus={false}
-                className="border-0 bg-transparent shadow-none w-full focus-visible:ring-0"
+                className="h-7 w-full border-0 bg-transparent px-0 shadow-none hover:border-0 focus-visible:ring-0 dark:bg-transparent"
                 tabIndex={-1}
                 aria-label="Search documents, folders, and templates"
                 aria-expanded={open}
@@ -229,13 +229,13 @@ export function AppSearch({
             </span>
             <kbd
               className={cn(
-                "animate-fade-in pointer-events-none ml-auto hidden h-6 select-none items-center gap-1 rounded border bg-muted px-2 font-mono text-xs font-medium text-muted-foreground sm:flex",
+                "pointer-events-none ml-auto hidden h-5 select-none items-center gap-0.5 rounded border border-border bg-card px-1.5 font-sans text-[11px] font-medium text-muted-foreground transition-opacity sm:flex",
                 open ? "opacity-0" : "opacity-100",
               )}
             >
               {shortcut.map((key, index) => (
                 <React.Fragment key={key}>
-                  {index > 0 && "+"}
+                  {index > 0 && " "}
                   <span>{key}</span>
                 </React.Fragment>
               ))}
@@ -245,15 +245,8 @@ export function AppSearch({
       </PopoverTrigger>
       <PopoverContent
         align="center"
-        sideOffset={0} // Removes the gap
-        className={cn(
-          "overflow-hidden rounded-t-none border-t border-border/30 m-0 top-0 p-0 w-[var(--radix-popover-trigger-width)] bg-card",
-          "data-[state=open]:animate-in data-[state=closed]:animate-out",
-          "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-          "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-          "data-[state=open]:slide-in-from-top-0 duration-200",
-          "rounded-b-3xl"
-        )}
+        sideOffset={6}
+        className="w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-lg p-0"
         // hideCloseButton
       >
         {/*  Search Results */}
@@ -282,7 +275,7 @@ export function AppSearch({
                     }
                   }}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring",
+                    "flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     isSelected
                       ? "bg-accent text-accent-foreground"
                       : "hover:bg-accent hover:text-accent-foreground",
@@ -300,7 +293,7 @@ export function AppSearch({
                         : "text-muted-foreground",
                     )}
                   >
-                    <IconComponent className="h-6 w-6" aria-hidden="true" />
+                    <IconComponent className="size-4" aria-hidden="true" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{item.title}</div>
@@ -310,13 +303,13 @@ export function AppSearch({
                       </div>
                     )}
                     {item.description && (
-                      <div className="text-xs text-muted-foreground/70 truncate">
+                      <div className="text-xs text-muted-foreground truncate">
                         {item.description}
                       </div>
                     )}
                   </div>
                   {item.type && (
-                    <span className="text-xs text-muted-foreground/50 capitalize">
+                    <span className="text-xs text-muted-foreground capitalize">
                       {item.type}
                     </span>
                   )}

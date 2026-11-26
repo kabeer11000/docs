@@ -3,17 +3,15 @@
 import { useStore } from "@nanostores/react";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
+import { PageBody } from "@/components/home/page-body";
+import { useViewMode, ViewToggle } from "@/components/home/view-toggle";
 import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
 
 // Lazy load heavy components
 const ReactHome = dynamic(() => import("@/components/home"), {
   ssr: true,
-  loading: () => (
-    <div className="flex items-center justify-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-    </div>
-  ),
+  loading: () => <div className="h-svh bg-background" />,
 });
 
 const LiveListView = dynamic(
@@ -26,6 +24,7 @@ const LiveListView = dynamic(
 
 export default function VaultPage() {
   const authState = useStore($auth);
+  const [view, setView] = useViewMode();
 
   useEffect(() => {
     if (authState.isInitialized && authState.user) {
@@ -35,29 +34,21 @@ export default function VaultPage() {
 
   // Show loading while auth is initializing
   if (!authState.isInitialized || !authState.user) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
-      </div>
-    );
+    return <div className="h-svh bg-background" />;
   }
 
   return (
     <ReactHome pathname="/vault">
-      <div className="px-2 py-2 md:px-4 relative">
-        <div className="max-w-7xl mx-auto flex flex-col gap-y-4">
-          <div>
-            <LiveListView
-              headlineText="Vault"
-              parent={authState.user.id}
-              showHeadline={true}
-              defaultSortField="modified"
-              collapsible={true}
-              sortable={true}
-            />
-          </div>
-        </div>
-      </div>
+      <PageBody title="Vault" actions={<ViewToggle view={view} onChange={setView} />}>
+        <LiveListView
+          parent={authState.user.id}
+          showHeadline={false}
+          defaultSortField="modified"
+          collapsible={false}
+          sortable={true}
+          view={view}
+        />
+      </PageBody>
     </ReactHome>
   );
 }

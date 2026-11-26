@@ -1,58 +1,25 @@
-import { useStore } from "@nanostores/react";
-import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useFolders } from "@/hooks/use-folders";
-import { $auth } from "@/state/auth";
 import { FoldersView } from "./folders-view";
 
-interface LiveListViewProps {
+interface LiveFoldersViewProps {
   headlineText?: string;
   showHeadline?: boolean;
   defaultSortField?: "name" | "modified" | "size" | "created";
   collapsible?: boolean;
-  parent?: string; // parent-folder.id 
+  parent?: string; // parent-folder.id
   sortable?: boolean;
-  creationParent?: string, // parent folder when creating
+  creationParent?: string; // parent folder when creating
   mode?: "recent-folders" | "folder-contents";
 }
 
 export function LiveFoldersView({
   headlineText = "Quick Access",
-  parent, creationParent,
+  parent,
   showHeadline = true,
-  defaultSortField = "modified",
   collapsible = true,
-  sortable = true,
   mode = "folder-contents",
-}: LiveListViewProps) {
+}: LiveFoldersViewProps) {
   const { folders, isLoading } = useFolders(parent, mode);
-  const { createFolder } = useCloudStore();
-  const { user } = useStore($auth);
-
-  const handleCreateFolder = async () => {
-    if (!user) return;
-
-    // Add a simple flag to prevent rapid consecutive calls
-    if (window.__isCreatingFolder) return;
-    window.__isCreatingFolder = true;
-    
-    try {
-      const parentFolder = parent || user.id;
-      const folderId = await createFolder({
-        folderId: parentFolder,
-        name: "Untitled Folder",
-      });
-
-      if (folderId) {
-        // Navigate to the newly created folder
-        window.location.href = `/folder/${folderId}`;
-      }
-    } finally {
-      // Reset the flag after a short delay
-      setTimeout(() => {
-        window.__isCreatingFolder = false;
-      }, 500);
-    }
-  };
 
   return (
     <FoldersView
@@ -61,8 +28,8 @@ export function LiveFoldersView({
       onFolderOpen={(folder) => {
         window.location.href = `/folder/${folder.id}`;
       }}
-      onCreateFolder={handleCreateFolder}
       showHeadline={showHeadline}
+      collapsible={collapsible}
       isLoading={isLoading}
       enableContextMenu={true}
       enableDropdownMenu={true}
