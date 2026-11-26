@@ -207,22 +207,34 @@ func GetUserIDFromToken(tokenString string) (primitive.ObjectID, error) {
 }
 
 func getTokenDuration(envKey, defaultDuration string) time.Duration {
-	durationStr := os.Getenv(envKey)
-	if durationStr == "" {
-		durationStr = defaultDuration
+	if d, ok := parseTokenDuration(os.Getenv(envKey)); ok {
+		return d
 	}
+	d, _ := parseTokenDuration(defaultDuration)
+	return d
+}
 
-	duration, err := time.ParseDuration(durationStr)
-	if err != nil {
-		// If it's a number, treat it as minutes
-		if minutes, err := strconv.Atoi(durationStr); err == nil {
-			return time.Duration(minutes) * time.Minute
+// parseTokenDuration accepts Go durations ("15m", "1h"), day counts ("7d",
+// which time.ParseDuration rejects), and bare integers as minutes.
+func parseTokenDuration(s string) (time.Duration, bool) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, false
+	}
+	if strings.HasSuffix(s, "d") {
+		days, err := strconv.Atoi(strings.TrimSuffix(s, "d"))
+		if err != nil || days <= 0 {
+			return 0, false
 		}
-		// Fallback to default
-		duration, _ = time.ParseDuration(defaultDuration)
+		return time.Duration(days) * 24 * time.Hour, true
 	}
-
-	return duration
+	if d, err := time.ParseDuration(s); err == nil && d > 0 {
+		return d, true
+	}
+	if minutes, err := strconv.Atoi(s); err == nil && minutes > 0 {
+		return time.Duration(minutes) * time.Minute, true
+	}
+	return 0, false
 }
 
 // GetAccessTokenDuration returns the access token duration in seconds
