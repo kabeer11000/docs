@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -167,6 +168,7 @@ interface TemplatesProps {
 }
 
 export function Templates({ folderId }: TemplatesProps) {
+  const router = useRouter();
   const { createDocument } = useCloudStore();
   const authState = useStore($auth);
   const [loadingTemplateId, setLoadingTemplateId] = useState<string | null>(
@@ -251,7 +253,7 @@ export function Templates({ folderId }: TemplatesProps) {
       if (docId) {
         console.log("[Templates] Document created with ID:", docId);
         await new Promise((resolve) => setTimeout(resolve, 500));
-        window.location.href = `/document/${docId}`;
+        router.push(`/document/${docId}`);
       } else {
         console.error("[Templates] Failed to create document from template");
         setIsCreatingFromPreview(false);
@@ -283,7 +285,7 @@ export function Templates({ folderId }: TemplatesProps) {
         console.log("[Templates] Blank document created with ID:", docId);
         // Wait a bit for CloudStore to propagate the creation
         await new Promise((resolve) => setTimeout(resolve, 300));
-        window.location.href = `/document/${docId}`;
+        router.push(`/document/${docId}`);
       }
     } catch (error) {
       console.error("Failed to create blank document:", error);

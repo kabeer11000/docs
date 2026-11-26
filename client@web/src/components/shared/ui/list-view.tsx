@@ -263,7 +263,7 @@ export const ListView = React.memo(function ListView({
               if (item.itemType === "folder") {
                 router.push(`/folder/${item.id}`);
               } else {
-                window.location.href = `/document/${item.id}`;
+                router.push(`/document/${item.id}`);
               }
             },
           },
@@ -604,7 +604,7 @@ export const ListView = React.memo(function ListView({
     if (item.itemType === "folder") {
       router.push(`/folder/${item.id}`);
     } else {
-      window.location.href = `/document/${item.id}`;
+      router.push(`/document/${item.id}`);
     }
   }, [router]);
 

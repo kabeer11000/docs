@@ -84,12 +84,7 @@ function PaletteBody() {
 
   const go = (path: string) => {
     searchActions.close();
-    // Documents open with a full load, like the rest of the app; everything else stays in the shell.
-    if (path.startsWith("/document/") && !path.includes("/templates")) {
-      window.location.href = path;
-    } else {
-      router.push(path);
-    }
+    router.push(path);
   };
 
   const actions: Entry[] = [

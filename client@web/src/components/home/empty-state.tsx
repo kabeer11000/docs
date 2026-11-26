@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -18,6 +19,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, description, folderId }: EmptyStateProps) {
+  const router = useRouter();
   const { user } = useStore($auth);
   const { createDocument } = useCloudStore();
   const [isCreating, setIsCreating] = useState(false);
@@ -29,7 +31,7 @@ export function EmptyState({ title, description, folderId }: EmptyStateProps) {
     try {
       const docId = await createDocument({ folderId: folderId || user.id });
       if (docId) {
-        window.location.href = `/document/${docId}`;
+        router.push(`/document/${docId}`);
         return;
       }
       showToast.error("Failed to create document", "Please try again");
