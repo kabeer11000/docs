@@ -334,7 +334,7 @@ export function FoldersView({
             <Skeleton
               // biome-ignore lint/suspicious/noArrayIndexKey: static placeholders
               key={i}
-              className="h-10 rounded-md bg-muted"
+              className="h-12 rounded-[12px] bg-muted"
             />
           ))
         : displayFolders.map(renderFolderItem)}

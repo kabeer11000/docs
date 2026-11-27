@@ -35,7 +35,7 @@ export function ViewToggle({
   onChange: (view: ViewMode) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label="View" className="flex items-center gap-0.5">
+    <div role="radiogroup" aria-label="View" className="flex items-center gap-0.5 rounded-[10px] bg-muted p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
@@ -46,8 +46,8 @@ export function ViewToggle({
           title={o.label}
           onClick={() => onChange(o.value)}
           className={cn(
-            "flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
-            view === o.value && "bg-accent text-foreground",
+            "flex size-7 items-center justify-center rounded-[8px] text-muted-foreground transition-colors hover:text-foreground",
+            view === o.value && "bg-card text-foreground shadow-card",
           )}
         >
           <o.icon className="size-4" />

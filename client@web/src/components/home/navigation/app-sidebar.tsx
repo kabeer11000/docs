@@ -1,8 +1,7 @@
 import { useStore } from "@nanostores/react";
 import {
-  ChevronDown,
+  ArrowUpFromLine,
   ChevronsUpDown,
-  FileText,
   Folder,
   FolderPlus,
   HomeIcon,
@@ -10,15 +9,13 @@ import {
   LockIcon,
   PanelLeft,
   PlusIcon,
-  Presentation,
   Search,
-  Sheet,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogoMark } from "@/components/brand/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,6 +28,7 @@ import {
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useCreateFile } from "@/hooks/use-create-file";
 import { type FileKind, fileHref, fileKind } from "@/lib/files";
+import { IMPORT_ACCEPT, useImportFiles } from "@/lib/import/use-import-files";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { $auth, getUserInitials } from "@/state/auth";
@@ -41,9 +39,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import { templatesHref } from "../empty-state";
+import { KIND, KINDS } from "../kind";
 import { AccountPopover } from "./account-popover";
 
 const navItems = [
@@ -118,19 +118,20 @@ export function AppSidebar({
     create(kind, folderId || user.id);
   };
 
+  const { importFiles, busy: importing } = useImportFiles();
+  const importInput = useRef<HTMLInputElement>(null);
+
   return (
     <Sidebar collapsible="offcanvas" {...props} className="border-r-0">
       <SidebarHeader className="gap-3 px-3 pt-3 pb-2">
-        <div className="flex h-8 items-center justify-between">
+        <div className="flex h-9 items-center justify-between">
           <Link
             href="/home"
             onClick={() => onNavigate("/home")}
-            className="flex items-center gap-2 rounded-md px-1 text-foreground"
+            className="flex items-center gap-2 rounded-[10px] px-1.5 text-foreground"
           >
-            <LogoMark className="size-6" />
-            <span className="font-serif text-[17px] font-semibold tracking-[-0.01em]">
-              Docs
-            </span>
+            <LogoMark className="size-7" />
+            <span className="font-display text-[19px] font-bold tracking-[-0.03em]">Docs</span>
           </Link>
           <Button
             variant="ghost"
@@ -144,51 +145,63 @@ export function AppSidebar({
           </Button>
         </div>
 
-        <div className="flex" data-tour="new-document">
-          <Button
-            className="flex-1 justify-start rounded-r-none"
-            onClick={() => newFile("doc")}
-            disabled={!canCreate || creating}
-          >
-            <PlusIcon />
-            New document
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                className="rounded-l-none border-l border-primary-foreground/20"
-                aria-label="More create options"
-                disabled={!canCreate}
-              >
-                <ChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => newFile("sheet")}>
-                <Sheet />
-                New spreadsheet
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => newFile("slides")}>
-                <Presentation />
-                New presentation
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (isMobile) setOpenMobile(false);
-                  if (user) router.push(templatesHref(folderId || user.id));
-                }}
-              >
-                <LayoutTemplate />
-                Browse templates
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => handleNewFolder(e)}>
-                <FolderPlus />
-                New folder
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              data-tour="new-document"
+              className="h-12 w-full justify-start gap-3 rounded-[14px] pr-4 pl-2 font-display text-[15px] font-semibold tracking-[-0.01em] shadow-card"
+              disabled={!canCreate || creating}
+            >
+              <span className="flex size-8 items-center justify-center rounded-full bg-primary-foreground/15">
+                <PlusIcon className="size-[18px]" strokeWidth={2.5} />
+              </span>
+              New
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" sideOffset={6} className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56">
+            {KINDS.map((kind) => {
+              const k = KIND[kind];
+              return (
+                <DropdownMenuItem key={kind} onClick={() => newFile(kind)} className="h-9">
+                  <k.icon className={k.text} strokeWidth={2.25} />
+                  {k.label}
+                </DropdownMenuItem>
+              );
+            })}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                if (isMobile) setOpenMobile(false);
+                if (user) router.push(templatesHref(folderId || user.id));
+              }}
+            >
+              <LayoutTemplate />
+              From template
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => handleNewFolder(e)}>
+              <FolderPlus />
+              Folder
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={importing} onClick={() => importInput.current?.click()}>
+              <ArrowUpFromLine />
+              Import file
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <input
+          ref={importInput}
+          type="file"
+          accept={IMPORT_ACCEPT}
+          multiple
+          hidden
+          onChange={(e) => {
+            if (e.target.files?.length && user) {
+              if (isMobile) setOpenMobile(false);
+              importFiles(e.target.files, folderId || user.id);
+            }
+            e.target.value = "";
+          }}
+        />
 
         <button
           type="button"
@@ -201,7 +214,7 @@ export function AppSidebar({
         >
           <Search className="size-4" />
           Search
-          <kbd className="ml-auto hidden rounded border md:inline border-border bg-card px-1.5 font-sans text-[11px] leading-5 text-muted-foreground">
+          <kbd className="ml-auto hidden rounded-[6px] bg-card px-1.5 font-sans text-[11px] leading-5 text-muted-foreground shadow-card md:inline">
             Ctrl K
           </kbd>
         </button>
@@ -224,7 +237,7 @@ export function AppSidebar({
         </nav>
 
         <section className="mt-6" data-tour="starred">
-          <h3 className="mb-1 px-2 text-xs font-medium text-muted-foreground">
+          <h3 className="mb-1.5 px-2.5 text-xs font-medium text-muted-foreground">
             Starred
           </h3>
           <StarredItems
@@ -237,7 +250,7 @@ export function AppSidebar({
 
       <SidebarFooter className="gap-3 px-3 pb-3">
         <AccountStorage userId={user?.id} />
-        <div className="flex gap-3 px-2 text-xs text-muted-foreground">
+        <div className="flex gap-3 px-2.5 text-xs text-muted-foreground">
           <a
             href="mailto:kabeer@otherdev.com"
             className="transition-colors hover:text-foreground"
@@ -257,10 +270,8 @@ export function AppSidebar({
   );
 }
 
-const KIND_ICON = { doc: FileText, sheet: Sheet, slides: Presentation } as const;
-
 const navItemClass =
-  "relative flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground";
+  "relative flex h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-sm text-muted-foreground transition-[background-color,color,box-shadow] duration-150 hover:bg-accent hover:text-foreground";
 
 function NavLink({
   active,
@@ -272,8 +283,7 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       className={cn(
         navItemClass,
-        active &&
-          "font-medium text-foreground before:absolute before:top-2 before:bottom-2 before:-left-1 before:w-0.5 before:rounded-full before:bg-primary",
+        active && "bg-card font-medium text-foreground shadow-card hover:bg-card",
         className,
       )}
       {...props}
@@ -300,8 +310,8 @@ function StarredItems({
 
   if (!docs?.length && !folders?.length) {
     return (
-      <p className="px-2 py-1 text-xs text-muted-foreground">
-        Star documents and folders to find them here.
+      <p className="px-2.5 py-1 text-xs leading-relaxed text-muted-foreground">
+        Star files and folders to keep them here.
       </p>
     );
   }
@@ -316,9 +326,9 @@ function StarredItems({
             href={url}
             active={activeUrl === url}
             onClick={() => onNavigate(url)}
-            className="h-7"
+            className="h-8"
           >
-            <Folder className="size-4 shrink-0 text-muted-foreground" />
+            <Folder className="size-4 shrink-0 fill-current/15 text-muted-foreground" />
             <span className="truncate">
               {folder.name || folder.title || "Folder"}
             </span>
@@ -327,10 +337,10 @@ function StarredItems({
       })}
       {docs?.map((doc) => {
         const url = fileHref(doc.id, fileKind(doc));
-        const Icon = KIND_ICON[fileKind(doc)];
+        const k = KIND[fileKind(doc)];
         return (
-          <NavLink key={doc.id} href={url} active={activeUrl === url} onClick={() => onNavigate(url)} className="h-7">
-            <Icon className="size-4 shrink-0 text-muted-foreground" />
+          <NavLink key={doc.id} href={url} active={activeUrl === url} onClick={() => onNavigate(url)} className="h-8">
+            <k.icon className={cn("size-4 shrink-0", k.text)} strokeWidth={2.25} />
             <span className="truncate">{doc.title || "Untitled"}</span>
           </NavLink>
         );
@@ -346,12 +356,13 @@ export function AccountStorage({ userId }: { userId?: string }) {
   const size = count ?? 0;
   const pct = 100 * (Math.min(size, FREE_FILE_LIMIT) / FREE_FILE_LIMIT);
   return (
-    <div className="px-2">
-      <p className="text-xs tabular-nums text-muted-foreground">
-        {count === undefined ? " " : `${size} of ${FREE_FILE_LIMIT} files`}
+    <div className="px-2.5">
+      <p className="flex items-baseline justify-between text-xs text-muted-foreground">
+        <span>Files</span>
+        <span className="tabular-nums">{count === undefined ? " " : `${size} of ${FREE_FILE_LIMIT}`}</span>
       </p>
       <div
-        className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-muted"
+        className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted"
         role="progressbar"
         aria-label="Files used"
         aria-valuenow={size}
@@ -359,7 +370,7 @@ export function AccountStorage({ userId }: { userId?: string }) {
         aria-valuemax={FREE_FILE_LIMIT}
       >
         <div
-          className="h-full bg-primary transition-all"
+          className="h-full rounded-full bg-foreground/80 transition-[width] duration-300"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -372,8 +383,8 @@ function AccountRow() {
 
   if (!user) {
     return (
-      <div className="flex h-10 items-center gap-2.5 px-2" aria-hidden="true">
-        <div className="size-7 rounded-full bg-muted" />
+      <div className="flex h-12 items-center gap-2.5 px-2" aria-hidden="true">
+        <div className="size-8 rounded-full bg-muted" />
         <div className="h-3 w-24 rounded bg-muted" />
       </div>
     );
@@ -386,15 +397,20 @@ function AccountRow() {
         type="button"
         data-tour="account-menu"
         aria-label="Account menu"
-        className="flex h-10 w-full items-center gap-2.5 rounded-md px-2 text-left text-sm text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent"
+        className="flex h-12 w-full items-center gap-2.5 rounded-[12px] px-2 text-left text-sm text-foreground transition-[background-color,box-shadow] hover:bg-card hover:shadow-card data-[state=open]:bg-card data-[state=open]:shadow-card"
       >
-        <Avatar className="size-7 bg-muted">
+        <Avatar className="size-8 bg-muted">
           <AvatarImage src={user.photoURL || "/avatars/avatar-3.png"} alt="" />
-          <AvatarFallback className="text-xs">
+          <AvatarFallback className="text-xs font-semibold">
             {getUserInitials(user) || "U"}
           </AvatarFallback>
         </Avatar>
-        <span className="min-w-0 flex-1 truncate">{name}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium">{name}</span>
+          {user.email && user.email !== name && (
+            <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
+          )}
+        </span>
         <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
       </button>
     </AccountPopover>

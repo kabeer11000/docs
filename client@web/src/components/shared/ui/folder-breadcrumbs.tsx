@@ -39,7 +39,7 @@ export function FolderBreadcrumbs({ folderId }: FolderBreadcrumbsProps) {
           ))}
         </nav>
       )}
-      <h1 className="truncate font-serif text-2xl font-medium tracking-tight">
+      <h1 className="truncate font-display text-[28px] leading-[1.15] font-bold tracking-[-0.03em] md:text-[32px]">
         {current.name}
       </h1>
     </div>

@@ -16,9 +16,9 @@ export default function DocumentTemplatesPage() {
   }, []);
 
   return (
-    <PageBody title="Start from a template">
-      <p className="-mt-6 mb-8 text-sm text-muted-foreground">
-        Pick a starting point, or begin with a blank page.
+    <PageBody title="Start something">
+      <p className="-mt-5 mb-8 text-sm text-muted-foreground">
+        Begin blank in any app, or from a ready-made document.
       </p>
       <Templates folderId={folderId} />
     </PageBody>

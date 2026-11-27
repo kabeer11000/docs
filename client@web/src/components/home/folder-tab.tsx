@@ -11,7 +11,7 @@ interface FolderTabProps extends Omit<React.ComponentProps<"div">, "children"> {
   disabled?: boolean;
 }
 
-/** A quiet folder row used on the desk: icon, name, count. */
+/** Compact folder card: icon chip, name, file count. */
 export function FolderTab({
   name,
   fileCount = 0,
@@ -28,7 +28,7 @@ export function FolderTab({
       tabIndex={0}
       aria-label={`Open folder ${name}`}
       className={cn(
-        "group flex h-10 min-w-0 cursor-pointer items-center gap-2.5 rounded-md border border-border pr-1 pl-3 text-sm transition-colors outline-none hover:border-foreground/20 hover:bg-accent/60 focus-visible:ring-2 focus-visible:ring-ring",
+        "group lift flex h-12 min-w-0 cursor-pointer items-center gap-2.5 rounded-[12px] bg-card pr-1.5 pl-2 text-sm shadow-card outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
         disabled && "pointer-events-none opacity-50",
         className,
       )}
@@ -42,8 +42,10 @@ export function FolderTab({
       }}
       {...props}
     >
-      <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-      <span className="min-w-0 flex-1 truncate font-medium text-foreground">{name}</span>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-muted text-foreground/70" aria-hidden="true">
+        <Folder className="size-4 fill-current/15" />
+      </span>
+      <span className="min-w-0 flex-1 truncate font-display font-semibold tracking-[-0.01em] text-foreground">{name}</span>
       <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{fileCount}</span>
       {actions ? (
         // biome-ignore lint/a11y/noStaticElementInteractions: stops row navigation from menu clicks

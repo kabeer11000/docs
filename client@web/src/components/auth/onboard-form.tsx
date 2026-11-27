@@ -41,7 +41,7 @@ export function OnboardForm() {
   return (
     <AuthShell
       title="Create your account"
-      subtitle="Enter your name, email and a password."
+      subtitle="Free documents, spreadsheets and presentations, in your browser."
       footer={
         <>
           Already have an account?{" "}
@@ -61,7 +61,7 @@ export function OnboardForm() {
             type="text"
             autoComplete="name"
             placeholder="Jane Doe"
-            className="h-9"
+            className="h-10"
             required
             value={form.displayName}
             onChange={handleInputChange("displayName")}
@@ -76,7 +76,7 @@ export function OnboardForm() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
-            className="h-9"
+            className="h-10"
             required
             value={form.email}
             onChange={handleInputChange("email")}

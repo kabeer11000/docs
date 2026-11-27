@@ -1,6 +1,9 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
+import { KIND, KINDS } from "@/components/home/kind";
+import type { FileKind } from "@/lib/files";
+import { cn } from "@/lib/utils";
 import { PiSpinner } from "react-icons/pi";
 import {
   PAGE_HEIGHT,
@@ -17,18 +20,21 @@ import { useRouter } from "next/navigation";
 
 const PAGE_ASPECT = `${PAGE_WIDTH} / ${PAGE_HEIGHT}`;
 
-/** Card shell shared by the blank card and template cards. */
+/** Card shell shared by the blank cards and template cards: a tinted well with the page inside. */
 function PageCard({
   title,
   description,
-  tag,
+  kind = "doc",
+  page = true,
   onClick,
   disabled,
   children,
 }: {
   title: string;
   description: string;
-  tag?: string;
+  kind?: FileKind;
+  /** Frame the children as a page peeking up from the well. */
+  page?: boolean;
   onClick?: () => void;
   disabled?: boolean;
   children: React.ReactNode;
@@ -38,26 +44,25 @@ function PageCard({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="group self-start w-full min-w-0 text-left outline-none disabled:opacity-60"
+      className="group w-full min-w-0 self-start rounded-[14px] text-left outline-none disabled:opacity-60"
     >
-      <div
-        className="relative w-full overflow-hidden rounded-[2px] bg-paper text-paper-foreground shadow-paper transition-[translate,box-shadow] duration-150 ease-out group-hover:-translate-y-0.5 group-hover:shadow-paper-hover group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background"
-        style={{ aspectRatio: PAGE_ASPECT }}
-      >
-        {children}
-      </div>
-      <div className="mt-3 px-px">
-        <h3 className="truncate font-serif text-[15px] font-medium tracking-[-0.01em] text-foreground">
-          {title}
-        </h3>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {description}
-        </p>
-        {tag && (
-          <p className="mt-1 truncate text-xs text-muted-foreground/80 capitalize">
-            {tag}
-          </p>
-        )}
+      <div className="lift overflow-hidden rounded-[14px] bg-card shadow-card group-focus-visible:ring-[3px] group-focus-visible:ring-ring">
+        <div className={cn("relative aspect-[4/3] overflow-hidden", KIND[kind].soft)}>
+          {page ? (
+            <div
+              className="absolute inset-x-[14%] top-[12%] overflow-hidden rounded-[5px] bg-paper text-paper-foreground shadow-paper transition-transform duration-200 group-hover:-translate-y-1"
+              style={{ aspectRatio: PAGE_ASPECT }}
+            >
+              {children}
+            </div>
+          ) : (
+            children
+          )}
+        </div>
+        <div className="px-3.5 py-3">
+          <h3 className="truncate font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">{title}</h3>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>
+        </div>
       </div>
     </button>
   );
@@ -142,21 +147,29 @@ export function Templates({ folderId }: TemplatesProps) {
   };
 
   return (
-    <div data-tour="templates" className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-      <PageCard
-        title="Blank document"
-        description="Start from an empty page"
-        onClick={() => create("doc", parent ?? undefined)}
-        disabled={creating || !user}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          {creating ? (
-            <PiSpinner className="size-5 animate-spin text-muted-foreground" />
-          ) : (
-            <Plus className="size-5 text-muted-foreground transition-colors duration-150 group-hover:text-foreground" />
-          )}
-        </div>
-      </PageCard>
+    <div data-tour="templates" className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+      {KINDS.map((kind) => (
+        <PageCard
+          key={kind}
+          kind={kind}
+          page={false}
+          title={`Blank ${KIND[kind].label.toLowerCase()}`}
+          description={KIND[kind].blank}
+          onClick={() => create(kind, parent ?? undefined)}
+          disabled={creating || !user}
+        >
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span
+              className={cn(
+                "flex size-12 items-center justify-center rounded-full text-app-foreground shadow-card transition-transform duration-200 group-hover:scale-110",
+                KIND[kind].bg,
+              )}
+            >
+              {creating ? <PiSpinner className="size-5 animate-spin" /> : <Plus className="size-5" strokeWidth={2.5} />}
+            </span>
+          </div>
+        </PageCard>
+      ))}
       {TEMPLATES.map((t) => (
         <PageCard key={t.id} title={t.name} description={t.description} onClick={() => pickTemplate(t.id)} disabled={!!pending || !user}>
           <ScaledPreview content={t.content} />

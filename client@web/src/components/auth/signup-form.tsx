@@ -85,7 +85,7 @@ export function SignupForm() {
   return (
     <AuthShell
       title="Create your account"
-      subtitle="Enter your name, email and a password."
+      subtitle="Free documents, spreadsheets and presentations, in your browser."
       footer={
         <>
           Already have an account?{" "}
@@ -99,14 +99,14 @@ export function SignupForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <AuthError message={authState.error} />
           {field("displayName", "Full name", (f) => (
-            <Input placeholder="Jane Doe" autoComplete="name" className="h-9" {...f} />
+            <Input placeholder="Jane Doe" autoComplete="name" className="h-10" {...f} />
           ))}
           {field("email", "Email", (f) => (
             <Input
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
-              className="h-9"
+              className="h-10"
               {...f}
             />
           ))}

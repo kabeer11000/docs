@@ -34,7 +34,7 @@ export function LoginForm() {
   return (
     <AuthShell
       title="Sign in"
-      subtitle="Use your email and password to continue."
+      subtitle="Welcome back. Your files are where you left them."
       footer={
         <>
           Don&apos;t have an account?{" "}
@@ -54,7 +54,7 @@ export function LoginForm() {
             type="email"
             autoComplete="email"
             placeholder="you@example.com"
-            className="h-9"
+            className="h-10"
             required
             value={authState.loginForm.email}
             onChange={handleInputChange("email")}

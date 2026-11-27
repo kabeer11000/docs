@@ -32,7 +32,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { PiFilePdf, PiFileText } from "react-icons/pi";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -52,8 +51,13 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Sheet,
@@ -83,7 +87,8 @@ import { EmptyState } from "@/components/home/empty-state";
 import { FolderTab } from "@/components/home/folder-tab";
 import { ItemMenu } from "@/components/home/item-menu";
 import { fileKind, hrefForId } from "@/lib/files";
-import { FileThumbnail } from "@/components/home/file-thumbnail";
+import { FileCard } from "@/components/home/file-card";
+import { KIND, KindIcon, type KindFilterValue } from "@/components/home/kind";
 import { SectionHeader } from "@/components/home/section-header";
 import { $documents } from "@/state/cloudstore-data";
 import { cn } from "@/lib/utils";
@@ -138,22 +143,21 @@ export interface IListViewProps {
   defaultSortDirection?: SortDirection;
   // Bulk selection
   enableBulkSelection?: boolean;
-  /** "grid" shows files as paper thumbnails and folders as tabs. */
+  /** "grid" shows files as cards and folders as compact cards. */
   view?: "list" | "grid";
+  /** Show only one kind of file (folders are hidden while filtered). */
+  kindFilter?: KindFilterValue;
+  /** Controls shown at the start of the toolbar row (e.g. filter chips). */
+  filters?: ReactNode;
 }
 
-function getFileIcon(fileName: string) {
-  const extension = fileName.split(".").pop()?.toLowerCase();
-  switch (extension) {
-    case "pdf":
-      return PiFilePdf;
-    case "doc":
-    case "docx":
-      return PiFileText;
-    default:
-      return PiFileText;
-  }
-}
+const SORT_LABEL: Partial<Record<SortField, string>> = {
+  modified: "Last edited",
+  name: "Name",
+  owner: "Owner",
+};
+
+const fileGridClass = "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5";
 
 export const ListView = React.memo(function ListView({
   showHeadline,
@@ -172,10 +176,12 @@ export const ListView = React.memo(function ListView({
   enableDelete = true,
   enableSorting = true,
   defaultSortField = "name",
-  defaultSortDirection = "asc",
+  defaultSortDirection,
   creationParent,
   enableBulkSelection = false,
   view = "list",
+  kindFilter = "all",
+  filters,
 }: IListViewProps) {
   const router = useRouter();
   const { user } = useStore($auth);
@@ -216,8 +222,10 @@ export const ListView = React.memo(function ListView({
     });
   }, []);
   const [sortField, setSortField] = useState<SortField>(defaultSortField);
-  const [sortDirection, setSortDirection] =
-    useState<SortDirection>(defaultSortDirection);
+  // Newest first is the useful default for dates; A to Z for everything else.
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    defaultSortDirection ?? (defaultSortField === "modified" ? "desc" : "asc"),
+  );
   const [isProcessing, setIsProcessing] = useState<Set<string>>(new Set());
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const isMobile = useIsMobile();
@@ -360,13 +368,17 @@ export const ListView = React.memo(function ListView({
 
   // Pre-compute formatted dates for performance
   const itemsWithFormattedDates = useMemo(() => {
-    return items.map((item) => ({
+    const visible =
+      kindFilter === "all"
+        ? items
+        : items.filter((item) => item.itemType === "file" && fileKind(docById.get(item.id)) === kindFilter);
+    return visible.map((item) => ({
       ...item,
       formattedDate: formatDistanceToNow(new Date(item.timestamp.updatedAt), {
         addSuffix: true,
       }),
     }));
-  }, [items]);
+  }, [items, kindFilter, docById]);
 
   // Sorting logic
   const sortedItems = useMemo(() => {
@@ -382,8 +394,8 @@ export const ListView = React.memo(function ListView({
           bValue = b.name.toLowerCase();
           break;
         case "modified":
-          aValue = new Date(a.timestamp.createdAt).getTime();
-          bValue = new Date(b.timestamp.createdAt).getTime();
+          aValue = new Date(a.timestamp.updatedAt).getTime();
+          bValue = new Date(b.timestamp.updatedAt).getTime();
           break;
         case "owner":
           aValue = getUserName(a.owner);
@@ -438,7 +450,7 @@ export const ListView = React.memo(function ListView({
         setSortDirection(sortDirection === "asc" ? "desc" : "asc");
       } else {
         setSortField(field);
-        setSortDirection("asc");
+        setSortDirection(field === "modified" ? "desc" : "asc");
       }
     },
     [enableSorting, sortField, sortDirection],
@@ -764,28 +776,49 @@ export const ListView = React.memo(function ListView({
   );
 
   const emptyState = (() => {
+    const folderId = creationParent || parent || user?.id || "";
+    if (kindFilter !== "all" && items.length > 0) {
+      const plural = KIND[kindFilter].plural.toLowerCase();
+      return (
+        <EmptyState
+          title={`No ${plural} here yet`}
+          description={`Start one and it shows up with your other files.`}
+          folderId={folderId}
+          kind={kindFilter}
+        />
+      );
+    }
     if (mode === "shared-with-me") {
       return (
         <EmptyState
           title="Nothing shared with you yet"
-          description="When someone shares a document with you, it shows up here."
+          description="When someone shares a document, spreadsheet or presentation with you, it lands here."
         />
       );
     }
-    const folderId = creationParent || parent || user?.id || "";
+    if (mode === "recent-files") {
+      return (
+        <EmptyState
+          title="Your files will gather here"
+          description="Pick a tile above to start something, or drop a Word, PDF, Excel or PowerPoint file anywhere on this page."
+          folderId={folderId}
+          quiet
+        />
+      );
+    }
     if (mode === "folder-contents" && parent && parent !== user?.id) {
       return (
         <EmptyState
           title="This folder is empty"
-          description="Start a document here or pick a template."
+          description="Make something new here, or import a file into it."
           folderId={folderId}
         />
       );
     }
     return (
       <EmptyState
-        title="Start your first document"
-        description="Write on a blank page or pick a template."
+        title="Make your first file"
+        description="Write a document, crunch numbers in a spreadsheet or build a deck."
         folderId={folderId}
       />
     );
@@ -818,14 +851,13 @@ export const ListView = React.memo(function ListView({
       item.itemType === "folder"
         ? `${item.meta?.fileCount || 0} files`
         : `Edited ${item.formattedDate}`;
-    const FileIcon = getFileIcon(item.name);
 
     const itemElement = (
       <TableRow
         key={item.id}
         data-state={isSelected ? "selected" : undefined}
         className={cn(
-          "group h-10 cursor-pointer border-border/60 hover:bg-accent data-[state=selected]:bg-accent",
+          "group h-12 cursor-pointer border-border/60 last:border-0 hover:bg-accent/60 data-[state=selected]:bg-accent",
           isItemProcessing && "pointer-events-none opacity-50",
         )}
         onClick={() => handleItemClick(item)}
@@ -851,11 +883,11 @@ export const ListView = React.memo(function ListView({
                 className="size-4 shrink-0"
               />
             ) : (
-              <FileIcon className="size-4 shrink-0 text-muted-foreground" />
+              <KindIcon kind={fileKind(docById.get(item.id))} />
             )}
             <div className="flex min-w-0 flex-col">
               <span className="flex items-center gap-1.5">
-                <span className="truncate font-serif text-[14px] font-medium text-foreground">
+                <span className="truncate font-display text-[14px] font-semibold tracking-[-0.01em] text-foreground">
                   {item.name}
                 </span>
                 {item.sharing?.isShared && (
@@ -954,50 +986,40 @@ export const ListView = React.memo(function ListView({
       )
     );
 
-  const renderGridFile = (item: IListItem & { formattedDate?: string }) =>
-    wrapWithContextMenu(
+  const renderGridFile = (item: IListItem & { formattedDate?: string }) => {
+    const doc = docById.get(item.id);
+    return wrapWithContextMenu(
       item,
       // biome-ignore lint/a11y/useSemanticElements: card contains a nested menu button
       <div
         role="link"
         tabIndex={0}
         aria-label={`Open ${item.name}`}
-        className={cn(
-          "group flex cursor-pointer flex-col gap-3 outline-none",
-          isProcessing.has(item.id) && "pointer-events-none opacity-50",
-        )}
+        className={cn("group cursor-pointer outline-none", isProcessing.has(item.id) && "pointer-events-none")}
         onClick={() => handleItemClick(item)}
-        onPointerEnter={() => router.prefetch(item.itemType === "folder" ? `/folder/${item.id}` : hrefForId(item.id))}
+        onPointerEnter={() => router.prefetch(hrefForId(item.id))}
         onKeyDown={(e) => {
           if (e.target !== e.currentTarget) return;
           if (e.key === "Enter") handleItemClick(item);
         }}
       >
-        <FileThumbnail
-          kind={fileKind(docById.get(item.id))}
+        <FileCard
+          kind={fileKind(doc)}
           title={item.name}
-          content={docById.get(item.id)?.pages?.[0]?.content}
-          data={docById.get(item.id)?.data}
-          className="transition-[box-shadow,transform] duration-150 group-hover:-translate-y-px group-hover:ring-1 group-hover:ring-foreground/20 group-focus-visible:ring-2 group-focus-visible:ring-ring"
-        />
-        <div className="flex items-start gap-1">
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-serif text-[14px] font-medium leading-snug text-foreground">
-              {item.name}
-            </p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+          content={doc?.pages?.[0]?.content}
+          data={doc?.data}
+          dimmed={isProcessing.has(item.id)}
+          detail={
+            <span className="flex items-center gap-1.5">
               <span className="truncate">Edited {item.formattedDate}</span>
-              {item.sharing?.isShared && (
-                <Users className="size-3 shrink-0" aria-label="Shared" />
-              )}
-            </p>
-          </div>
-          <div className="-mt-0.5 -mr-1.5" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-            {itemMenu(item)}
-          </div>
-        </div>
+              {item.sharing?.isShared && <Users className="size-3 shrink-0" aria-label="Shared" />}
+            </span>
+          }
+          actions={itemMenu(item)}
+        />
       </div>,
     );
+  };
 
   const renderGridFolder = (item: IListItem) =>
     wrapWithContextMenu(
@@ -1015,24 +1037,27 @@ export const ListView = React.memo(function ListView({
   const gridFiles = sortedItems.filter((i) => i.itemType === "file");
 
   const gridContent = isLoading ? (
-    <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      {Array.from({ length: 5 }, (_, i) => (
+    <div className={fileGridClass}>
+      {Array.from({ length: 4 }, (_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static placeholders
-        <div key={i} className="flex flex-col gap-3">
-          <Skeleton className="aspect-[8.5/11] w-full rounded-[2px] bg-muted" />
-          <Skeleton className="h-3 w-3/4 rounded bg-muted" />
+        <div key={i} className="overflow-hidden rounded-[14px] bg-card shadow-card">
+          <Skeleton className="aspect-[4/3] w-full rounded-none bg-muted" />
+          <div className="flex items-center gap-2.5 p-3">
+            <Skeleton className="size-6 rounded-[7px] bg-muted" />
+            <Skeleton className="h-3 w-2/3 rounded bg-muted" />
+          </div>
         </div>
       ))}
     </div>
   ) : (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       {gridFolders.length > 0 && (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {gridFolders.map(renderGridFolder)}
         </div>
       )}
       {gridFiles.length > 0 && (
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className={fileGridClass}>
           {gridFiles.map(renderGridFile)}
         </div>
       )}
@@ -1041,11 +1066,11 @@ export const ListView = React.memo(function ListView({
 
   const skeletonRows = Array.from({ length: 6 }, (_, i) => (
     // biome-ignore lint/suspicious/noArrayIndexKey: static placeholder rows
-    <TableRow key={i} className="h-10 border-border/60 hover:bg-transparent">
+    <TableRow key={i} className="h-12 border-border/60 hover:bg-transparent">
       {enableBulkSelection && <TableCell className="w-9 py-0 pl-3" />}
       <TableCell className={cn("py-0", !enableBulkSelection && "pl-3")}>
         <div className="flex items-center gap-2.5">
-          <Skeleton className="size-4 rounded bg-muted" />
+          <Skeleton className="size-6 rounded-[7px] bg-muted" />
           <Skeleton
             className="h-3 rounded bg-muted"
             style={{ width: `${[45, 30, 55, 38, 48, 26][i]}%` }}
@@ -1067,10 +1092,44 @@ export const ListView = React.memo(function ListView({
 
   const showTable = isLoading || sortedItems.length > 0;
 
+  const sortMenu = view === "grid" && enableSorting && sortedItems.length > 1 && (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="ml-auto text-muted-foreground">
+          <ArrowUpDown />
+          {SORT_LABEL[sortField] ?? "Sort"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuRadioGroup
+          value={sortField}
+          onValueChange={(v) => {
+            setSortField(v as SortField);
+            setSortDirection(v === "modified" ? "desc" : "asc");
+          }}
+        >
+          {Object.entries(SORT_LABEL).map(([field, label]) => (
+            <DropdownMenuRadioItem key={field} value={field}>
+              {label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const toolbar = (filters || sortMenu) && (
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      {filters}
+      {sortMenu}
+    </div>
+  );
+
   const content = (
     <div>
+      {toolbar}
       {enableBulkSelection && anySelected && view === "list" && (
-        <div className="mb-2 flex h-9 items-center gap-2 rounded-md bg-accent px-1.5">
+        <div className="mb-2 flex h-10 items-center gap-2 rounded-[12px] bg-card px-1.5 shadow-card">
           <Button
             variant="ghost"
             size="icon-sm"
@@ -1100,6 +1159,7 @@ export const ListView = React.memo(function ListView({
       ) : view === "grid" ? (
         gridContent
       ) : (
+        <div className="overflow-hidden rounded-[14px] bg-card px-1 shadow-card">
         <Table>
           <TableHeader>
             <TableRow className="group h-9 border-border hover:bg-transparent">
@@ -1133,6 +1193,7 @@ export const ListView = React.memo(function ListView({
             {isLoading ? skeletonRows : sortedItems.map(renderItem)}
           </TableBody>
         </Table>
+        </div>
       )}
     </div>
   );

@@ -1,0 +1,260 @@
+/* Tiny live previews inside the Home create tiles. Rest state is the finished picture; hover replays it. */
+
+.stage {
+  position: relative;
+  container-type: inline-size;
+  overflow: hidden;
+}
+
+/* A sheet of paper: shared by the doc and sheet previews. */
+.paper {
+  position: absolute;
+  inset: 16% 16% -12% 16%;
+  border-radius: 6px 6px 0 0;
+  background: var(--paper);
+  box-shadow: var(--elev-card);
+  padding: 9cqw 8cqw;
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.tile:hover .paper,
+.tile:focus-visible .paper {
+  transform: translateY(-3%);
+}
+
+.bar {
+  height: 2.6cqw;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-foreground) 9%, transparent);
+}
+.bar + .bar {
+  margin-top: 3cqw;
+}
+.heading {
+  width: 58%;
+  height: 4.6cqw;
+  margin-bottom: 5cqw;
+  border-radius: 999px;
+  background: var(--paper-foreground);
+  opacity: 0.85;
+}
+
+/* Doc: a line being typed, with a blinking cursor. */
+.typed {
+  position: relative;
+  display: inline-block;
+  margin-top: 4cqw;
+  color: var(--paper-foreground);
+  font-size: 5cqw;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.typedText {
+  display: inline-block;
+}
+.caret {
+  position: absolute;
+  top: -8%;
+  bottom: -8%;
+  left: 100%;
+  width: 0.6cqw;
+  min-width: 1.5px;
+  margin-left: 0.4cqw;
+  border-radius: 1px;
+  background: var(--doc);
+}
+
+/* Sheet: formula bar plus a grid whose last column fills in. */
+.fx {
+  display: flex;
+  align-items: center;
+  gap: 2cqw;
+  margin-bottom: 3cqw;
+  color: var(--paper-foreground);
+  font-size: 3.8cqw;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.fx b {
+  color: var(--sheet);
+  font-style: italic;
+  font-weight: 700;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1.1fr;
+  border-top: 1px solid
+    color-mix(in srgb, var(--paper-foreground) 10%, transparent);
+  border-left: 1px solid
+    color-mix(in srgb, var(--paper-foreground) 10%, transparent);
+  font-size: 3.6cqw;
+  font-variant-numeric: tabular-nums;
+}
+.cell {
+  height: 7.4cqw;
+  padding: 0 1.6cqw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-right: 1px solid
+    color-mix(in srgb, var(--paper-foreground) 10%, transparent);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--paper-foreground) 10%, transparent);
+  color: color-mix(in srgb, var(--paper-foreground) 60%, transparent);
+}
+.cell:nth-child(4n + 1) {
+  justify-content: flex-start;
+}
+.head {
+  color: var(--paper-foreground);
+  font-weight: 600;
+}
+.result {
+  color: var(--sheet);
+  font-weight: 700;
+}
+.selected {
+  box-shadow: inset 0 0 0 1.5px var(--sheet);
+}
+
+/* Slides: a 16:9 slide whose title slides in. */
+.slide {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 50%;
+  aspect-ratio: 16 / 9;
+  translate: 0 -50%;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--paper);
+  box-shadow: var(--elev-card);
+  padding: 8cqw 7cqw;
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.tile:hover .slide,
+.tile:focus-visible .slide {
+  transform: scale(1.03);
+}
+.slideTitle {
+  color: var(--paper-foreground);
+  font-family: var(--font-display-face), sans-serif;
+  font-size: 7.4cqw;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.slideSub {
+  margin-top: 2.4cqw;
+  width: 46%;
+  height: 2.4cqw;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-foreground) 14%, transparent);
+}
+.dot {
+  position: absolute;
+  right: -7cqw;
+  bottom: -9cqw;
+  width: 30cqw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--slides);
+}
+
+/* Import: formats float around an arrow. */
+.arrow {
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.tile:hover .arrow,
+.tile:focus-visible .arrow,
+.tile[data-dragging="true"] .arrow {
+  transform: translateY(-12%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .caret {
+    animation: blink 1.05s steps(1) infinite;
+  }
+  .tile:hover .typedText,
+  .tile:focus-visible .typedText {
+    animation: type 1.5s steps(22, end) both;
+  }
+  .tile:hover .caret,
+  .tile:focus-visible .caret {
+    animation:
+      caret 1.5s steps(22, end) both,
+      blink 1.05s steps(1) 1.5s infinite;
+  }
+
+  .tile:hover .result,
+  .tile:focus-visible .result {
+    animation: fill 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+    animation-delay: calc(var(--i) * 130ms + 120ms);
+  }
+
+  .tile:hover .slideTitle,
+  .tile:focus-visible .slideTitle {
+    animation: slide-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+  .tile:hover .slideSub,
+  .tile:focus-visible .slideSub {
+    animation: slide-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) 110ms both;
+  }
+  .tile:hover .dot,
+  .tile:focus-visible .dot {
+    animation: pop 520ms cubic-bezier(0.2, 0.9, 0.3, 1.2) 60ms both;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes caret {
+  from {
+    left: 0;
+  }
+  to {
+    left: 100%;
+  }
+}
+@keyframes fill {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+    background: var(--sheet-soft);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    background: transparent;
+  }
+}
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-40%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop {
+  from {
+    transform: scale(0.3) translate(40%, 40%);
+  }
+  to {
+    transform: none;
+  }
+}

@@ -19,8 +19,8 @@ export function SectionHeader({
   actions,
 }: SectionHeaderProps) {
   return (
-    <div className="mb-2 flex h-8 items-center gap-1">
-      <h2 className="text-sm font-medium text-foreground">{title}</h2>
+    <div className="mb-3 flex min-h-8 flex-wrap items-center gap-x-1 gap-y-2">
+      <h2 className="font-display text-lg font-semibold tracking-[-0.015em] text-foreground">{title}</h2>
       {collapsible && (
         <CollapsibleTrigger asChild>
           <Button

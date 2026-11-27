@@ -65,8 +65,8 @@ export function getPreviewBlocks(content: unknown, parse: ParseHtml | null = bro
 }
 
 const blockClass: Record<PreviewBlock["kind"], string> = {
-  h1: "mb-[2cqw] font-serif text-[4.2cqw] font-semibold leading-tight",
-  h2: "mt-[1.5cqw] mb-[1cqw] font-serif text-[3cqw] font-semibold leading-tight",
+  h1: "mb-[2cqw] font-display text-[4.2cqw] font-semibold leading-tight",
+  h2: "mt-[1.5cqw] mb-[1cqw] font-display text-[3cqw] font-semibold leading-tight",
   p: "mb-[1.6cqw] text-[1.9cqw] leading-[1.5]",
   li: "mb-[0.8cqw] pl-[3cqw] text-[1.9cqw] leading-[1.5]",
 };
@@ -88,7 +88,7 @@ export function PaperSheet({ title, content, className, children }: PaperSheetPr
   return (
     <div
       className={cn(
-        "@container relative aspect-[8.5/11] w-full overflow-hidden rounded-[2px] bg-paper text-paper-foreground shadow-paper",
+        "@container relative aspect-[8.5/11] w-full overflow-hidden rounded-[5px] bg-paper text-paper-foreground shadow-paper",
         className,
       )}
     >
@@ -102,7 +102,7 @@ export function PaperSheet({ title, content, className, children }: PaperSheetPr
           ))
         ) : title ? (
           <>
-            <p className="mb-[4cqw] line-clamp-2 font-serif text-[5cqw] font-semibold leading-tight">
+            <p className="mb-[4cqw] line-clamp-2 font-display text-[5cqw] font-semibold leading-tight">
               {title}
             </p>
             <div className="space-y-[2.6cqw]">

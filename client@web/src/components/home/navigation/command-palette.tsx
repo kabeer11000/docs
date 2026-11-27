@@ -6,9 +6,6 @@ import {
   FolderLock,
   LayoutTemplate,
   type LucideIcon,
-  Plus,
-  Presentation,
-  Sheet,
   SunMoon,
   Users,
 } from "lucide-react";
@@ -16,7 +13,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { useCreateFile } from "@/hooks/use-create-file";
-import { hrefForId } from "@/lib/files";
+import { type FileKind, fileHref, fileKind } from "@/lib/files";
+import { cn } from "@/lib/utils";
+import { $documents } from "@/state/cloudstore-data";
 import {
   Command,
   CommandEmpty,
@@ -31,6 +30,7 @@ import { performSearch } from "@/lib/search";
 import { $auth } from "@/state/auth";
 import { $searchOpen, $searchQuery, searchActions } from "@/state/search";
 import { templatesHref } from "../empty-state";
+import { KIND } from "../kind";
 
 const typeIcon: Record<string, LucideIcon> = {
   file: FileText,
@@ -58,7 +58,7 @@ export function CommandPalette() {
     <Dialog open={open} onOpenChange={(next) => (next ? searchActions.open() : searchActions.close())}>
       <DialogContent
         showCloseButton={false}
-        className="top-[20vh] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-xl"
+        className="top-[18vh] translate-y-0 gap-0 overflow-hidden rounded-[18px] p-0 shadow-float sm:max-w-xl"
       >
         <DialogTitle className="sr-only">Search and commands</DialogTitle>
         <PaletteBody />
@@ -72,6 +72,8 @@ type Entry = {
   label: string;
   hint?: string;
   icon: LucideIcon;
+  /** Tints the icon in an app colour. */
+  tint?: string;
   run: () => void;
 };
 
@@ -83,11 +85,13 @@ function PaletteBody() {
   const pathname = usePathname() ?? "";
   const { resolvedTheme, setTheme } = useTheme();
   const { searchableItems } = useSearchData("home");
+  const docs = useStore($documents);
+  const kindOf = (id: string) => fileKind(docs.find((d) => d.id === id));
 
   const folderId = pathname.match(/^\/folder\/([^/?#]+)/)?.[1] ?? user?.id ?? "";
 
   const { create } = useCreateFile();
-  const make = (kind: "doc" | "sheet" | "slides") => {
+  const make = (kind: FileKind) => {
     searchActions.close();
     create(kind, folderId);
   };
@@ -98,9 +102,13 @@ function PaletteBody() {
   };
 
   const actions: Entry[] = [
-    { id: "new", label: "New document", icon: Plus, run: () => make("doc") },
-    { id: "new-sheet", label: "New spreadsheet", icon: Sheet, run: () => make("sheet") },
-    { id: "new-slides", label: "New presentation", icon: Presentation, run: () => make("slides") },
+    ...(["doc", "sheet", "slides"] as const).map((kind) => ({
+      id: `new-${kind}`,
+      label: `New ${KIND[kind].label.toLowerCase()}`,
+      icon: KIND[kind].icon,
+      tint: KIND[kind].text,
+      run: () => make(kind),
+    })),
     { id: "templates", label: "Browse templates", icon: LayoutTemplate, run: () => go(templatesHref(folderId)) },
     { id: "vault", label: "Go to Vault", icon: FolderLock, run: () => go("/vault") },
     { id: "shared", label: "Go to Shared with me", icon: Users, run: () => go("/shared") },
@@ -126,20 +134,26 @@ function PaletteBody() {
 
   const q = query.trim().toLowerCase();
 
-  const toEntry = (r: { id: string; title: string; type: string }): Entry => ({
+  const toEntry = (r: { id: string; title: string; type: string }): Entry => {
+    if (r.type === "file") {
+      const kind = kindOf(r.id);
+      return {
+        id: `file:${r.id}`,
+        label: r.title || "Untitled",
+        hint: KIND[kind].label,
+        icon: KIND[kind].icon,
+        tint: KIND[kind].text,
+        run: () => go(fileHref(r.id, kind)),
+      };
+    }
+    return {
       id: `${r.type}:${r.id}`,
       label: r.title,
-      hint: r.type === "file" ? "Document" : r.type === "folder" ? "Folder" : "Template",
+      hint: r.type === "folder" ? "Folder" : "Template",
       icon: typeIcon[r.type] ?? FileText,
-      run: () =>
-        go(
-          r.type === "folder"
-            ? `/folder/${r.id}`
-            : r.type === "template"
-              ? templatesHref(folderId)
-              : hrefForId(r.id),
-        ),
-    });
+      run: () => go(r.type === "folder" ? `/folder/${r.id}` : templatesHref(folderId)),
+    };
+  };
   // Empty query: recent documents. Otherwise fuzzy matches (lib/search), templates last.
   const results = q
     ? [
@@ -159,15 +173,15 @@ function PaletteBody() {
         autoFocus
         value={query}
         onValueChange={searchActions.setQuery}
-        placeholder="Search documents, folders, templates"
-        className="h-12"
+        placeholder="Search files, folders and templates"
+        className="h-14 text-[15px]"
       />
-      <CommandList className="max-h-[min(420px,60vh)] p-1">
+      <CommandList className="max-h-[min(440px,60vh)] p-1.5">
         <CommandEmpty className="py-8 text-center text-sm text-muted-foreground">
           No matches for "{query}".
         </CommandEmpty>
         {results.length > 0 && (
-          <CommandGroup heading={q ? "Results" : "Recent documents"}>
+          <CommandGroup heading={q ? "Results" : "Recent"}>
             {results.map((r) => (
               <PaletteItem key={r.id} entry={r} />
             ))}
@@ -191,9 +205,9 @@ function PaletteItem({ entry }: { entry: Entry }) {
     <CommandItem
       value={entry.id}
       onSelect={entry.run}
-      className="data-[disabled=false]:!pointer-events-auto data-[disabled=false]:!opacity-100"
+      className="h-9 data-[disabled=false]:!pointer-events-auto data-[disabled=false]:!opacity-100"
     >
-      <entry.icon />
+      <entry.icon className={cn(entry.tint)} />
       <span className="truncate">{entry.label}</span>
       {entry.hint && (
         <span className="ml-auto pl-4 text-xs text-muted-foreground">{entry.hint}</span>

@@ -5,14 +5,3 @@ export function GitHubIcon({ size = 16 }: { size?: number }) {
     </svg>
   );
 }
-
-export function LogoMark({ size = 22 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M5 2.5h9.5L19 7v14.5H5z" fill="var(--paper)" stroke="var(--graphite)" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M14.5 2.5V7H19" fill="none" stroke="var(--graphite)" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M8 12h8" stroke="var(--ink)" strokeWidth="1.75" strokeLinecap="round" />
-      <path d="M8 16h5" stroke="var(--graphite)" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
