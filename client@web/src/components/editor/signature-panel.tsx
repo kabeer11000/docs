@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { $auth } from "@/state/auth";
 import { Button } from "../ui/button";
+import { sameEmail } from "@/lib/email";
 
 interface SignaturePanelProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export function SignaturePanel({
       document.sharing?.sharedWith?.some(
         (s) =>
           s.status === "active" &&
-          (s.userId === user.id || s.email === user.email),
+          (s.userId === user.id || sameEmail(s.email, user.email)),
       ));
 
   return (

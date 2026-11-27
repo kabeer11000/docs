@@ -35,7 +35,8 @@ export function useCloudStoreSaver(
   options: CloudStoreSaverOptions = {},
 ): CloudStoreSaverReturn {
   const {
-    saveInterval = 10000, // 10 seconds
+    // Short, so closing the tab right after typing never loses the last edits (writes are small $set updates).
+    saveInterval = 1500,
     retryAttempts = 3,
     retryDelay = 2000, // 2 seconds
   } = options;

@@ -2,6 +2,7 @@ import { useStore } from "@nanostores/react";
 import { useMemo } from "react";
 import { $nothing, sharedDocumentsWatch } from "@/state/live-queries";
 import { $auth } from "../state/auth";
+import { sameEmail } from "@/lib/email";
 
 /** Documents other people shared with the current user (one shared, cached watch). */
 export function useSharedDocuments() {
@@ -17,7 +18,7 @@ export function useSharedDocuments() {
           (shared) =>
             shared.status === "active" &&
             ((shared.userId && shared.userId === user.id) ||
-              (shared.email && shared.email === user.email)),
+              sameEmail(shared.email, user.email)),
         ),
     );
   }, [rows, user]);

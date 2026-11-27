@@ -22,3 +22,5 @@ test("stranger refused", () => expect(accessFor(doc, { id: "zz" })).toBeNull())
 test("missing email never matches an email-less share", () =>
   expect(accessFor({ sharing: { sharedWith: [{ status: "active", access: "editor" }] } }, { id: "zz" })).toBeNull())
 test("missing document refused", () => expect(accessFor(null, { id: "u1" })).toBeNull())
+test("email match ignores case", () =>
+  expect(accessFor({ sharing: { sharedWith: [{ email: "QA@X.com", status: "active", access: "editor" }] } }, { id: "zz", email: "qa@x.com" })).toBe("write"))

@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import cloudStore from "@/lib/cloudstore";
 import { $auth } from "@/state/auth";
 import { $documents } from "@/state/cloudstore-data";
+import { sameEmail } from "@/lib/email";
 
 interface DocState {
   document: Document | null;
@@ -65,7 +66,7 @@ export function useLiveDocument(documentId: string) {
   let access: DocumentAccess = "loading";
   if (document && user) {
     const shared = document.sharing?.sharedWith?.some(
-      (s) => s.status === "active" && (s.userId === user.id || s.email === user.email),
+      (s) => s.status === "active" && (s.userId === user.id || sameEmail(s.email, user.email)),
     );
     access = document.owner === user.id || shared ? "ok" : "denied";
   } else if (!isLoading && notFound) {

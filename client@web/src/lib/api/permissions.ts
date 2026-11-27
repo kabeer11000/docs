@@ -1,3 +1,5 @@
+import { sameEmail } from "@/lib/email";
+
 // Mirrors src/hooks/use-document-permissions.ts and services/yjs-host/access.ts:
 // owner and active editors write, active viewers and signers read, everyone else is refused.
 // Renaming and deleting stay with the owner, as in the app.
@@ -18,7 +20,7 @@ export function accessFor(doc: AccessCheckable | null, user: ApiUser): Access | 
   if (!doc) return null;
   if (doc.owner === user.id) return "owner";
   const share = doc.sharing?.sharedWith?.find(
-    (s) => s.status === "active" && (s.userId === user.id || (!!user.email && s.email === user.email)),
+    (s) => s.status === "active" && (s.userId === user.id || sameEmail(s.email, user.email)),
   );
   if (share?.access === "editor" || share?.access === "viewer" || share?.access === "signer") return share.access;
   return null;

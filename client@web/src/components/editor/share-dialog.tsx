@@ -229,7 +229,8 @@ export function ShareDialog({
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        const emailInput = searchQuery.trim();
+        // Emails are matched exactly everywhere access is checked, so store them lowercased.
+        const emailInput = searchQuery.trim().toLowerCase();
 
         // Email validation regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -262,7 +263,7 @@ export function ShareDialog({
     if (!selectedUser) return;
 
     const alreadyShared = sharedUsers.find(
-      (u) => u.email === selectedUser.email,
+      (u) => u.email.toLowerCase() === selectedUser.email.toLowerCase(),
     );
 
     if (alreadyShared) {
@@ -284,7 +285,7 @@ export function ShareDialog({
       }
     } else {
       const newUser: SharedUser = {
-        email: selectedUser.email,
+        email: selectedUser.email.toLowerCase(),
         userId: selectedUser.id,
         displayName: selectedUser.displayName,
         access: permission,

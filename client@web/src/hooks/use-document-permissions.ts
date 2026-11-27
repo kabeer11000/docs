@@ -2,6 +2,7 @@ import { useStore } from "@nanostores/react";
 import type { Document } from "@shared-types";
 import { useMemo } from "react";
 import { $auth } from "@/state/auth";
+import { sameEmail } from "@/lib/email";
 
 export type UserAccessLevel = "owner" | "editor" | "viewer" | "signer" | null;
 
@@ -53,7 +54,7 @@ export function useDocumentPermissions(
     const sharedAccess = document.sharing?.sharedWith?.find(
       (s) =>
         s.status === "active" &&
-        (s.userId === user.id || s.email === user.email),
+        (s.userId === user.id || sameEmail(s.email, user.email)),
     );
 
     if (!sharedAccess) {
