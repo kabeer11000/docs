@@ -41,9 +41,9 @@ export function FocusMode() {
     <button
       type="button"
       onClick={() => $focusMode.set(false)}
-      className="fixed top-3 right-4 z-40 rounded-md px-2.5 py-1 text-xs text-muted-foreground opacity-0 transition-opacity duration-150 hover:bg-accent hover:text-foreground hover:opacity-100 focus-visible:opacity-100"
+      className="press studio-pop fixed top-3 right-4 z-40 flex h-8 items-center gap-2 rounded-full bg-card px-3.5 text-xs font-medium text-muted-foreground opacity-60 shadow-float transition-opacity duration-150 hover:text-foreground hover:opacity-100 focus-visible:opacity-100"
     >
-      Exit focus <kbd className="ml-1 font-sans">Esc</kbd>
+      Exit focus <kbd className="rounded-[6px] bg-muted px-1.5 py-0.5 font-sans text-[11px]">Esc</kbd>
     </button>
   );
 }

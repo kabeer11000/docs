@@ -22,9 +22,9 @@ const headerPlaceholder = (
   <div className="flex w-full items-center justify-between gap-4">
     <div className="flex items-center gap-2">
       <div className="hidden size-8 sm:block" />
-      <div className="h-5 w-48 rounded-sm bg-muted animate-pulse" />
+      <div className="h-5 w-48 rounded-full bg-muted animate-pulse" />
     </div>
-    <div className="h-8 w-20 rounded-md bg-muted animate-pulse" />
+    <div className="h-9 w-20 rounded-[10px] bg-muted animate-pulse" />
   </div>
 );
 
@@ -74,9 +74,13 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
       pathname={`/document/${documentId}`}
       isEditorPage={true}
       hideSearch={true}
-      editorHeaderContent={ready ? <EditorHeaderContent documentId={documentId} /> : headerPlaceholder}
+      editorHeaderContent={
+        <div data-app="doc" className="contents">
+          {ready ? <EditorHeaderContent documentId={documentId} /> : headerPlaceholder}
+        </div>
+      }
     >
-      <div className="relative flex h-full flex-col overflow-hidden bg-background" id="editor-container">
+      <div data-app="doc" className="relative flex h-full flex-col overflow-hidden bg-background" id="editor-container">
         {ready ? <Editor key={documentId} documentId={documentId} /> : <EditorSkeleton />}
       </div>
     </ReactHome>

@@ -48,25 +48,25 @@ export function LinkedFrom({ documentId }: { documentId: string }) {
   }, []);
 
   return (
-    <div ref={anchor} className="sticky top-0 z-10 hidden h-0 lg:block">
+    <div ref={anchor} className="sticky top-16 z-10 hidden h-0 lg:block">
       {rail && backlinks.length > 0 && (
         <nav
           aria-label="Linked from"
           style={{ width: rail.width, top: rail.top, maxHeight: `calc(100dvh - 10rem - ${rail.top}px)` }}
-          className="absolute left-0 flex min-h-24 flex-col font-sans"
+          className="studio-rise absolute left-0 flex min-h-24 flex-col rounded-[14px] bg-card p-1.5 font-sans shadow-card"
         >
-          <div className="flex h-7 shrink-0 items-center pl-3">
-            <span className="text-xs font-medium text-muted-foreground">Linked from</span>
+          <div className="flex h-8 shrink-0 items-center pl-2.5">
+            <span className="font-display text-[13px] font-semibold tracking-[-0.01em]">Linked from</span>
           </div>
-          <ul className="min-h-0 overflow-y-auto pb-2">
+          <ul className="min-h-0 overflow-y-auto">
             {backlinks.map((b) => (
               <li key={b.id}>
                 <Link
                   href={fileHref(b.id)}
                   title={b.title}
-                  className="block rounded-md py-1 pr-2 pl-3 outline-none transition-colors duration-150 hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/40"
+                  className="block rounded-[8px] py-1.5 pr-2 pl-2.5 outline-none transition-colors duration-150 hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/40"
                 >
-                  <span className="block truncate font-serif text-[13px] text-primary">{b.title || "Untitled"}</span>
+                  <span className="block truncate text-[13px] font-medium text-app">{b.title || "Untitled"}</span>
                   {b.excerpt && <span className="block truncate text-xs text-muted-foreground">{b.excerpt}</span>}
                 </Link>
               </li>

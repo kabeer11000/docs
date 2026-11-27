@@ -44,7 +44,7 @@
 }
 
 .ProseMirror .page-break.ProseMirror-selectednode {
-  border-top-color: var(--primary);
+  border-top-color: var(--app);
 }
 
 .ProseMirror ul[data-type="taskList"] {
@@ -59,15 +59,56 @@
 }
 
 .ProseMirror ul[data-type="taskList"] > li > label {
-  margin-top: 0.3em;
+  display: flex;
+  margin-top: 0.28em;
   user-select: none;
 }
 
+/* Round-cornered box that fills with the app colour and draws its check. */
 .ProseMirror ul[data-type="taskList"] > li > label input {
-  width: 0.95em;
-  height: 0.95em;
-  accent-color: var(--primary);
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0;
+  border: 1.5px solid color-mix(in oklab, var(--paper-foreground) 35%, transparent);
+  border-radius: 0.3em;
+  background: var(--paper);
   cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input::after {
+  content: "";
+  width: 0.62em;
+  height: 0.62em;
+  background: var(--app-foreground);
+  clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 26%, 86% 12%, 38% 72%);
+  transform: scale(0);
+  transition: transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input:hover {
+  border-color: var(--app);
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input:checked {
+  border-color: var(--app);
+  background: var(--app);
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input:checked::after {
+  transform: scale(1);
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input:active {
+  transform: scale(0.9);
+}
+
+.ProseMirror ul[data-type="taskList"] > li > label input:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--app) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .ProseMirror ul[data-type="taskList"] > li > div {
@@ -78,6 +119,8 @@
 .ProseMirror ul[data-type="taskList"] > li[data-checked="true"] > div {
   color: var(--muted-foreground);
   text-decoration: line-through;
+  text-decoration-color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+  transition: color 200ms ease-out;
 }
 
 .ProseMirror img {
@@ -85,15 +128,27 @@
   height: auto;
 }
 
+.ProseMirror img {
+  border-radius: 6px;
+}
+
 .ProseMirror img.ProseMirror-selectednode {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--app);
   outline-offset: 2px;
 }
 
-.ProseMirror a {
-  color: var(--primary);
+.ProseMirror a,
+.ProseMirror p a {
+  color: var(--app);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in oklab, var(--app) 40%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 150ms ease-out;
+}
+
+.ProseMirror a:hover {
+  text-decoration-color: var(--app);
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {
@@ -121,10 +176,10 @@
   padding: 12px 16px;
   background: color-mix(in oklab, var(--paper-foreground) 5%, var(--paper));
   border: 1px solid var(--border);
-  border-radius: 4px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  border-radius: 10px;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.85em;
-  line-height: 1.55;
+  line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   tab-size: 2;
@@ -181,11 +236,11 @@
 }
 
 .ProseMirror div[data-callout] {
-  --callout: var(--muted-foreground);
+  --callout: var(--app);
   margin: 12px 0;
   padding: 10px 14px;
   border-left: 3px solid var(--callout);
-  border-radius: 2px;
+  border-radius: 4px 10px 10px 4px;
   background: color-mix(in oklab, var(--callout) 9%, var(--paper));
 }
 
@@ -226,14 +281,14 @@
 }
 
 .ProseMirror .ProseMirror-selectednode.tiptap-mathematics-render {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--app);
   outline-offset: 1px;
 }
 
 .ProseMirror div[data-embed] {
   margin: 12px 0;
   border: 1px solid var(--border);
-  border-radius: 2px;
+  border-radius: 10px;
   background: var(--paper);
   overflow: hidden;
 }
@@ -258,7 +313,7 @@
 
 .ProseMirror div[data-embed].ProseMirror-selectednode,
 .ProseMirror div[data-diagram].ProseMirror-selectednode {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--app);
   outline-offset: 2px;
 }
 
@@ -271,7 +326,7 @@
   justify-content: center;
   min-height: 48px;
   padding: 8px 0;
-  border-radius: 2px;
+  border-radius: 8px;
   cursor: pointer;
   white-space: pre-wrap;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -311,7 +366,7 @@
   resize: none;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 8px;
   background: color-mix(in oklab, var(--paper-foreground) 5%, var(--paper));
   color: var(--paper-foreground);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -321,11 +376,215 @@
 }
 
 .ProseMirror .diagram-source:focus {
-  border-color: var(--primary);
+  border-color: var(--app);
 }
 
 .ProseMirror .diagram-source[hidden] {
   display: none;
+}
+
+/* Document typography. Scoped to .paged (the editor root, also present in the print clone) so
+   screen and print lay out identically; pagination measures whatever these produce. Headings
+   inherit the document font, so a picked font carries through. */
+.ProseMirror.paged {
+  font-family: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  caret-color: var(--app);
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+
+.ProseMirror.paged p {
+  margin: 0.55em 0;
+  line-height: inherit;
+}
+
+.ProseMirror.paged li > p {
+  margin: 0;
+}
+
+.ProseMirror.paged :is(blockquote, div[data-callout], td, th) > p:first-child {
+  margin-top: 0;
+}
+
+.ProseMirror.paged :is(blockquote, div[data-callout], td, th) > p:last-child {
+  margin-bottom: 0;
+}
+
+.ProseMirror.paged h1,
+.ProseMirror.paged h2,
+.ProseMirror.paged h3 {
+  font-weight: 650;
+  color: var(--paper-foreground);
+  text-wrap: balance;
+}
+
+.ProseMirror.paged h1 {
+  font-size: 1.9em;
+  line-height: 1.18;
+  letter-spacing: -0.022em;
+  margin: 1.1em 0 0.45em;
+}
+
+.ProseMirror.paged h2 {
+  font-size: 1.42em;
+  line-height: 1.25;
+  letter-spacing: -0.016em;
+  margin: 1.05em 0 0.4em;
+}
+
+.ProseMirror.paged h3 {
+  font-size: 1.16em;
+  line-height: 1.35;
+  letter-spacing: -0.008em;
+  margin: 1em 0 0.35em;
+}
+
+.ProseMirror.paged h1.title {
+  font-size: 2.6em;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  text-align: left;
+  margin: 0.2em 0 0.35em;
+}
+
+.ProseMirror.paged h2.subtitle {
+  font-size: 1.2em;
+  font-weight: 450;
+  letter-spacing: -0.005em;
+  color: var(--muted-foreground);
+  text-align: left;
+  margin: 0 0 1.2em;
+}
+
+.ProseMirror.paged ul,
+.ProseMirror.paged ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.ProseMirror.paged li {
+  margin: 0.2em 0;
+}
+
+.ProseMirror.paged li::marker {
+  color: color-mix(in oklab, var(--app) 70%, var(--paper-foreground));
+}
+
+.ProseMirror.paged ol > li::marker {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.ProseMirror.paged blockquote {
+  margin: 1em 0;
+  padding: 0.1em 0 0.1em 1em;
+  border-left: 3px solid var(--app);
+  color: color-mix(in oklab, var(--paper-foreground) 78%, var(--paper));
+  font-size: 1.06em;
+  font-style: italic;
+}
+
+.ProseMirror.paged code {
+  padding: 0.12em 0.36em;
+  border-radius: 5px;
+  background: color-mix(in oklab, var(--paper-foreground) 7%, transparent);
+  color: color-mix(in oklab, var(--app) 55%, var(--paper-foreground));
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.86em;
+}
+
+.ProseMirror.paged pre code {
+  color: inherit;
+}
+
+.ProseMirror.paged hr {
+  margin: 1.6em 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.ProseMirror.paged hr.ProseMirror-selectednode {
+  border-top-color: var(--app);
+}
+
+/* Tables: hairline grid, rounded outer edge, quiet header row. */
+.ProseMirror.paged table {
+  margin: 1em 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ProseMirror.paged table td,
+.ProseMirror.paged table th {
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5em 0.75em;
+}
+
+.ProseMirror.paged table tr > :last-child {
+  border-right: 0;
+}
+
+.ProseMirror.paged table tr:last-child > * {
+  border-bottom: 0;
+}
+
+.ProseMirror.paged table th {
+  background: color-mix(in oklab, var(--paper-foreground) 4%, var(--paper));
+  font-weight: 600;
+}
+
+.ProseMirror.paged table .selectedCell::after {
+  background: color-mix(in oklab, var(--app) 12%, transparent);
+  border: 0;
+}
+
+.ProseMirror.paged table .column-resize-handle {
+  background: color-mix(in oklab, var(--app) 50%, transparent);
+}
+
+/* Chrome motion (toolbars, menus, floating cards). 160-220ms, slight overshoot on appear. */
+@media (prefers-reduced-motion: no-preference) {
+  .studio-pop {
+    animation: studio-pop 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+    transform-origin: 50% 100%;
+  }
+
+  .studio-pop-down {
+    animation: studio-pop-down 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+    transform-origin: 50% 0;
+  }
+
+  .studio-rise {
+    animation: studio-rise 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+}
+
+@keyframes studio-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.94);
+  }
+}
+
+@keyframes studio-pop-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.94);
+  }
+}
+
+@keyframes studio-rise {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 @media print {

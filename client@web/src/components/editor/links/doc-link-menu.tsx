@@ -11,6 +11,7 @@ import type { MenuHandle } from "../extensions/slash-command";
 export type DocLinkItem = { type: "file"; file: Document } | { type: "create"; title: string };
 
 const KIND_ICON = { doc: FileText, sheet: Sheet, slides: Presentation } as const;
+const KIND_COLOR = { doc: "text-doc", sheet: "text-sheet", slides: "text-slides" } as const;
 
 export const DocLinkMenu = forwardRef<MenuHandle, SuggestionProps<DocLinkItem>>(function DocLinkMenu({ items, command }, ref) {
   const [active, setActive] = useState(0);
@@ -33,10 +34,10 @@ export const DocLinkMenu = forwardRef<MenuHandle, SuggestionProps<DocLinkItem>>(
   }));
 
   if (!items.length) {
-    return <div className={cn(menuSurface, "w-64 px-3 py-2 text-[13px] text-muted-foreground")}>Type a title to create a document</div>;
+    return <div className={cn(menuSurface, "studio-pop w-64 px-3 py-2 text-[13px] text-muted-foreground")}>Type a title to create a document</div>;
   }
   return (
-    <div role="listbox" aria-label="Link to file" className={cn(menuSurface, "w-64")}>
+    <div role="listbox" aria-label="Link to file" className={cn(menuSurface, "studio-pop w-64")}>
       {items.map((item, i) => {
         const Icon = item.type === "file" ? KIND_ICON[fileKind(item.file)] : Plus;
         return (
@@ -53,12 +54,12 @@ export const DocLinkMenu = forwardRef<MenuHandle, SuggestionProps<DocLinkItem>>(
             }}
             className={cn(menuItem, "text-left")}
           >
-            <Icon />
+            <Icon className={item.type === "file" ? KIND_COLOR[fileKind(item.file)] : "text-doc"} />
             {item.type === "file" ? (
-              <span className="truncate font-serif">{item.file.title || "Untitled"}</span>
+              <span className="truncate font-medium">{item.file.title || "Untitled"}</span>
             ) : (
               <span className="truncate">
-                Create <span className="font-serif">{item.title}</span>
+                Create <span className="font-medium">{item.title}</span>
               </span>
             )}
           </button>

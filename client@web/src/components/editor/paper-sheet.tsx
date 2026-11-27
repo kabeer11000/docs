@@ -19,7 +19,7 @@ export function PaperSheet({ geometry: g, pages, children }: { geometry: PageGeo
           // biome-ignore lint/suspicious/noArrayIndexKey: pages are positional
           key={i}
           aria-hidden
-          className="pointer-events-none absolute left-0 w-full rounded-[2px] bg-paper shadow-paper"
+          className="pointer-events-none absolute left-0 w-full rounded-[4px] bg-paper shadow-card"
           style={{ top: i * (g.height + g.gap), height: g.height }}
         />
       ))}

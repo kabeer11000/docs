@@ -136,7 +136,7 @@ export function EditableTitle({
           disabled={isLoading}
           aria-label="Document title"
           className={cn(
-            "h-8 w-full min-w-[12rem] bg-paper px-2 font-serif text-base font-medium",
+            "h-8 w-full min-w-[12rem] rounded-[10px] bg-card px-2 font-display text-[17px] font-semibold tracking-[-0.02em] focus-visible:border-app focus-visible:ring-app/25",
             error && "border-destructive text-destructive",
             isLoading && "pr-7 opacity-60",
           )}
@@ -164,11 +164,11 @@ export function EditableTitle({
           onClick={() => canRename && setIsEditing(true)}
           aria-label={canRename ? `Rename document: ${title}` : title}
           className={cn(
-            "flex h-8 w-full min-w-0 items-center rounded-md border border-transparent px-2 text-left transition-colors duration-150 disabled:opacity-100",
-            canRename ? "cursor-text hover:border-border" : "cursor-default",
+            "flex h-8 w-full min-w-0 items-center rounded-[10px] border border-transparent px-2 text-left transition-colors duration-150 disabled:opacity-100",
+            canRename ? "cursor-text hover:bg-accent" : "cursor-default",
           )}
         >
-          <span className="truncate font-serif text-base font-medium tracking-[-0.01em] text-foreground">
+          <span className="truncate font-display text-[17px] font-semibold tracking-[-0.02em] text-foreground">
             {title || "Untitled document"}
           </span>
         </button>

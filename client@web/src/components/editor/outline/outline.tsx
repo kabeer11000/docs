@@ -97,23 +97,23 @@ export function Outline() {
   };
 
   return (
-    <div ref={anchor} className="sticky top-0 z-10 hidden h-0 lg:block">
+    <div ref={anchor} className="sticky top-16 z-10 hidden h-0 lg:block">
       {open && width > 0 && (
         <nav
           aria-label="Document outline"
           style={{ width }}
-          className="absolute top-2 left-0 flex max-h-[calc(100dvh-10rem)] flex-col font-sans"
+          className="studio-rise absolute top-2 left-0 flex max-h-[calc(100dvh-14rem)] flex-col rounded-[14px] bg-card p-1.5 font-sans shadow-card"
         >
-          <div className="flex h-7 shrink-0 items-center justify-between pl-3">
-            <span className="text-xs font-medium text-muted-foreground">Outline</span>
-            <Button variant="ghost" size="icon-sm" aria-label="Hide outline" title="Hide outline" className="text-muted-foreground" onClick={toggleOutline}>
+          <div className="flex h-8 shrink-0 items-center justify-between pl-2.5">
+            <span className="font-display text-[13px] font-semibold tracking-[-0.01em]">Outline</span>
+            <Button variant="ghost" size="icon-sm" aria-label="Hide outline" title="Hide outline" className="size-7 rounded-full text-muted-foreground" onClick={toggleOutline}>
               <X />
             </Button>
           </div>
           {data.headings.length === 0 ? (
-            <p className="pl-3 text-xs text-muted-foreground">Headings you add appear here</p>
+            <p className="px-2.5 pb-2 text-xs text-muted-foreground">Headings you add appear here</p>
           ) : (
-            <ul className="min-h-0 overflow-y-auto pb-2">
+            <ul className="min-h-0 overflow-y-auto">
               {data.headings.map((h) => {
                 const active = h.pos === data.active;
                 return (
@@ -124,9 +124,9 @@ export function Outline() {
                       aria-current={active ? "location" : undefined}
                       title={h.text}
                       className={cn(
-                        "block w-full truncate rounded-r-md border-l-2 py-1 pr-2 text-left text-[13px] outline-none transition-colors duration-150 hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40",
+                        "relative block w-full truncate rounded-[8px] py-1.5 pr-2 text-left text-[13px] outline-none transition-colors duration-150 before:absolute before:top-1.5 before:bottom-1.5 before:left-1 before:w-[3px] before:rounded-full before:transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40",
                         INDENT[h.level - 1],
-                        active ? "border-primary text-foreground" : "border-transparent text-muted-foreground",
+                        active ? "bg-app-soft text-app before:bg-app hover:bg-app-soft hover:text-app" : "text-muted-foreground before:bg-transparent",
                         h.level === 1 && "font-medium",
                       )}
                     >

@@ -16,7 +16,7 @@ export function askInline(editor: Editor, { label, placeholder, value = "", pos 
   return new Promise((resolve) => {
     const anchor = editor.view.coordsAtPos(pos ?? editor.state.selection.from);
     const box = document.createElement("div");
-    box.className = "fixed z-[60] w-80 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-float";
+    box.className = "studio-pop fixed z-[60] w-80 rounded-[14px] border border-border bg-popover p-1.5 text-popover-foreground shadow-float";
     box.style.left = `${Math.max(8, Math.min(anchor.left, window.innerWidth - 328))}px`;
     box.style.top = `${anchor.bottom + 6 + 40 > window.innerHeight ? anchor.top - 46 : anchor.bottom + 6}px`;
     const input = document.createElement("input");
@@ -24,7 +24,7 @@ export function askInline(editor: Editor, { label, placeholder, value = "", pos 
     input.value = value;
     input.placeholder = placeholder ?? "";
     input.setAttribute("aria-label", label);
-    input.className = "h-8 w-full rounded-md bg-transparent px-2 font-sans text-[13px] outline-none placeholder:text-muted-foreground";
+    input.className = "h-8 w-full rounded-[10px] bg-muted px-2.5 font-sans text-[13px] caret-doc outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-doc/30";
     box.appendChild(input);
 
     let done = false;

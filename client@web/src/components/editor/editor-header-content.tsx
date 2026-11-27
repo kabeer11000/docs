@@ -15,6 +15,7 @@ import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
 import { editorActions, editorUIState } from "@/state/editor";
+import { CollaborationAvatars } from "./collaboration-avatars";
 import { useLiveDocument } from "./core/use-document-loader";
 import { EditableTitle } from "./editable-title";
 import { FileMenu } from "./file-menu";
@@ -100,9 +101,9 @@ export function EditorHeaderContent({ documentId }: { documentId: string }) {
       <div className="flex w-full items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="hidden size-8 sm:block" />
-          <div className="h-5 w-48 rounded-sm bg-muted animate-pulse" />
+          <div className="h-5 w-48 rounded-full bg-muted animate-pulse" />
         </div>
-        <div className="h-8 w-20 rounded-md bg-muted animate-pulse" />
+        <div className="h-9 w-20 rounded-[10px] bg-muted animate-pulse" />
       </div>
     );
   }
@@ -119,13 +120,18 @@ export function EditorHeaderContent({ documentId }: { documentId: string }) {
   return (
     <>
       <div className="flex min-w-0 flex-1 items-center gap-1">
-        <Link
-          href="/home"
-          aria-label="Back to documents"
-          className="hidden size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
-        >
-          <FileText className="size-[18px]" />
-        </Link>
+        <Tooltip delayDuration={400}>
+          <TooltipTrigger asChild>
+            <Link
+              href="/home"
+              aria-label="Back to all files"
+              className="press mr-0.5 hidden size-8 shrink-0 items-center justify-center rounded-[10px] bg-app text-app-foreground shadow-[0_1px_2px_rgb(0_0_0/0.12)] outline-none hover:bg-app/90 focus-visible:ring-[3px] focus-visible:ring-ring/40 sm:flex"
+            >
+              <FileText className="size-[17px]" strokeWidth={2.2} />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">All files</TooltipContent>
+        </Tooltip>
         <div className="min-w-0 max-w-[min(28rem,40vw)]">
           <EditableTitle
             title={documentData.title}
@@ -144,16 +150,21 @@ export function EditorHeaderContent({ documentId }: { documentId: string }) {
               aria-pressed={!!documentData.isStarred}
               className="shrink-0 text-muted-foreground"
             >
-              <Star className={cn(documentData.isStarred && "fill-current text-foreground")} />
+              <Star
+                className={cn(
+                  "transition-transform duration-200",
+                  documentData.isStarred && "scale-110 fill-highlight text-amber-500 dark:text-amber-400",
+                )}
+              />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">{documentData.isStarred ? "Starred" : "Star"}</TooltipContent>
         </Tooltip>
-        <FileMenu title={documentData.title} canEdit={permissions.canEdit} onCopy={handleCopy} />
+        <FileMenu documentId={documentData.id} title={documentData.title} canEdit={permissions.canEdit} onCopy={handleCopy} />
         {access && (
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <span className="ml-1 hidden shrink-0 cursor-default items-center gap-1 text-xs text-muted-foreground md:inline-flex">
+              <span className="ml-1 hidden h-6 shrink-0 cursor-default items-center gap-1 rounded-full bg-muted px-2 text-xs font-medium text-muted-foreground md:inline-flex">
                 {isDocumentLocked && <Lock className="size-3" />}
                 {access.label}
               </span>
@@ -165,6 +176,7 @@ export function EditorHeaderContent({ documentId }: { documentId: string }) {
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
+        <CollaborationAvatars />
         <CountButton
           label="Comments"
           icon={<MessagesSquare />}
@@ -222,7 +234,7 @@ export function EditorHeaderContent({ documentId }: { documentId: string }) {
         )}
 
         {permissions?.canShare && (
-          <Button data-tour="share-button" onClick={openShare} className="ml-1 px-3">
+          <Button data-tour="share-button" variant="app" onClick={openShare} className="ml-1.5 px-4">
             <Lock className="hidden sm:block" />
             Share
           </Button>
@@ -266,7 +278,10 @@ function CountButton({
           onClick={onClick}
           aria-label={`${label} (${count})`}
           aria-pressed={active}
-          className={cn("min-w-8 gap-1.5 px-2 text-muted-foreground tabular-nums", active && "bg-accent text-foreground")}
+          className={cn(
+            "min-w-9 gap-1.5 rounded-full px-2.5 text-muted-foreground tabular-nums",
+            active && "bg-app-soft text-app hover:bg-app-soft hover:text-app",
+          )}
         >
           {icon}
           {count > 0 && <span className="text-[13px]">{count}</span>}
@@ -277,8 +292,13 @@ function CountButton({
   );
 }
 
-const statusClass = "ml-1 hidden shrink-0 items-center gap-1.5 text-xs sm:inline-flex";
+const SAVE_LOOK = {
+  saving: { word: "Saving", dot: "bg-app animate-pulse" },
+  saved: { word: "Saved", dot: "bg-emerald-500 dark:bg-emerald-400" },
+  error: { word: "Not saved", dot: "bg-destructive" },
+} as const;
 
+/** Quiet dot and word; the word cross-fades as the state changes. */
 function SaveStatus({
   status,
   lastSaved,
@@ -288,24 +308,29 @@ function SaveStatus({
   lastSaved: Date | null;
   errorMessage: string | null;
 }) {
-  if (status === "error") {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className={cn(statusClass, "cursor-help text-destructive")}>Save failed</span>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">{errorMessage || "Unknown error occurred"}</TooltipContent>
-      </Tooltip>
-    );
-  }
-  if (status === "saving") return <span className={cn(statusClass, "text-muted-foreground")}>Saving...</span>;
-  if (status === "saved") {
-    const time = lastSaved?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    return (
-      <span className={cn(statusClass, "text-muted-foreground")} title={time ? `Last saved ${time}` : undefined}>
-        Saved
+  if (status === "idle") return null;
+  const look = SAVE_LOOK[status];
+  const time = lastSaved?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const hint = status === "error" ? errorMessage || "Your latest changes could not be saved" : status === "saved" && time ? `Saved at ${time}` : null;
+  const label = (
+    <output
+      aria-live="polite"
+      className={cn(
+        "ml-1.5 hidden h-6 shrink-0 items-center gap-1.5 text-xs sm:inline-flex",
+        status === "error" ? "cursor-help font-medium text-destructive" : "text-muted-foreground",
+      )}
+    >
+      <span aria-hidden className={cn("size-1.5 rounded-full transition-colors duration-300", look.dot)} />
+      <span key={status} className="animate-in fade-in slide-in-from-bottom-0.5 duration-200">
+        {look.word}
       </span>
-    );
-  }
-  return null;
+    </output>
+  );
+  if (!hint) return label;
+  return (
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>{label}</TooltipTrigger>
+      <TooltipContent side="bottom">{hint}</TooltipContent>
+    </Tooltip>
+  );
 }

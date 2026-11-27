@@ -57,3 +57,14 @@ export function ToolbarSeparator({ className }: { className?: string }) {
     />
   );
 }
+
+/** Round icon button for the floating pill toolbars; active state takes the app colour. */
+export function PillButton({ active = false, className, ...props }: ToolbarButtonProps) {
+  return (
+    <ToolbarButton
+      active={active}
+      className={cn("size-8 rounded-full", active && "bg-app-soft text-app hover:bg-app-soft hover:text-app", className)}
+      {...props}
+    />
+  );
+}

@@ -15,7 +15,7 @@ import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import { type Editor, EditorContent, useEditor } from "@tiptap/react";
 import { yUndoPluginKey } from "@tiptap/y-tiptap";
 import StarterKit from "@tiptap/starter-kit";
-import { CheckCircle2, Flag, Lightbulb, Sparkles } from "lucide-react";
+import { CheckCircle2, Flag, Lightbulb } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { computed } from "nanostores";
 import {
@@ -33,7 +33,6 @@ import {
 import { CollaborationCaret } from "tiptap-collaboration-caret-plus";
 import { TableCellPlus, TableHeaderPlus, TablePlus, TableRowPlus } from "tiptap-pagination-plus";
 import * as Y from "yjs";
-import { Button } from "@/components/ui/button";
 import { useCloudStoreSaver } from "@/hooks/use-cloudstore-saver";
 import { authManager } from "@/lib/auth/manager";
 import { fileHref } from "@/lib/files";
@@ -44,10 +43,11 @@ import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
 import { editorActions, editorUIState } from "@/state/editor";
-import { CollaborationAvatars } from "./collaboration-avatars";
+import { $collabProvider } from "./collaboration-avatars";
 import { useLiveDocument } from "./core/use-document-loader";
 import { useWritingMemory } from "./core/use-writing-memory";
 import { FocusMode } from "./focus-mode";
+import { VersionHistory } from "./versions/version-history";
 import { printDocument } from "./document-actions";
 import { EditorControls, EditorStatusBar } from "./editor-controls";
 import { EditorSkeleton } from "./editor-skeleton";
@@ -71,7 +71,6 @@ import { LinkedFrom } from "./links/linked-from";
 import { $pageSetupOpen, $shortcutsOpen } from "./dialogs-state";
 import { PaperSheet } from "./paper-sheet";
 import { SelectionMenu } from "./selection-menu";
-import { ToolbarSeparator } from "./toolbar-button";
 import "./editor-paper.css";
 
 // Rarely used panels load on first use.
@@ -100,7 +99,7 @@ const FlagTooltip = memo(({ flagTooltip, onMouseLeave }: { flagTooltip: FlagTool
   return (
     <div
       data-flag-tooltip
-      className="fixed z-50 max-w-[320px] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-float animate-in fade-in duration-150"
+      className="studio-pop fixed z-50 max-w-[320px] rounded-[14px] border border-border bg-popover p-3 text-popover-foreground shadow-float animate-in fade-in duration-150"
       style={{ left: flagTooltip.position.x, top: flagTooltip.position.y }}
       onMouseLeave={onMouseLeave}
     >
@@ -271,6 +270,12 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     };
   }, [documentId, getYDoc, goSolo]);
 
+  // Presence avatars live in the header, outside this tree.
+  useEffect(() => {
+    $collabProvider.set(provider);
+    return () => $collabProvider.set(null);
+  }, [provider]);
+
   const permissions = useDocumentPermissions(documentData);
 
   const extensions = useMemo(
@@ -348,7 +353,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
               const domSelection = window.getSelection();
               if (domSelection && domSelection.rangeCount > 0 && !showCommentDialogRef.current) {
                 const rect = domSelection.getRangeAt(0).getBoundingClientRect();
-                setSelectionMenuPosition({ x: rect.left + rect.width / 2 - 150, y: rect.top - 60 });
+                setSelectionMenuPosition({ x: rect.left + rect.width / 2, y: rect.top });
                 setShowSelectionMenu(true);
               }
             }, 100);
@@ -620,43 +625,25 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
 
   return (
     <Fragment>
-      <div data-tour="editor-toolbar" className={cn("sticky top-0 z-10 shrink-0 bg-background editor-toolbar", sideMargin)}>
-        <div className="flex h-11 items-center gap-1 px-2 md:px-3">
-          <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hidden">
-            {permissions.canEdit ? (
-              <EditorControls canEdit={permissions.canEdit} />
-            ) : (
-              <span className="px-2 text-[13px] text-muted-foreground">View only</span>
-            )}
-          </div>
-          <CollaborationAvatars provider={provider} />
-          <ToolbarSeparator className="hidden sm:block" />
-          <Button
-            data-tour="editor-ai"
-            variant="ghost"
-            onClick={() => editorActions.setAIPanelOpen(true)}
-            aria-label="Ask AI"
-            className={cn("shrink-0 gap-1.5 px-2.5 text-muted-foreground", isAIPanelOpen && "bg-accent text-foreground")}
+      <div className={cn("relative flex-1 overflow-auto bg-background px-2 pb-16 md:px-8", sideMargin)}>
+        <div className="editor-toolbar pointer-events-none sticky top-0 z-30 flex justify-center px-1 pt-3 pb-4">
+          <div
+            data-tour="editor-toolbar"
+            className="studio-rise scrollbar-hidden pointer-events-auto max-w-full overflow-x-auto rounded-full bg-card p-1 shadow-float"
           >
-            <Sparkles />
-            <span className="hidden sm:inline">Ask AI</span>
-          </Button>
+            <EditorControls canEdit={permissions.canEdit} />
+          </div>
         </div>
-      </div>
-
-      <div className={cn("relative flex-1 overflow-auto bg-paper-canvas px-2 pt-4 pb-10 md:px-8", sideMargin)}>
         <Outline />
         <LinkedFrom documentId={documentId} />
         <FindBar canEdit={permissions.canEdit} />
-          <FocusMode />
+        <FocusMode />
         <PaperSheet geometry={geometry} pages={pages}>
           <EditorContent editor={editor} className="contents" />
         </PaperSheet>
       </div>
 
-      <div className={cn("shrink-0 bg-background editor-status-bar", sideMargin)}>
-        <EditorStatusBar />
-      </div>
+      <EditorStatusBar className="pointer-events-auto absolute bottom-3 left-3 z-20 md:left-4" />
 
       <SelectionMenu
         isVisible={showSelectionMenu}
@@ -696,6 +683,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
           />
         )}
         <LazyDialogs documentId={documentId} canEdit={permissions.canEdit} />
+        <VersionHistory documentId={documentId} canEdit={permissions.canEdit} />
       </Suspense>
     </Fragment>
   );

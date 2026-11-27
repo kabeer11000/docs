@@ -8,8 +8,8 @@ import { editorInstance } from "@/state/editor";
 import { getFind, replaceAll, replaceCurrent, setFind, stepFind } from "./find-extension";
 
 const field =
-  "h-7 min-w-0 flex-1 rounded-md border border-input bg-transparent px-2 text-[13px] outline-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/40";
-const textButton = "h-7 px-2 text-[13px] font-normal";
+  "h-8 min-w-0 flex-1 rounded-full border border-input bg-background px-3 text-[13px] outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-app focus-visible:ring-[3px] focus-visible:ring-app/20";
+const textButton = "h-8 rounded-full px-3 text-[13px]";
 
 function IconButton({
   label,
@@ -34,7 +34,7 @@ function IconButton({
       aria-pressed={pressed}
       disabled={disabled}
       onClick={onClick}
-      className={cn("text-muted-foreground", pressed && "bg-accent text-foreground")}
+      className={cn("size-8 rounded-full text-muted-foreground", pressed && "bg-app-soft text-app hover:bg-app-soft hover:text-app")}
     >
       {children}
     </Button>
@@ -119,7 +119,7 @@ export function FindBar({ canEdit }: { canEdit: boolean }) {
   };
 
   return (
-    <div className="sticky top-0 z-20 h-0">
+    <div className="sticky top-16 z-20 h-0">
       <div
         role="search"
         aria-label="Find in document"
@@ -128,7 +128,7 @@ export function FindBar({ canEdit }: { canEdit: boolean }) {
           e.preventDefault();
           close();
         }}
-        className="absolute top-2 right-0 flex w-[23rem] max-w-[calc(100vw-1.5rem)] flex-col gap-1.5 rounded-lg border border-border bg-popover p-1.5 font-sans text-popover-foreground shadow-float"
+        className="studio-pop absolute top-2 right-0 flex w-[25rem] max-w-[calc(100vw-1.5rem)] flex-col gap-1.5 rounded-[14px] bg-popover p-2 font-sans text-popover-foreground shadow-float"
       >
         <div className="flex items-center gap-0.5">
           {allowReplace && (
@@ -165,7 +165,7 @@ export function FindBar({ canEdit }: { canEdit: boolean }) {
           </IconButton>
         </div>
         {allowReplace && withReplace && (
-          <div className="flex items-center gap-1 pl-7.5">
+          <div className="flex items-center gap-1 pl-8.5">
             <input
               ref={replaceInput}
               aria-label="Replace with"

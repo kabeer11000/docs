@@ -1,132 +1,145 @@
+"use client";
+import { useStore } from "@nanostores/react";
 import {
-  Brain,
-  LibraryBig,
-  MessagesSquare,
+  Bold,
+  Highlighter,
+  Italic,
+  Link2,
+  MessageSquarePlus,
   Sparkles,
-  Telescope,
+  Underline,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { editorInstance } from "@/state/editor";
+import { useFormat } from "./editor-controls";
+import { promptLink } from "./extensions/slash-command";
+import { PillButton, ToolbarSeparator } from "./toolbar-button";
 
 interface SelectionMenuProps {
   isVisible: boolean;
+  /** Centre of the selection's top edge, viewport px. */
   position: { x: number; y: number };
   onComment: () => void;
-  onExplain?: () => void;
   onAskLexa: () => void;
-  onSummarize?: () => void;
-  onAnalyze?: () => void;
 }
 
+const EDGE = 12;
+
+/** Compact pill above a text selection: quick marks, link, comment, Ask AI. */
 export const SelectionMenu: React.FC<SelectionMenuProps> = ({
   isVisible,
   position,
   onComment,
-  onExplain,
   onAskLexa,
-  onSummarize,
-  onAnalyze,
 }) => {
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [adjustedPosition, setAdjustedPosition] = useState(position);
+  const editor = useStore(editorInstance);
+  const f = useFormat(editor);
+  const ref = useRef<HTMLDivElement>(null);
+  const [place, setPlace] = useState<{
+    left: number;
+    top: number;
+    below: boolean;
+  } | null>(null);
 
-  // Adjust position to keep menu in viewport
-  useEffect(() => {
-    if (!menuRef.current || !isVisible) return;
+  // Centre over the selection, kept inside the viewport; flips below when there is no room above.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!isVisible || !el) return setPlace(null);
+    const { width, height } = el.getBoundingClientRect();
+    const left = Math.min(
+      Math.max(position.x - width / 2, EDGE),
+      window.innerWidth - width - EDGE,
+    );
+    const below = position.y - height - 10 < EDGE;
+    setPlace({
+      left,
+      top: below ? position.y + 28 : position.y - height - 10,
+      below,
+    });
+  }, [isVisible, position]);
 
-    const menu = menuRef.current;
-    const rect = menu.getBoundingClientRect();
-    const viewport = {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    };
-
-    let x = position.x;
-    let y = position.y;
-
-    // Adjust horizontal position
-    if (x + rect.width > viewport.width - 20) {
-      x = viewport.width - rect.width - 20;
-    }
-    if (x < 20) {
-      x = 20;
-    }
-
-    // Adjust vertical position (show above if too close to bottom)
-    if (y + rect.height > viewport.height - 60) {
-      y = position.y - rect.height - 20;
-    }
-    if (y < 20) {
-      y = 20;
-    }
-
-    setAdjustedPosition({ x, y });
-  }, [position, isVisible]);
-
-  if (!isVisible) return null;
-
-  type ActionType = {
-    icon: React.ComponentType<{ className?: string }>;
-    label: string;
-    onClick: () => void;
-  };
-
-  const actions = [
+  if (!isVisible || !editor) return null;
+  const edit = editor.isEditable;
+  const chain = () => editor.chain().focus();
+  const marks = [
     {
-      icon: Sparkles,
-      label: "Ask AI",
-      onClick: onAskLexa,
-    },
-    onSummarize && {
-      icon: LibraryBig,
-      label: "Summarize",
-      onClick: onSummarize,
-    },
-    onExplain && {
-      icon: Brain,
-      label: "Explain",
-      onClick: onExplain,
-    },
-    onAnalyze && {
-      icon: Telescope,
-      label: "Analyze",
-      onClick: onAnalyze,
+      label: "Bold",
+      on: f?.bold,
+      run: () => chain().toggleBold().run(),
+      Icon: Bold,
     },
     {
-      icon: MessagesSquare,
-      label: "Comment",
-      onClick: onComment,
+      label: "Italic",
+      on: f?.italic,
+      run: () => chain().toggleItalic().run(),
+      Icon: Italic,
     },
-  ].filter(Boolean) as ActionType[];
+    {
+      label: "Underline",
+      on: f?.underline,
+      run: () => chain().toggleUnderline().run(),
+      Icon: Underline,
+    },
+    {
+      label: "Highlight",
+      on: f?.highlight,
+      run: () => chain().toggleHighlight().run(),
+      Icon: Highlighter,
+    },
+  ];
 
   return (
     <div
-      ref={menuRef}
+      ref={ref}
       data-selection-menu
-      className={cn(
-        "fixed z-50 rounded-lg border border-border bg-popover shadow-float",
-        "animate-in fade-in duration-150",
-      )}
+      role="toolbar"
+      aria-label="Selection"
+      className={
+        place ? (place.below ? "studio-pop-down" : "studio-pop") : "invisible"
+      }
       style={{
-        left: adjustedPosition.x,
-        top: adjustedPosition.y,
+        position: "fixed",
+        zIndex: 50,
+        left: place?.left ?? position.x,
+        top: place?.top ?? position.y,
       }}
-      onMouseDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => {
+        // Keep the text selected while using the menu.
+        e.stopPropagation();
+        if ((e.target as HTMLElement).closest("button")) e.preventDefault();
+      }}
     >
-      <div className="flex items-center gap-0.5 p-1">
-        {actions.map((action) => (
-          <Button
-            key={action.label}
-            variant="ghost"
-            onClick={action.onClick}
-            className="gap-1.5 px-2.5 text-[13px] text-foreground"
-          >
-            <action.icon className="text-muted-foreground" />
-            <span>{action.label}</span>
-          </Button>
-        ))}
+      <div className="flex items-center gap-0.5 rounded-full bg-card p-1 shadow-float">
+        {edit && (
+          <>
+            {marks.map(({ label, on, run, Icon }) => (
+              <PillButton key={label} label={label} active={on} onClick={run}>
+                <Icon />
+              </PillButton>
+            ))}
+            <PillButton
+              label={f?.link ? "Remove link" : "Link"}
+              active={f?.link}
+              onClick={() => promptLink(editor)}
+            >
+              <Link2 />
+            </PillButton>
+            <ToolbarSeparator />
+          </>
+        )}
+        <PillButton label="Comment" onClick={onComment}>
+          <MessageSquarePlus />
+        </PillButton>
+        <Button
+          variant="ghost"
+          onClick={onAskLexa}
+          className="h-8 gap-1.5 rounded-full px-3 text-[13px] text-app hover:bg-app-soft hover:text-app"
+        >
+          <Sparkles />
+          Ask AI
+        </Button>
       </div>
     </div>
   );

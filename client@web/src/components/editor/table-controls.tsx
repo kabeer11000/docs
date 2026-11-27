@@ -1,209 +1,77 @@
 "use client";
-import { useStore } from "@nanostores/react";
+import type { Editor } from "@tiptap/core";
 import {
-  Grid3X3,
-  Minus,
-  Plus,
-  Settings,
-  Table as TableIcon,
+  ArrowDownToLine,
+  ArrowLeftToLine,
+  ArrowRightToLine,
+  ArrowUpToLine,
+  Columns3,
+  Rows3,
+  Table2,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { editorActions, editorUIState } from "@/state/editor";
-import { ToolbarButton } from "./toolbar-button";
+import { PillButton } from "./toolbar-button";
 
-export function TableControls({ disabled = false }: { disabled?: boolean }) {
-  const uiState = useStore(editorUIState);
-  const [insertDialogOpen, setInsertDialogOpen] = useState(false);
-  const [rows, setRows] = useState(3);
-  const [cols, setCols] = useState(4);
-
-  const handleInsertTable = () => {
-    editorActions.insertTable();
-    setInsertDialogOpen(false);
-  };
-
-  const handleInsertCustomTable = () => {
-    // For future implementation with custom rows/cols
-    editorActions.insertTable();
-    setInsertDialogOpen(false);
-  };
-
-  if (uiState.showTableControls) {
-    // Show table editing controls when inside a table
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <ToolbarButton label="Table options" active disabled={disabled}>
-            <Grid3X3 />
-          </ToolbarButton>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Plus />
-              Add column
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={editorActions.addColumnBefore}>
-                Before
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={editorActions.addColumnAfter}>
-                After
-              </DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Plus />
-              Add row
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={editorActions.addRowBefore}>
-                Above
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={editorActions.addRowAfter}>
-                Below
-              </DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem
-            onClick={editorActions.deleteTable}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 />
-            Delete table
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
-  // Show table insertion controls when not in a table
+/** Table options; shown in the toolbar only while the caret is in a table (inserting lives in the + menu). */
+export function TableControls({
+  editor,
+  disabled = false,
+}: {
+  editor: Editor;
+  disabled?: boolean;
+}) {
+  const run =
+    (fn: (c: ReturnType<Editor["chain"]>) => ReturnType<Editor["chain"]>) =>
+    () =>
+      fn(editor.chain().focus()).run();
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <ToolbarButton label="Insert table" disabled={disabled}>
-            <TableIcon />
-          </ToolbarButton>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={handleInsertTable}>
-            <Grid3X3 />
-            Insert 3 x 4 table
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setInsertDialogOpen(true)}>
-            <Settings />
-            Custom size...
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <Dialog open={insertDialogOpen} onOpenChange={setInsertDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Insert table</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="rows">Rows</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setRows(Math.max(1, rows - 1))}
-                    disabled={rows <= 1}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <Input
-                    id="rows"
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={rows}
-                    onChange={(e) => setRows(parseInt(e.target.value, 10) || 1)}
-                    className="w-16 text-center"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setRows(Math.min(20, rows + 1))}
-                    disabled={rows >= 20}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cols">Columns</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCols(Math.max(1, cols - 1))}
-                    disabled={cols <= 1}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <Input
-                    id="cols"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={cols}
-                    onChange={(e) => setCols(parseInt(e.target.value, 10) || 1)}
-                    className="w-16 text-center"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCols(Math.min(10, cols + 1))}
-                    disabled={cols >= 10}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setInsertDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleInsertCustomTable}>Insert table</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <PillButton label="Table options" active disabled={disabled}>
+          <Table2 />
+        </PillButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" sideOffset={8} className="w-52">
+        <DropdownMenuItem onSelect={run((c) => c.addRowBefore())}>
+          <ArrowUpToLine />
+          Row above
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={run((c) => c.addRowAfter())}>
+          <ArrowDownToLine />
+          Row below
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={run((c) => c.addColumnBefore())}>
+          <ArrowLeftToLine />
+          Column left
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={run((c) => c.addColumnAfter())}>
+          <ArrowRightToLine />
+          Column right
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={run((c) => c.deleteRow())}>
+          <Rows3 />
+          Delete row
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={run((c) => c.deleteColumn())}>
+          <Columns3 />
+          Delete column
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          variant="destructive"
+          onSelect={run((c) => c.deleteTable())}
+        >
+          <Trash2 />
+          Delete table
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

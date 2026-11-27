@@ -1,5 +1,6 @@
 "use client";
 
+import { PublishSection } from "@/components/share/publish-section";
 import { fileHref, fileKind } from "@/lib/files";
 import { useStore } from "@nanostores/react";
 import type { Document } from "@shared-types";
@@ -653,6 +654,8 @@ export function ShareDialog({
                 </div>
               </div>
             </div>
+
+            <PublishSection document={document} isOwner={!!isOwner} />
 
             {/* Copy link button */}
             <div className="flex items-center gap-2 pt-2">
