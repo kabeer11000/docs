@@ -36,7 +36,6 @@ import type * as Y from "yjs";
 import { useCloudStoreSaver } from "@/hooks/use-cloudstore-saver";
 import { COLLAB_URL, joinRoom, onRoom, roomDoc } from "@/lib/collab-room";
 import { fileHref } from "@/lib/files";
-import { useComments } from "@/hooks/use-comments";
 import { useDocumentPermissions } from "@/hooks/use-document-permissions";
 import { $paperSettings, fromStored, pageGeometry } from "@/lib/paper";
 import { showToast } from "@/lib/toast";
@@ -44,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
 import { editorActions, editorUIState } from "@/state/editor";
 import { $collabProvider } from "./collaboration-avatars";
+import { $commentsMargin, CommentsLayer, requestComment } from "./comments/comments-layer";
 import { useLiveDocument } from "./core/use-document-loader";
 import { useWritingMemory } from "./core/use-writing-memory";
 import { FocusMode } from "./focus-mode";
@@ -53,6 +53,7 @@ import { EditorControls, EditorStatusBar } from "./editor-controls";
 import { EditorSkeleton } from "./editor-skeleton";
 import { Callout } from "./extensions/callout";
 import { CodeBlock } from "./extensions/code-block";
+import { CommentMark } from "./extensions/comment-extension";
 import { CustomHeading } from "./extensions/custom-heading";
 import { Diagram } from "./extensions/diagram";
 import { Embed } from "./extensions/embed";
@@ -77,8 +78,6 @@ import "./editor-paper.css";
 
 // Rarely used panels load on first use.
 const EditorAIChatPanel = lazy(() => import("./editor-ai-chat-panel").then((m) => ({ default: m.EditorAIChatPanel })));
-const CommentsSidebar = lazy(() => import("./comments/comments-sidebar").then((m) => ({ default: m.CommentsSidebar })));
-const CommentDialog = lazy(() => import("./comment-dialog").then((m) => ({ default: m.CommentDialog })));
 const ShortcutsDialog = lazy(() => import("./shortcuts-dialog"));
 const PageSetup = lazy(() => import("./page-setup"));
 
@@ -170,35 +169,22 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
   const { document: documentData, access } = useLiveDocument(documentId);
   const router = useRouter();
 
-  const selectionRangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
-  const showCommentDialogRef = useRef(false);
   const [selectionMenuPosition, setSelectionMenuPosition] = useState({ x: 0, y: 0 });
   const [showSelectionMenu, setShowSelectionMenu] = useState(false);
-  const [showCommentDialog, setShowCommentDialog] = useState(false);
-  const [isCreatingComment, setIsCreatingComment] = useState(false);
-  const [activeCommentId, setActiveCommentId] = useState<string | null>(null);
   const [flagTooltip, setFlagTooltip] = useState<FlagTooltipState | null>(null);
 
-  useEffect(() => {
-    showCommentDialogRef.current = showCommentDialog;
-  }, [showCommentDialog]);
-
   const isCommentsSidebarOpen = useStore($commentsOpen);
+  const commentsMargin = useStore($commentsMargin);
   const isAIPanelOpen = useStore($aiOpen);
-  // Panels mount on first open and stay mounted (keeps their state and close animation).
-  const [mounted, setMounted] = useState({ ai: false, comments: false });
+  // The AI panel mounts on first open and stays mounted (keeps its state and close animation).
+  const [mounted, setMounted] = useState({ ai: false });
   useEffect(() => {
-    if ((isAIPanelOpen && !mounted.ai) || (isCommentsSidebarOpen && !mounted.comments)) {
-      setMounted((m) => ({ ai: m.ai || isAIPanelOpen, comments: m.comments || isCommentsSidebarOpen }));
-    }
-  }, [isAIPanelOpen, isCommentsSidebarOpen, mounted]);
+    if (isAIPanelOpen && !mounted.ai) setMounted({ ai: true });
+  }, [isAIPanelOpen, mounted]);
 
   const { user: currentUser } = useStore($auth);
   const userId = currentUser?.id || "anonymous";
   const userName = currentUser?.displayName || currentUser?.email || "Anonymous User";
-
-  const { comments, createComment, addReply, updateComment, resolveComment, deleteComment, getComment } =
-    useComments(documentId);
 
   // Paper: stored per document, read by the pagination plugin on every layout pass.
   const paper = useStore($paperSettings);
@@ -333,6 +319,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
       Collaboration.configure({ document: getYDoc() }),
       Find,
       DocLink,
+      CommentMark,
     ],
     [provider, userId, userName, getYDoc],
   );
@@ -341,15 +328,13 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     () =>
       debounce(({ editor }: { editor: Editor }) => {
         const { from, to } = editor.state.selection;
-        if (showCommentDialogRef.current) return;
         if (from !== to) {
           const selectedText = editor.state.doc.textBetween(from, to, "");
           if (selectedText.trim()) {
             editorActions.setSelectedText(selectedText);
-            selectionRangeRef.current = { from, to, text: selectedText };
             setTimeout(() => {
               const domSelection = window.getSelection();
-              if (domSelection && domSelection.rangeCount > 0 && !showCommentDialogRef.current) {
+              if (domSelection && domSelection.rangeCount > 0) {
                 const rect = domSelection.getRangeAt(0).getBoundingClientRect();
                 setSelectionMenuPosition({ x: rect.left + rect.width / 2, y: rect.top });
                 setShowSelectionMenu(true);
@@ -359,7 +344,6 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
         } else {
           editorActions.setSelectedText("");
           setShowSelectionMenu(false);
-          selectionRangeRef.current = null;
         }
       }, 300),
     [],
@@ -445,82 +429,8 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
 
   const handleCommentClick = useCallback(() => {
     setShowSelectionMenu(false);
-    setShowCommentDialog(true);
-    if (window.innerWidth >= 768) editorActions.setCommentsSidebarOpen(true);
+    requestComment();
   }, []);
-
-  const handleCreateComment = useCallback(
-    async (content: string) => {
-      const range = selectionRangeRef.current;
-      if (!range || !documentId || isCreatingComment) return;
-      setIsCreatingComment(true);
-      try {
-        const commentId = await createComment({ documentId, content, range: { from: range.from, to: range.to } });
-        if (commentId) {
-          setShowCommentDialog(false);
-          selectionRangeRef.current = null;
-          setActiveCommentId(commentId);
-          if (window.innerWidth >= 768) editorActions.setCommentsSidebarOpen(true);
-        }
-      } catch (error) {
-        console.error("Failed to create comment:", error);
-        showToast.error("Failed to create comment. Please try again.");
-      } finally {
-        setIsCreatingComment(false);
-      }
-    },
-    [documentId, createComment, isCreatingComment],
-  );
-
-  const handleSidebarCommentClick = useCallback(
-    (commentId: string) => {
-      setActiveCommentId(commentId);
-      const comment = getComment(commentId);
-      if (!comment || !editor) return;
-      setShowSelectionMenu(false);
-      const navigateToComment = () => {
-        if (!editor || editor.isDestroyed) return;
-        try {
-          const docSize = editor.state.doc.content.size;
-          if (comment.range.from >= 0 && comment.range.to <= docSize && comment.range.from < comment.range.to) {
-            editor.view.focus();
-            editor.commands.setTextSelection({ from: comment.range.from, to: comment.range.to });
-            editor.commands.scrollIntoView();
-          }
-        } catch (error) {
-          console.warn("Error navigating to comment:", error);
-          showToast.error("Failed to navigate to comment location.");
-        }
-      };
-      navigateToComment();
-      setTimeout(navigateToComment, 200);
-      setTimeout(() => {
-        if (window.innerWidth < 768) editorActions.setCommentsSidebarOpen(false);
-      }, 250);
-    },
-    [getComment, editor],
-  );
-
-  const afterCommentChange = useCallback((ok: boolean, failMessage: string) => {
-    if (!ok) {
-      showToast.error(failMessage);
-      return;
-    }
-    setActiveCommentId(null);
-    selectionRangeRef.current = null;
-    setShowCommentDialog(false);
-    if (window.innerWidth < 768) editorActions.setCommentsSidebarOpen(false);
-  }, []);
-
-  const handleResolveComment = useCallback(
-    async (commentId: string) => afterCommentChange(await resolveComment(commentId).catch(() => false), "Failed to resolve comment."),
-    [resolveComment, afterCommentChange],
-  );
-  const handleDeleteComment = useCallback(
-    async (commentId: string) => afterCommentChange(await deleteComment(commentId).catch(() => false), "Failed to delete comment."),
-    [deleteComment, afterCommentChange],
-  );
-  const handleReply = useCallback((commentId: string, content: string) => addReply({ commentId, content }), [addReply]);
 
   const title = documentData?.title ?? "Document";
   useEffect(() => {
@@ -591,8 +501,10 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
   );
 
   const sideMargin = cn(
-    "transition-[margin] duration-300 ease-in-out",
+    "transition-[margin,padding] duration-300 ease-in-out",
     isAIPanelOpen && isCommentsSidebarOpen ? "md:mr-[640px]" : isAIPanelOpen || isCommentsSidebarOpen ? "md:mr-80" : "md:mr-0",
+    // Margin comment cards (comments-layer MARGIN_COLUMN) need room right of the page.
+    commentsMargin && "md:pr-[344px]",
   );
 
   // Sheets and slides share the documents collection; send them to their own app.
@@ -637,6 +549,13 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
             {showPreview && editor && initialContent && <StoredPreview schema={editor.schema} html={initialContent} />}
           </PaperSheet>
         </FileTransition>
+        <CommentsLayer
+          editor={editor}
+          documentId={documentId}
+          document={documentData}
+          permissions={permissions}
+          ready={contentReady}
+        />
       </div>
 
       {/* Formatting toolbar floats at the bottom, out of the way of the page and close to the hands. */}
@@ -653,6 +572,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
       <SelectionMenu
         isVisible={showSelectionMenu}
         position={selectionMenuPosition}
+        canComment={permissions.canComment}
         onComment={handleCommentClick}
         onAskLexa={() => editorActions.setAIPanelOpen(true)}
       />
@@ -661,32 +581,6 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
 
       <Suspense fallback={null}>
         {mounted.ai && <EditorAIChatPanel />}
-        {showCommentDialog && (
-          <CommentDialog
-            isOpen={showCommentDialog}
-            selectedText={selectionRangeRef.current?.text || ""}
-            onClose={() => {
-              setShowCommentDialog(false);
-              selectionRangeRef.current = null;
-            }}
-            onSubmit={handleCreateComment}
-            isSubmitting={isCreatingComment}
-          />
-        )}
-        {mounted.comments && (
-          <CommentsSidebar
-            comments={comments}
-            isOpen={isCommentsSidebarOpen}
-            onClose={() => editorActions.setCommentsSidebarOpen(false)}
-            onCommentClick={handleSidebarCommentClick}
-            onResolve={handleResolveComment}
-            onDelete={handleDeleteComment}
-            onEdit={updateComment}
-            onReply={handleReply}
-            currentUserId={currentUser?.id || ""}
-            activeCommentId={activeCommentId}
-          />
-        )}
         <LazyDialogs documentId={documentId} canEdit={permissions.canEdit} />
         <VersionHistory documentId={documentId} canEdit={permissions.canEdit} />
       </Suspense>

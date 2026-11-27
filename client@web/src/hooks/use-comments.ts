@@ -1,273 +1,202 @@
 import { useStore } from "@nanostores/react";
-import type {
-  IComment,
-  ICommentCreateInput,
-  ICommentReply,
-  ICommentReplyInput,
-} from "@shared-types";
-import { nanoid } from "nanoid";
-import { useCallback } from "react";
+import { computed, map, type ReadableAtom } from "nanostores";
+import { useMemo } from "react";
+import {
+  mergeOptimistic,
+  type Override,
+  type Reply,
+  type Thread,
+} from "@/components/editor/comments/threads";
 import cloudStore from "@/lib/cloudstore";
 import { $auth } from "@/state/auth";
 import { $nothing, commentsWatch } from "@/state/live-queries";
 
-const NO_COMMENTS: IComment[] = [];
+/**
+ * A document's comment threads: one shared live watch per document (however many components ask),
+ * with this tab's writes shown at once and rolled back if the server refuses them.
+ */
+
+const NO_THREADS: Thread[] = [];
+/** Local writes by thread id, until the watch echoes them (or they fail). */
+const $overrides = map<Record<string, Override>>({});
+const ECHO_GRACE_MS = 10_000;
+
+const threadStores = new Map<string, ReadableAtom<Thread[] | undefined>>();
+function threadsStore(documentId: string) {
+  let store = threadStores.get(documentId);
+  if (!store) {
+    store = computed(
+      [commentsWatch(documentId), $overrides],
+      (live, overrides) =>
+        live === undefined
+          ? undefined
+          : mergeOptimistic(live as Thread[], overrides, documentId),
+    );
+    threadStores.set(documentId, store);
+  }
+  return store;
+}
+
+const now = () => new Date().toISOString();
+const collection = () => cloudStore.collection("comments");
+const byId = (id: string) => cloudStore.query.where("id", "EQUAL", id);
+
+/**
+ * Shows `next` (null = gone) for thread `id` right away, runs `write`, and undoes the local change
+ * if it fails. Resolves to whether the server accepted it.
+ */
+async function commit(
+  documentId: string,
+  id: string,
+  next: Thread | null,
+  write: () => Promise<unknown>,
+) {
+  const before = $overrides.get()[id];
+  const mine: Override = {
+    documentId,
+    thread: next,
+    at: next?.timestamp.updatedAt ?? now(),
+  };
+  $overrides.setKey(id, mine);
+  const settle = () => {
+    if ($overrides.get()[id] !== mine) return;
+    const { [id]: _, ...rest } = $overrides.get();
+    $overrides.set(before ? { ...rest, [id]: before } : rest);
+  };
+  try {
+    if (!cloudStore?.collection) throw new Error("Not connected");
+    await write();
+    // The watch normally echoes within a moment; afterwards the live row is the truth.
+    setTimeout(settle, ECHO_GRACE_MS);
+    return true;
+  } catch (error) {
+    console.error("[comments] write failed:", error);
+    settle();
+    return false;
+  }
+}
 
 export function useComments(documentId: string) {
-  // One shared watch per document, however many components (header, editor) ask.
-  const live = useStore(documentId ? commentsWatch(documentId) : $nothing);
-  const comments = live ?? NO_COMMENTS;
-  const isLoading = !!documentId && live === undefined;
+  const store = documentId ? threadsStore(documentId) : $nothing;
+  const live = useStore(store);
+  const threads = live ?? NO_THREADS;
   const { user } = useStore($auth);
 
-  // Create a new comment
-  const createComment = useCallback(
-    async (input: ICommentCreateInput): Promise<string | null> => {
-      if (!cloudStore || !user) {
-        console.error("CloudStore not available or user not authenticated");
-        return null;
-      }
-
-      try {
-        const commentId = nanoid();
-        const timestamp = new Date().toISOString();
-
-        // Check if identical comment exists (same range, content, and author)
-        const existingComments = comments.filter(
-          (c) =>
-            c.range.from === input.range.from &&
-            c.range.to === input.range.to &&
-            c.content === input.content &&
-            c.author.id === user.id &&
-            !c.resolved,
-        );
-
-        if (existingComments.length > 0) {
-          console.log(
-            "Duplicate comment detected, skipping:",
-            existingComments[0].id,
-          );
-          return existingComments[0].id;
+  const actions = useMemo(() => {
+    const me = user
+      ? {
+          id: user.id,
+          name: user.displayName || user.email || "Anonymous",
+          email: user.email || undefined,
+          avatar: user.photoURL || undefined,
         }
+      : null;
+    // Always the latest copy (another person may have replied since this render).
+    const current = (id: string) =>
+      (store.get() as Thread[] | undefined)?.find((t) => t.id === id);
+    const patch = (
+      id: string,
+      change: (t: Thread, at: string) => Partial<Thread>,
+    ) => {
+      const t = current(id);
+      if (!t) return Promise.resolve(false);
+      const at = now();
+      const fields = {
+        ...change(t, at),
+        timestamp: { ...t.timestamp, updatedAt: at },
+      };
+      // ponytail: replies are one array written whole, so two replies in the same instant can drop one.
+      // Move replies to their own rows (or a server-side push) if that shows up.
+      return commit(documentId, id, { ...t, ...fields }, () =>
+        collection().update(byId(id), fields),
+      );
+    };
 
-        const newComment: IComment = {
-          id: commentId,
-          documentId: input.documentId,
+    return {
+      create(input: {
+        id: string;
+        content: string;
+        range: { from: number; to: number };
+        quote: string;
+        mentions: string[];
+      }) {
+        if (!me) return Promise.resolve(false);
+        const at = now();
+        const thread: Thread = {
+          id: input.id,
+          documentId,
           content: input.content,
-          author: {
-            id: user.id,
-            name: user.displayName || user.email || "Anonymous",
-            email: user.email || undefined,
-            avatar: user.photoURL || undefined,
-          },
+          author: me,
           range: input.range,
+          quote: input.quote,
+          mentions: input.mentions,
           resolved: false,
           replies: [],
-          timestamp: {
-            createdAt: timestamp,
-            updatedAt: timestamp,
-          },
-          suggestions: input.suggestions?.map((s) => ({
-            ...s,
-            id: nanoid(),
-            accepted: false,
-          })),
+          timestamp: { createdAt: at, updatedAt: at },
         };
-
-        const commentsCollection = cloudStore.collection("comments");
-        const result = await commentsCollection.insert(newComment);
-
-        console.log(
-          "[useComments] Comment created:",
-          commentId,
-          "Result:",
-          result,
+        return commit(documentId, thread.id, thread, () =>
+          collection().insert(thread),
         );
-        return commentId;
-      } catch (error) {
-        console.error("Failed to create comment:", error);
-        return null;
-      }
-    },
-    [user, comments],
-  );
-
-  // Add reply to a comment
-  const addReply = useCallback(
-    async (input: ICommentReplyInput): Promise<boolean> => {
-      if (!cloudStore || !user) {
-        console.error("CloudStore not available or user not authenticated");
-        return false;
-      }
-
-      try {
-        const replyId = nanoid();
-        const timestamp = new Date().toISOString();
-
-        const newReply: ICommentReply = {
-          id: replyId,
-          commentId: input.commentId,
-          content: input.content,
-          author: {
-            id: user.id,
-            name: user.displayName || user.email || "Anonymous",
-            email: user.email || undefined,
-            avatar: user.photoURL || undefined,
-          },
-          timestamp: {
-            createdAt: timestamp,
-            updatedAt: timestamp,
-          },
-        };
-
-        // Find the comment and add reply
-        const comment = comments.find((c) => c.id === input.commentId);
-        if (!comment) {
-          console.error("Comment not found:", input.commentId);
-          return false;
-        }
-
-        const updatedReplies = [...(comment.replies || []), newReply];
-
-        const commentsCollection = cloudStore.collection("comments");
-        const query = cloudStore.query.where("id", "EQUAL", input.commentId);
-
-        await commentsCollection.update(query, {
-          replies: updatedReplies,
-          timestamp: {
-            ...comment.timestamp,
-            updatedAt: timestamp,
-          },
+      },
+      reply(threadId: string, content: string, id: string) {
+        if (!me) return Promise.resolve(false);
+        return patch(threadId, (t, at) => {
+          const reply: Reply = {
+            id,
+            commentId: threadId,
+            content,
+            author: me,
+            timestamp: { createdAt: at, updatedAt: at },
+          };
+          return { replies: [...t.replies, reply] };
         });
-
-        console.log("Reply added to comment:", input.commentId);
-        return true;
-      } catch (error) {
-        console.error("Failed to add reply:", error);
-        return false;
-      }
-    },
-    [user, comments],
-  );
-
-  // Update comment content
-  const updateComment = useCallback(
-    async (commentId: string, content: string): Promise<boolean> => {
-      if (!cloudStore) {
-        console.error("CloudStore not available");
-        return false;
-      }
-
-      try {
-        const commentsCollection = cloudStore.collection("comments");
-        const query = cloudStore.query.where("id", "EQUAL", commentId);
-
-        await commentsCollection.update(query, {
+      },
+      edit(threadId: string, content: string, mentions: string[]) {
+        return patch(threadId, (_, at) => ({
           content,
-          timestamp: {
-            createdAt:
-              comments.find((c) => c.id === commentId)?.timestamp.createdAt ||
-              new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        });
-
-        console.log("Comment updated:", commentId);
-        return true;
-      } catch (error) {
-        console.error("Failed to update comment:", error);
-        return false;
-      }
-    },
-    [comments],
-  );
-
-  // Resolve a comment
-  const resolveComment = useCallback(
-    async (commentId: string): Promise<boolean> => {
-      if (!cloudStore) {
-        console.error("CloudStore not available");
-        return false;
-      }
-
-      try {
-        const comment = comments.find((c) => c.id === commentId);
-        if (!comment) {
-          console.error("Comment not found:", commentId);
-          return false;
-        }
-
-        const commentsCollection = cloudStore.collection("comments");
-        const query = cloudStore.query.where("id", "EQUAL", commentId);
-
-        const result = await commentsCollection.update(query, {
-          resolved: true,
-          timestamp: {
-            createdAt: comment.timestamp.createdAt,
-            updatedAt: new Date().toISOString(),
-          },
-        });
-
-        console.log(
-          "[useComments] Comment resolved:",
-          commentId,
-          "Result:",
-          result,
+          mentions,
+          editedAt: at,
+        }));
+      },
+      editReply(threadId: string, replyId: string, content: string) {
+        return patch(threadId, (t, at) => ({
+          replies: t.replies.map((r) =>
+            r.id === replyId
+              ? {
+                  ...r,
+                  content,
+                  editedAt: at,
+                  timestamp: { ...r.timestamp, updatedAt: at },
+                }
+              : r,
+          ),
+        }));
+      },
+      deleteReply(threadId: string, replyId: string) {
+        return patch(threadId, (t) => ({
+          replies: t.replies.filter((r) => r.id !== replyId),
+        }));
+      },
+      setResolved(threadId: string, resolved: boolean) {
+        return patch(threadId, () => ({ resolved }));
+      },
+      remove(threadId: string) {
+        return commit(documentId, threadId, null, () =>
+          collection().remove(byId(threadId)),
         );
-        return true;
-      } catch (error) {
-        console.error("Failed to resolve comment:", error);
-        return false;
-      }
-    },
-    [comments],
+      },
+    };
+  }, [documentId, store, user]);
+
+  const openCount = useMemo(
+    () => threads.filter((t) => !t.resolved).length,
+    [threads],
   );
-
-  // Delete a comment
-  const deleteComment = useCallback(
-    async (commentId: string): Promise<boolean> => {
-      if (!cloudStore) {
-        console.error("CloudStore not available");
-        return false;
-      }
-
-      try {
-        const commentsCollection = cloudStore.collection("comments");
-        const query = cloudStore.query.where("id", "EQUAL", commentId);
-
-        const result = await commentsCollection.remove(query);
-
-        console.log(
-          "[useComments] Comment deleted:",
-          commentId,
-          "Result:",
-          result,
-        );
-        return true;
-      } catch (error) {
-        console.error("Failed to delete comment:", error);
-        return false;
-      }
-    },
-    [],
-  );
-
-  // Get a specific comment by ID
-  const getComment = useCallback(
-    (commentId: string): IComment | null => {
-      return comments.find((c) => c.id === commentId) || null;
-    },
-    [comments],
-  );
-
   return {
-    comments,
-    isLoading,
-    createComment,
-    addReply,
-    updateComment,
-    resolveComment,
-    deleteComment,
-    getComment,
+    threads,
+    openCount,
+    isLoading: !!documentId && live === undefined,
+    /** Stable per document and user; each resolves to whether the server accepted the write. */
+    actions,
   };
 }

@@ -44,7 +44,6 @@ th { background: #f5f6f8; font-weight: 500; }
 hr { border: 0; border-top: 1px solid #d9dce0; margin: 24px 0; }
 img { max-width: 100%; height: auto; }
 .page-break { break-after: page; height: 0; margin: 0; border-top: 1px dashed #d9dce0; }
-.comment-highlight { background: none; }
 mark { background: #ffe36b; color: inherit; border-radius: 2px; padding: 0 1px; }
 div[data-callout] { margin: 12px 0; padding: 10px 14px; border-left: 3px solid #686e76; border-radius: 2px; background: #f3f4f6; }
 div[data-callout="tip"] { border-left-color: #16a34a; background: #eef8f1; }

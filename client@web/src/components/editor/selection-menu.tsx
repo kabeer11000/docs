@@ -22,6 +22,8 @@ interface SelectionMenuProps {
   isVisible: boolean;
   /** Centre of the selection's top edge, viewport px. */
   position: { x: number; y: number };
+  /** Hidden for people who cannot comment (signers). */
+  canComment: boolean;
   onComment: () => void;
   onAskLexa: () => void;
 }
@@ -32,6 +34,7 @@ const EDGE = 12;
 export const SelectionMenu: React.FC<SelectionMenuProps> = ({
   isVisible,
   position,
+  canComment,
   onComment,
   onAskLexa,
 }) => {
@@ -130,9 +133,15 @@ export const SelectionMenu: React.FC<SelectionMenuProps> = ({
             <ToolbarSeparator />
           </>
         )}
-        <PillButton label="Comment" onClick={onComment}>
-          <MessageSquarePlus />
-        </PillButton>
+        {canComment && (
+          <PillButton
+            label="Comment"
+            aria-keyshortcuts="Control+Alt+M"
+            onClick={onComment}
+          >
+            <MessageSquarePlus />
+          </PillButton>
+        )}
         {AI_ENABLED && (
         <Button
           variant="ghost"

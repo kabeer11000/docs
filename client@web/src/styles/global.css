@@ -506,25 +506,6 @@
   border: none;
 }
 
-/* Comment Highlighting Styles */
-.comment-highlight {
-  background: color-mix(in srgb, var(--highlight) 55%, transparent);
-  border-bottom: 2px solid var(--highlight);
-  cursor: pointer;
-}
-
-.comment-highlight:hover {
-  background: var(--highlight);
-}
-
-.comment-highlighted {
-  @apply bg-blue-400/20 border-blue-500;
-}
-
-.comment-highlight.comment-resolved {
-  @apply bg-green-500/10 border-green-400;
-}
-
 /* Flag underlines - Grammarly style */
 .red-flag-underline {
   border-bottom: 2px solid rgb(239 68 68);
@@ -544,15 +525,6 @@
 
 .green-flag-underline:hover {
   background-color: rgba(34, 197, 94, 0.1);
-}
-
-/* Comment marker in margin */
-.comment-marker {
-  @apply absolute right-0 top-0 w-1 h-full bg-highlight;
-}
-
-.comment-marker.active {
-  @apply bg-blue-500;
 }
 
 /* ---------- Motion ---------- */

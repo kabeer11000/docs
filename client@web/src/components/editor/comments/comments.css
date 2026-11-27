@@ -1,0 +1,54 @@
+/* Comment highlights: soft lemon at rest, stronger on hover, full when the thread is active. */
+.ProseMirror {
+  --cmt-rest: color-mix(in srgb, var(--highlight) 34%, transparent);
+  --cmt-hover: color-mix(in srgb, var(--highlight) 58%, transparent);
+  --cmt-active: var(--highlight);
+  --cmt-line: color-mix(in srgb, var(--highlight) 90%, transparent);
+}
+.dark .ProseMirror {
+  --cmt-rest: rgb(233 207 63 / 0.14);
+  --cmt-hover: rgb(233 207 63 / 0.24);
+  --cmt-active: rgb(233 207 63 / 0.36);
+  --cmt-line: rgb(233 207 63 / 0.6);
+}
+
+.cmt-anchor {
+  background-color: var(--cmt-rest);
+  box-shadow: inset 0 -2px 0 var(--cmt-line);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 160ms ease-out;
+}
+.cmt-anchor:hover,
+.cmt-anchor.is-hover {
+  background-color: var(--cmt-hover);
+}
+.cmt-anchor.is-active {
+  background-color: var(--cmt-active);
+}
+
+/* Margin cards glide to their slot when others grow, shrink or the active one aligns. */
+.cmt-slot {
+  transition: transform 220ms var(--ease-out-soft);
+}
+
+.cmt-arrive {
+  animation: cmt-arrive 260ms var(--ease-out-soft) both;
+}
+@keyframes cmt-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .cmt-anchor {
+    background: none;
+    box-shadow: none;
+  }
+}

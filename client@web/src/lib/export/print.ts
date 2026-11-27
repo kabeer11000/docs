@@ -16,7 +16,7 @@ body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .print-root > .ProseMirror { padding: 0 !important; margin: 0 !important; width: auto !important; min-height: 0 !important; background: none !important; box-shadow: none !important; }
 .print-root .pg-break { height: 0 !important; margin: 0 !important; break-before: page; }
 .print-root [data-page-break] { break-after: auto !important; visibility: hidden; }
-.print-root .comment-highlight, .print-root .comment-highlighted, .print-root .comment-resolved { background: none !important; border-bottom: 0 !important; }
+.print-root .cmt-anchor { background: none !important; box-shadow: none !important; border-bottom: 0 !important; }
 .print-root .red-flag-underline, .print-root .green-flag-underline { background: none !important; border-bottom: 0 !important; }
 .print-root a { color: inherit !important; text-decoration: underline !important; }
 .print-root .ProseMirror-selectednode { outline: none !important; }

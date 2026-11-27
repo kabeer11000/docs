@@ -137,7 +137,7 @@ export function EditorHeaderContent({ documentId }: { documentId: string }) {
     lastSaved: useStore($lastSaved),
     error: useStore($saveError),
   };
-  const { comments } = useComments(documentId);
+  const { openCount } = useComments(documentId);
   const permissions = useDocumentPermissions(documentData);
   const { convertToSlides } = useDocFileActions(documentId);
 
@@ -216,7 +216,7 @@ export function EditorHeaderContent({ documentId }: { documentId: string }) {
           <CountButton
             label="Comments"
             icon={<MessagesSquare />}
-            count={comments.length}
+            count={openCount}
             active={commentsOpen}
             onClick={() => editorActions.setCommentsSidebarOpen(!commentsOpen)}
           />
