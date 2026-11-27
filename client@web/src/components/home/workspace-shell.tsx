@@ -14,13 +14,13 @@ function usePrefetchEditors() {
     const run = () => {
       for (const route of ["document", "sheet", "slides", "pdf"]) router.prefetch(`/${route}/_`);
     };
-    const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => number }).requestIdleCallback;
-    const handle = idle ? idle(run) : window.setTimeout(run, 1500);
-    return () => {
-      const cancel = (window as Window & { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback;
-      if (idle && cancel) cancel(handle);
-      else window.clearTimeout(handle);
-    };
+    // Safari has no requestIdleCallback; fall back to a short timeout.
+    if ("requestIdleCallback" in window) {
+      const handle = window.requestIdleCallback(run);
+      return () => window.cancelIdleCallback(handle);
+    }
+    const handle = window.setTimeout(run, 1500);
+    return () => window.clearTimeout(handle);
   }, [router]);
 }
 
