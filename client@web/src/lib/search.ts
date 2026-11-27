@@ -230,7 +230,7 @@ const searchableTemplates: SearchableItem[] = TEMPLATES.map((template) => ({
   type: "template" as SearchableItem["type"],
   tags: [],
   category: "template",
-  path: `/document/new/templates`,
+  path: "/templates?kind=doc",
   meta: template,
 }));
 
