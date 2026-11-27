@@ -32,3 +32,7 @@ export const diagramsToSvg = (html: string) =>
     const svg = diagramSvgs.get(unescapeHtml(code));
     return svg ? `<div data-diagram="">${svg}</div>` : whole;
   });
+
+/** Links to other files carry app paths; exports leave the app, so make them absolute when an origin is known. */
+export const absoluteDocLinks = (html: string, origin = typeof window === "undefined" ? "" : window.location.origin) =>
+  origin ? html.replace(/<a\b[^>]*\bdata-doc-link=[^>]*>/g, (tag) => tag.replace(/\bhref="\//, `href="${origin}/`)) : html;

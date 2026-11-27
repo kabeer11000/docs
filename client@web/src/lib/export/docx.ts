@@ -1,5 +1,5 @@
 import { PX_PER_IN, type PaperSettings, pageGeometry, sheetInches } from "../paper";
-import { mathToMathml } from "./rich-nodes";
+import { absoluteDocLinks, mathToMathml } from "./rich-nodes";
 
 const DOCX_CSS = `
 [data-page-break] { break-after: page; }
@@ -34,7 +34,7 @@ export async function htmlToDocx(opts: { html: string; title: string; paper: Pap
           },
         },
         children: [
-          ...htmlToContent(mathToMathml(opts.html), {
+          ...htmlToContent(mathToMathml(absoluteDocLinks(opts.html)), {
             stylesheet: DOCX_CSS,
             maxImageWidth: Math.floor((pageGeometry(paper).contentWidth / PX_PER_IN) * 96),
           }),

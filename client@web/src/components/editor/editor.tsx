@@ -66,6 +66,8 @@ import { SlashCommand } from "./extensions/slash-command";
 import { FindBar } from "./find/find-bar";
 import { Find } from "./find/find-extension";
 import { Outline } from "./outline/outline";
+import { DocLink } from "./extensions/doc-link";
+import { LinkedFrom } from "./links/linked-from";
 import { $pageSetupOpen, $shortcutsOpen } from "./dialogs-state";
 import { PaperSheet } from "./paper-sheet";
 import { SelectionMenu } from "./selection-menu";
@@ -327,6 +329,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
       }),
       Collaboration.configure({ document: getYDoc() }),
       Find,
+      DocLink,
     ],
     [provider, userId, userName, getYDoc],
   );
@@ -379,9 +382,6 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     [extensions, debouncedSelectionUpdate],
   );
 
-  useEffect(() => {
-    if (editor && !editor.isDestroyed) editor.setEditable(permissions.canEdit && !!documentData);
-  }, [editor, permissions.canEdit, documentData]);
 
   // Initial content, before paint, outside undo history and without an "update" (no autosave on open).
   const loadedRef = useRef(false);
@@ -427,6 +427,12 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     documentId,
     documentData,
   );
+
+  // Editable only once the content is in: keys typed before the live room answers would be lost
+  // (or land before the stored copy loads).
+  useEffect(() => {
+    if (editor && !editor.isDestroyed) editor.setEditable(canEdit && contentReady);
+  }, [editor, canEdit, contentReady]);
 
   useWritingMemory(editor, documentId, contentReady, canEdit);
 
@@ -640,6 +646,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
 
       <div className={cn("relative flex-1 overflow-auto bg-paper-canvas px-2 pt-4 pb-10 md:px-8", sideMargin)}>
         <Outline />
+        <LinkedFrom documentId={documentId} />
         <FindBar canEdit={permissions.canEdit} />
           <FocusMode />
         <PaperSheet geometry={geometry} pages={pages}>

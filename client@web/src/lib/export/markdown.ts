@@ -6,7 +6,7 @@ import remarkRehype from "remark-rehype";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import { unified } from "unified";
-import { replaceMath } from "./rich-nodes";
+import { absoluteDocLinks, replaceMath } from "./rich-nodes";
 
 // HTML (editor output) <-> GitHub-flavoured Markdown.
 
@@ -103,7 +103,7 @@ let turndown: TurndownService | null = null;
 
 export function htmlToMarkdown(html: string): string {
   turndown ??= createTurndown();
-  const filled = replaceMath(html, (latex) => latex.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] as string));
+  const filled = replaceMath(absoluteDocLinks(html), (latex) => latex.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] as string));
   return `${turndown.turndown(filled).replace(/\n{3,}/g, "\n\n").trim()}\n`;
 }
 

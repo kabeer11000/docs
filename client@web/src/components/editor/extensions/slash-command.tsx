@@ -2,8 +2,8 @@
 import { type Editor, Extension, type Range } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
 import { ReactRenderer } from "@tiptap/react";
-import Suggestion, { type SuggestionKeyDownProps, type SuggestionProps } from "@tiptap/suggestion";
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import Suggestion, { type SuggestionKeyDownProps, type SuggestionOptions, type SuggestionProps } from "@tiptap/suggestion";
+import { type ComponentType, forwardRef, type RefAttributes, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { editDiagram } from "./diagram";
@@ -83,6 +83,7 @@ export const SLASH_ITEMS: SlashItem[] = [
   { title: "Divider", hint: "---", keywords: "hr horizontal rule line separator", run: (e, r) => e.chain().focus().deleteRange(r).setHorizontalRule().run() },
   { title: "Image", hint: "", keywords: "picture photo upload", run: (e, r) => { e.chain().focus().deleteRange(r).run(); pickImage(e); } },
   { title: "Link", hint: "", keywords: "url hyperlink web address", run: insertLink },
+  { title: "Link to file", hint: "[[", keywords: "file document page wiki backlink internal", run: (e, r) => e.chain().focus().deleteRange(r).insertContent("[[").run() },
   { title: "Embed", hint: "", keywords: "embed video youtube vimeo loom figma spotify codepen maps slides sheets tweet iframe", run: insertEmbed },
   { title: "Diagram", hint: "", keywords: "diagram mermaid flowchart chart sequence graph", run: insertDiagram },
   { title: "Equation", hint: "$x$", keywords: "math inline latex formula katex", run: (e, r) => insertMath(e, r, false) },
@@ -97,7 +98,7 @@ export function filterSlashItems(query: string): SlashItem[] {
 }
 
 type MenuProps = SuggestionProps<SlashItem>;
-interface MenuHandle {
+export interface MenuHandle {
   onKeyDown: (p: SuggestionKeyDownProps) => boolean;
 }
 
@@ -176,6 +177,37 @@ function place(el: HTMLElement, rect: DOMRect | null | undefined) {
   el.style.top = `${top}px`;
 }
 
+/** Mounts a suggestion list component in a fixed popup under the caret. */
+export function popupRenderer<I>(Menu: ComponentType<SuggestionProps<I> & RefAttributes<MenuHandle>>): ReturnType<NonNullable<SuggestionOptions<I>["render"]>> {
+  let renderer: ReactRenderer<MenuHandle, SuggestionProps<I>> | null = null;
+  return {
+    onStart: (props) => {
+      renderer = new ReactRenderer(Menu, { props, editor: props.editor });
+      const el = renderer.element as HTMLElement;
+      el.style.position = "fixed";
+      el.style.zIndex = "60";
+      document.body.appendChild(el);
+      requestAnimationFrame(() => place(el, props.clientRect?.()));
+    },
+    onUpdate: (props) => {
+      renderer?.updateProps(props);
+      if (renderer) place(renderer.element as HTMLElement, props.clientRect?.());
+    },
+    onKeyDown: (props) => {
+      if (props.event.key === "Escape") {
+        renderer?.element.remove();
+        return true;
+      }
+      return renderer?.ref?.onKeyDown(props) ?? false;
+    },
+    onExit: () => {
+      renderer?.element.remove();
+      renderer?.destroy();
+      renderer = null;
+    },
+  };
+}
+
 export const SlashCommand = Extension.create({
   name: "slashCommand",
 
@@ -193,35 +225,7 @@ export const SlashCommand = Extension.create({
           const $from = state.doc.resolve(range.from);
           return !$from.parent.type.spec.code;
         },
-        render: () => {
-          let renderer: ReactRenderer<MenuHandle, MenuProps> | null = null;
-          return {
-            onStart: (props) => {
-              renderer = new ReactRenderer(SlashMenu, { props, editor: props.editor });
-              const el = renderer.element as HTMLElement;
-              el.style.position = "fixed";
-              el.style.zIndex = "60";
-              document.body.appendChild(el);
-              requestAnimationFrame(() => place(el, props.clientRect?.()));
-            },
-            onUpdate: (props) => {
-              renderer?.updateProps(props);
-              if (renderer) place(renderer.element as HTMLElement, props.clientRect?.());
-            },
-            onKeyDown: (props) => {
-              if (props.event.key === "Escape") {
-                renderer?.element.remove();
-                return true;
-              }
-              return renderer?.ref?.onKeyDown(props) ?? false;
-            },
-            onExit: () => {
-              renderer?.element.remove();
-              renderer?.destroy();
-              renderer = null;
-            },
-          };
-        },
+        render: () => popupRenderer(SlashMenu),
       }),
     ];
   },
