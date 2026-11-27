@@ -100,6 +100,11 @@ export async function authorizeRead(ctx: Ctx, where: ClientFilter[] | undefined,
     }
 }
 
+/** Fields any reader of the document may change on a comment: its replies and resolved state. */
+const THREAD_FIELDS = /^(replies|resolved|resolvedAt|resolvedBy|updatedAt|timestamp)(\.|$)/;
+export const onlyThreadFields = (data: any) =>
+    !!data && typeof data === "object" && Object.keys(data).length > 0 && Object.keys(data).every(k => THREAD_FIELDS.test(k));
+
 export async function authorizeWrite(ctx: Ctx, op: "update" | "delete", where: ClientFilter[] | undefined, data?: any): Promise<MongoQuery> {
     requireDocsDb(ctx);
     const client = toMongoQuery(where);
@@ -121,7 +126,13 @@ export async function authorizeWrite(ctx: Ctx, op: "update" | "delete", where: C
             const ids = [...new Set(rows.map(r => r.documentId))];
             if (!(await canReadDocuments(ctx, ids))) deny("document not readable");
             // Pinned to the checked documents, so rows added after the check are not touched.
-            return and(client, { documentId: { $in: ids } });
+            const pinned = and(client, { documentId: { $in: ids } });
+            if (ctx.collection !== "comments") return pinned;
+            // Any reader may reply or resolve; deleting or rewriting a comment is for its author
+            // or the document's owner.
+            if (op === "update" && onlyThreadFields(data)) return pinned;
+            const owned = await ctx.find("documents", { id: { $in: ids }, owner: c.user_id }, { id: 1 });
+            return and(pinned, { $or: [{ "author.id": c.user_id }, { documentId: { $in: owned.map(d => d.id) } }] });
         }
         default: return deny("collection is read-only");
     }

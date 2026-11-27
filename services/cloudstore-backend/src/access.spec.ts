@@ -1,5 +1,5 @@
-import { expect, test } from "bun:test";
-import { authorizeInsert, authorizeRead, authorizeWrite, DOCS_DB, type Claims, type Ctx } from "./access";
+import { describe, expect, test } from "bun:test";
+import { authorizeInsert, authorizeRead, authorizeWrite, DOCS_DB, onlyThreadFields, type Claims, type Ctx } from "./access";
 import { matches } from "./query";
 
 // Rows filtered with the Mongo-verified matcher stand in for the database.
@@ -115,4 +115,19 @@ test("other databases and collections are refused", async () => {
     await expect(authorizeRead(ctx("api_keys"), [])).rejects.toThrow("collection");
     await expect(authorizeInsert(ctx("api_keys"), [{ owner: "u1" }])).rejects.toThrow();
     await expect(authorizeRead(ctx("documents", { user_id: "" }), [])).rejects.toThrow();
+});
+
+describe("comment thread fields", () => {
+    test("replies and resolve state are thread fields", () => {
+        expect(onlyThreadFields({ replies: [] })).toBe(true);
+        expect(onlyThreadFields({ resolved: true, updatedAt: "x" })).toBe(true);
+        expect(onlyThreadFields({ replies: [], timestamp: { updatedAt: "x" } })).toBe(true);
+        expect(onlyThreadFields({ "replies.0.content": "x" })).toBe(true);
+    });
+    test("anything else needs the author or document owner", () => {
+        expect(onlyThreadFields({ content: "rewritten" })).toBe(false);
+        expect(onlyThreadFields({ replies: [], content: "x" })).toBe(false);
+        expect(onlyThreadFields({})).toBe(false);
+        expect(onlyThreadFields(null)).toBe(false);
+    });
 });
