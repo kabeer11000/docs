@@ -19,8 +19,8 @@ function usePrefetchEditors() {
       const handle = window.requestIdleCallback(run);
       return () => window.cancelIdleCallback(handle);
     }
-    const handle = window.setTimeout(run, 1500);
-    return () => window.clearTimeout(handle);
+    const handle = setTimeout(run, 1500);
+    return () => clearTimeout(handle);
   }, [router]);
 }
 
