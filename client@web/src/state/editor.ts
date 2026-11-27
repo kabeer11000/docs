@@ -1,6 +1,7 @@
 import type { Editor } from "@tiptap/react";
 import { atom, computed } from "nanostores";
 import { debounce } from "../lib/utils";
+import { AI_ENABLED } from "@/lib/features";
 
 // Editor instance
 export const editorInstance = atom<Editor | null>(null);
@@ -116,12 +117,12 @@ export const editorActions = {
         isTable: editor.isActive("table"),
       });
 
-      // Update table controls visibility
+      // Update table controls visibility (only on change: every set re-renders subscribers)
       const currentUI = editorUIState.get();
-      editorUIState.set({
-        ...currentUI,
-        showTableControls: editor.isActive("table"),
-      });
+      const showTableControls = editor.isActive("table");
+      if (currentUI.showTableControls !== showTableControls) {
+        editorUIState.set({ ...currentUI, showTableControls });
+      }
     } catch (error) {
       console.warn("Error updating format state:", error);
     }
@@ -139,6 +140,7 @@ export const editorActions = {
       const characterCount = text.length;
 
       const currentUI = editorUIState.get();
+      if (currentUI.wordCount === wordCount && currentUI.characterCount === characterCount) return;
       editorUIState.set({
         ...currentUI,
         wordCount,
@@ -163,6 +165,7 @@ export const editorActions = {
 
   // AI Panel management
   setAIPanelOpen: (isOpen: boolean) => {
+    if (isOpen && !AI_ENABLED) return;
     const currentUI = editorUIState.get();
     editorUIState.set({
       ...currentUI,

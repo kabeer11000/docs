@@ -1,4 +1,3 @@
-import katex from "katex";
 import { diagramSvgs } from "./diagram-cache";
 
 export { diagramSvgs };
@@ -20,9 +19,6 @@ export function replaceMath(html: string, render: (latex: string, block: boolean
   });
 }
 
-/** Math nodes as MathML, which browsers and Word render without KaTeX's stylesheet or fonts. */
-export const mathToMathml = (html: string) =>
-  replaceMath(html, (latex, block) => katex.renderToString(latex, { output: "mathml", displayMode: block, throwOnError: false }));
 
 /** Mermaid source -> last SVG the editor rendered for it (light theme), for exports that can show it. */
 

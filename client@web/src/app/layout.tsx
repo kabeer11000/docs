@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Figtree, Geist_Mono } from "next/font/google";
 import "@/styles/global.css";
+import "./view-transitions.css";
 import { Providers } from "./providers";
 
 const uiFont = Figtree({ subsets: ["latin"], variable: "--font-ui" });

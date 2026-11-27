@@ -274,6 +274,13 @@
   overflow-x: auto;
 }
 
+/* LaTeX source shown until KaTeX has loaded. */
+.ProseMirror .math-pending {
+  color: var(--muted-foreground);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+}
+
 .ProseMirror .block-math-error,
 .ProseMirror .inline-math-error {
   color: var(--destructive);
@@ -615,4 +622,14 @@
   .ProseMirror .diagram-source {
     display: none;
   }
+}
+
+/* Stored first page shown while the editor waits to load (see stored-preview.tsx). Lines past the
+   first page are clipped; the live editor paginates them once it takes over. */
+.paper-sheet .stored-preview {
+  position: absolute;
+  inset: 0 0 auto;
+  min-height: 0;
+  max-height: calc(var(--page-h) - var(--m-bottom));
+  overflow: hidden;
 }

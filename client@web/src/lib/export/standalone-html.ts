@@ -1,5 +1,6 @@
 import { cssPageRule, type PaperSettings, pageGeometry } from "../paper";
-import { absoluteDocLinks, diagramsToSvg, mathToMathml } from "./rich-nodes";
+import { mathToMathml } from "./mathml";
+import { absoluteDocLinks, diagramsToSvg } from "./rich-nodes";
 
 // A single self-contained .html file that looks like the page: a sheet on a desk on screen,
 // and the same paper size and margins when printed. No external requests.

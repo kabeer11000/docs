@@ -1,4 +1,5 @@
 "use client";
+import { AI_ENABLED } from "@/lib/features";
 import { useStore } from "@nanostores/react";
 import {
   Bold,
@@ -132,6 +133,7 @@ export const SelectionMenu: React.FC<SelectionMenuProps> = ({
         <PillButton label="Comment" onClick={onComment}>
           <MessageSquarePlus />
         </PillButton>
+        {AI_ENABLED && (
         <Button
           variant="ghost"
           onClick={onAskLexa}
@@ -140,6 +142,7 @@ export const SelectionMenu: React.FC<SelectionMenuProps> = ({
           <Sparkles />
           Ask AI
         </Button>
+        )}
       </div>
     </div>
   );

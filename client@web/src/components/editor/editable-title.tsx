@@ -1,181 +1,148 @@
-import { Loader2 } from "lucide-react";
+"use client";
+
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useCloudStore } from "@/hooks/use-cloudstore";
+import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+
+const MAX = 100;
 
 interface EditableTitleProps {
   title: string;
-  onTitleChange: (newTitle: string) => void;
   documentId: string;
-  isNewDocument?: boolean;
-  onTemplateSelect?: (templateContent: string, templateTitle: string) => void;
   canRename?: boolean;
+  /** Controlled editing (the header's Rename menu item); uncontrolled when omitted. */
+  editing?: boolean;
+  onEditingChange?: (editing: boolean) => void;
+  onTitleChange?: (newTitle: string) => void;
+  placeholder?: string;
+  className?: string;
 }
 
-interface DocumentTemplate {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  content: string;
-  category: string;
-}
-
+/**
+ * The file name. Click to rename: the text is selected, Enter or leaving saves, Esc cancels.
+ * Saving is optimistic: the new name shows at once and reverts (with a toast) if the save fails.
+ * The input sizes to its text so nothing around it moves while typing.
+ */
 export function EditableTitle({
   title,
-  onTitleChange,
   documentId,
-  isNewDocument = false,
-  onTemplateSelect,
   canRename = true,
+  editing: editingProp,
+  onEditingChange,
+  onTitleChange,
+  placeholder = "Untitled",
+  className,
 }: EditableTitleProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [localTitle, setLocalTitle] = useState(title);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [_showTemplates, setShowTemplates] = useState(false);
+  const [editingState, setEditingState] = useState(false);
+  const editing = (editingProp ?? editingState) && canRename;
+  const setEditing = (on: boolean) => {
+    setEditingState(on);
+    onEditingChange?.(on);
+  };
+  const [draft, setDraft] = useState(title);
+  // Optimistic name, valid only while the stored title is still the one it replaced.
+  const [pending, setPending] = useState<{
+    value: string;
+    over: string;
+  } | null>(null);
   const { updateDocument } = useCloudStore();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const cancelled = useRef(false);
 
-  // Update local title when prop changes
+  const shown = pending && pending.over === title ? pending.value : title;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: seed the draft only when editing starts
   useEffect(() => {
-    setLocalTitle(title);
-  }, [title]);
+    if (!editing) return;
+    setDraft(shown);
+    cancelled.current = false;
+    requestAnimationFrame(() => input.current?.select());
+  }, [editing]);
 
-  // Focus input when editing starts
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing]);
-
-  const handleSave = async () => {
-    const trimmed = localTitle.trim();
-
-    // Validation
-    if (!trimmed) {
-      setLocalTitle(title); // Revert to original
-      setIsEditing(false);
-      return;
-    }
-
-    if (trimmed.length > 100) {
-      setError("Title too long (max 100 characters)");
-      return;
-    }
-
-    if (trimmed === title) {
-      setIsEditing(false);
-      setError(null);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const success = await updateDocument(documentId, { title: trimmed });
-      if (success) {
-        onTitleChange(trimmed);
-        setIsEditing(false);
-      } else {
-        setError("Failed to update title");
-        setLocalTitle(title); // Revert
-        setTimeout(() => setIsEditing(false), 2000); // Auto-close after showing error
-      }
-    } catch (_err) {
-      setError("Network error");
-      setLocalTitle(title); // Revert
-      setTimeout(() => setIsEditing(false), 2000); // Auto-close after showing error
-    } finally {
-      setIsLoading(false);
+  const commit = async () => {
+    setEditing(false);
+    if (cancelled.current) return;
+    const next = draft.trim().slice(0, MAX);
+    if (!next || next === shown) return;
+    setPending({ value: next, over: title });
+    const ok = await updateDocument(documentId, { title: next }).catch(
+      () => false,
+    );
+    if (ok) onTitleChange?.(next);
+    else {
+      setPending(null);
+      showToast.error(
+        "Could not rename",
+        "The name was put back. Check your connection and try again.",
+      );
     }
   };
 
-  const handleCancel = () => {
-    setLocalTitle(title);
-    setIsEditing(false);
-    setError(null);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !isLoading) {
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
       e.preventDefault();
-      inputRef.current?.blur(); // Trigger save via blur
+      input.current?.blur();
     } else if (e.key === "Escape") {
-      handleCancel();
+      e.preventDefault();
+      e.stopPropagation();
+      cancelled.current = true;
+      input.current?.blur();
     }
   };
 
-  const handleBlur = () => {
-    if (!isLoading) {
-      handleSave();
-    }
-  };
+  const text =
+    "font-display text-[15px] font-semibold leading-[26px] tracking-[-0.015em]";
 
-  if (isEditing || isLoading) {
+  if (editing) {
     return (
-      <div className="relative w-full">
-        <Input
-          ref={inputRef}
-          value={localTitle}
-          onChange={(e) => {
-            setLocalTitle(e.target.value);
-            setError(null);
-          }}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          disabled={isLoading}
-          aria-label="Document title"
+      <span className={cn("inline-grid min-w-[4ch] max-w-full", className)}>
+        {/* Invisible twin that gives the input its width. */}
+        <span
+          aria-hidden
           className={cn(
-            "h-8 w-full min-w-[12rem] rounded-[10px] bg-card px-2 font-display text-[17px] font-semibold tracking-[-0.02em] focus-visible:border-app focus-visible:ring-app/25",
-            error && "border-destructive text-destructive",
-            isLoading && "pr-7 opacity-60",
+            text,
+            "invisible col-start-1 row-start-1 whitespace-pre px-1.5",
           )}
-          placeholder="Untitled document"
-          maxLength={100}
+        >
+          {draft || placeholder}
+        </span>
+        <input
+          ref={input}
+          value={draft}
+          maxLength={MAX}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={onKeyDown}
+          onBlur={() => void commit()}
+          aria-label="File name"
+          placeholder={placeholder}
+          spellCheck={false}
+          className={cn(
+            text,
+            "col-start-1 row-start-1 h-[26px] w-full min-w-0 rounded-[6px] bg-card px-1.5 text-foreground outline-none ring-2 ring-app/35 selection:bg-app/20",
+          )}
         />
-        {isLoading && (
-          <Loader2 className="absolute right-2 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
-        )}
-        {error && (
-          <p className="absolute left-0 top-full mt-1 whitespace-nowrap text-xs text-destructive">
-            {error}
-          </p>
-        )}
-      </div>
+      </span>
     );
   }
 
   return (
-    <Tooltip delayDuration={600}>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          disabled={!canRename}
-          onClick={() => canRename && setIsEditing(true)}
-          aria-label={canRename ? `Rename document: ${title}` : title}
-          className={cn(
-            "flex h-8 w-full min-w-0 items-center rounded-[10px] border border-transparent px-2 text-left transition-colors duration-150 disabled:opacity-100",
-            canRename ? "cursor-text hover:bg-accent" : "cursor-default",
-          )}
-        >
-          <span className="truncate font-display text-[17px] font-semibold tracking-[-0.02em] text-foreground">
-            {title || "Untitled document"}
-          </span>
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">
-        {canRename ? "Rename" : `${title} (read-only)`}
-      </TooltipContent>
-    </Tooltip>
+    <button
+      type="button"
+      onClick={() => canRename && setEditing(true)}
+      aria-label={canRename ? `Rename: ${shown || placeholder}` : undefined}
+      aria-disabled={!canRename}
+      title={canRename ? "Rename" : undefined}
+      className={cn(
+        text,
+        "block h-[26px] min-w-0 max-w-full truncate rounded-[6px] px-1.5 text-left text-foreground outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring/40",
+        canRename ? "cursor-text hover:bg-accent" : "cursor-default",
+        !shown && "text-muted-foreground",
+        className,
+      )}
+    >
+      {shown || placeholder}
+    </button>
   );
 }

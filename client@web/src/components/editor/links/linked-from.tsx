@@ -2,13 +2,14 @@
 import { useStore } from "@nanostores/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { fileHref } from "@/lib/files";
 import { $documents } from "@/state/cloudstore-data";
 import { useLiveDocument } from "../core/use-document-loader";
 import { docLinkActions } from "./actions";
-import { findBacklinks } from "./links";
+import { onIdle } from "../core/idle";
+import { type Backlink, findBacklinks } from "./links";
 
 const GAP = 16;
 
@@ -18,7 +19,9 @@ export function LinkedFrom({ documentId }: { documentId: string }) {
   const { createDocument } = useCloudStore();
   const folderId = useLiveDocument(documentId).document?.location;
   const docs = useStore($documents);
-  const backlinks = useMemo(() => findBacklinks(docs, documentId), [docs, documentId]);
+  // Scanning every document's content is not needed for first paint: do it when the page is idle.
+  const [backlinks, setBacklinks] = useState<Backlink[]>([]);
+  useEffect(() => onIdle(() => setBacklinks(findBacklinks(docs, documentId))), [docs, documentId]);
   const anchor = useRef<HTMLDivElement>(null);
   const [rail, setRail] = useState<{ width: number; top: number } | null>(null);
 

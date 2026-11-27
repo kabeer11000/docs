@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { diagramSvgs, diagramsToSvg, mathToMathml, replaceMath } from "./rich-nodes";
+import { mathToMathml } from "./mathml";
+import { diagramSvgs, diagramsToSvg, replaceMath } from "./rich-nodes";
 
 describe("mathToMathml", () => {
   it("renders inline and block math nodes as MathML", () => {

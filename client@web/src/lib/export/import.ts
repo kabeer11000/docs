@@ -1,5 +1,3 @@
-import { markdownToHtml } from "./markdown";
-
 // Files -> editor HTML for a NEW document. Everything goes through a tag/attribute allowlist
 // because the HTML is stored and later rendered (thumbnails, editor).
 
@@ -74,7 +72,11 @@ export const titleFromFilename = (name: string) => name.replace(/\.[^.]+$/, "").
 export async function fileToHtml(file: File): Promise<{ title: string; html: string }> {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   const title = titleFromFilename(file.name);
-  if (ext === "md" || ext === "markdown") return { title, html: sanitizeHtml(markdownToHtml(await file.text())) };
+  if (ext === "md" || ext === "markdown") {
+    // Loaded on use: the markdown pipeline is large and this module sits in every app shell.
+    const { markdownToHtml } = await import("./markdown");
+    return { title, html: sanitizeHtml(markdownToHtml(await file.text())) };
+  }
   if (ext === "html" || ext === "htm") {
     const raw = await file.text();
     const docTitle = defaultParse(raw).title.trim();

@@ -4,13 +4,14 @@ import type { Editor } from "@tiptap/react";
 import { ChevronUp, NotebookPen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import * as Y from "yjs";
 import { useLiveDocument } from "@/components/editor/core/use-document-loader";
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useDocumentPermissions } from "@/hooks/use-document-permissions";
 import { fileHref, fileKind } from "@/lib/files";
 import {
   deleteSlide,
+  lowerElement,
+  raiseElement,
   duplicateSlide,
   field,
   insertSlide,
@@ -33,6 +34,7 @@ import { isPlaceholderTitle, titleFromHtml } from "@/lib/titles";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { createSnapshotter, htmlToFragment } from "./editor-kit";
+import { pickFiles } from "@/components/app-header/app-header";
 import { addImage, addTextBox, TEXT_PRESETS } from "./element-actions";
 import { ElementToolbar } from "./element-toolbar";
 import {
@@ -53,9 +55,13 @@ import {
 import { SlidesToolbar } from "./slides-toolbar";
 import { SlidesTemplateGallery } from "./template-gallery";
 import { useElementEditor } from "./use-element-editor";
+import { SlidesThumbnail } from "./slides-thumbnail";
 import { useSlidesCollab } from "./use-slides-collab";
+import { FileTransition } from "@/components/editor/file-transition";
+import { roomDoc } from "@/lib/collab-room";
 
 const SAVE_DELAY = 1500;
+const STAGE_SHADOW = "shadow-[0_1px_2px_rgb(0_0_0/0.06),0_12px_40px_-12px_rgb(0_0_0/0.22)]";
 
 const PLACEHOLDER: Record<string, string> = {
   title: "Add a title",
@@ -90,7 +96,8 @@ export function SlidesApp({ documentId }: { documentId: string }) {
   const permissions = useDocumentPermissions(documentData);
   const canEdit = permissions.canEdit;
   const { updateDocument } = useCloudStore();
-  const doc = useMemo(() => new Y.Doc(), []);
+  // A room warmed from Home may already hold the synced deck.
+  const doc = useMemo(() => roomDoc(documentId), [documentId]);
   const collab = useSlidesCollab(
     documentId,
     doc,
@@ -282,9 +289,32 @@ export function SlidesApp({ documentId }: { documentId: string }) {
       pptx: async () => {
         if (deckRef.current) await downloadDeckPptx(deckRef.current, title);
       },
+      // Menu bar extras (Insert, Arrange, Slide); each lights up its menu item.
+      addText: () => {
+        const id = currentRef.current.id;
+        if (id) latest.current.onAdded(addTextBox(doc, id, TEXT_PRESETS[2]), true);
+      },
+      insertImage: () => void pickFiles("image/*", true).then((files) => latest.current.insertImages(files)),
+      openLibrary: (tab) => {
+        setLibraryTab(tab);
+        setLibraryOpen(true);
+      },
+      openTemplates: () => setTemplatesOpen(true),
+      deleteSlide: () => {
+        const id = currentRef.current.id;
+        if (id) deleteSlide(doc, id);
+      },
+      toggleNotes: () => setNotesOpen((o) => !o),
+      bringToFront: () => {
+        for (const id of selectedRef.current) raiseElement(doc, id);
+      },
+      sendToBack: () => {
+        for (const id of selectedRef.current) lowerElement(doc, id);
+      },
+      selectedCount: selected.length,
     });
     return () => $slidesCommands.set(null);
-  }, [ready, title]);
+  }, [ready, title, doc, selected.length]);
 
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
@@ -341,6 +371,9 @@ export function SlidesApp({ documentId }: { documentId: string }) {
     },
     [doc, onAdded],
   );
+  // Menu commands are registered once; they read the newest callbacks through this ref.
+  const latest = useRef({ onAdded, insertImages });
+  latest.current = { onAdded, insertImages };
 
   // A pasted screenshot (outside any text) lands on the slide as an image.
   useEffect(() => {
@@ -512,44 +545,53 @@ export function SlidesApp({ documentId }: { documentId: string }) {
             void insertImages(files);
           }}
         >
-          {loading ? (
-            <div
-              className="aspect-video animate-pulse rounded-[10px] bg-card shadow-card"
-              style={{
-                width: Math.max(
-                  0,
-                  Math.min(stage.w - 96, ((stage.h - 132) * 16) / 9),
-                ),
-              }}
-            />
-          ) : (
-            stage.w > 0 && (
-              <SlideView
-                key={current.id}
-                theme={deck.theme}
-                layout={current.layout}
-                background={current.background}
-                scale={scale}
-                radius={10}
-                className="shadow-[0_1px_2px_rgb(0_0_0/0.06),0_12px_40px_-12px_rgb(0_0_0/0.22)]"
-                region={(r) => (
-                  <RegionEditor
-                    key={r}
-                    doc={doc}
-                    name={field(current.id, r)}
-                    editable={canEdit}
-                    placeholder={placeholderFor(current.layout, r)}
-                    onFocus={setActiveEditor}
-                    className="sl-r"
-                    data-region={r}
-                  />
+          <FileTransition id={documentId}>
+            {loading ? (
+              // The stored first slide (static, no editors) until the live deck is ready, at the
+              // same size and place as the slide that replaces it.
+              <div
+                className={cn(
+                  "aspect-video overflow-hidden rounded-[10px] bg-card",
+                  documentData ? STAGE_SHADOW : "animate-pulse shadow-card",
                 )}
-                overlay={editor.overlay}
+                style={{
+                  width: Math.max(
+                    0,
+                    Math.min(stage.w - 96, ((stage.h - 132) * 16) / 9),
+                  ),
+                }}
               >
-                {editor.layer}
-              </SlideView>
-            )
-          )}
+                {documentData && <SlidesThumbnail data={documentData.data} />}
+              </div>
+            ) : (
+              stage.w > 0 && (
+                <SlideView
+                  key={current.id}
+                  theme={deck.theme}
+                  layout={current.layout}
+                  background={current.background}
+                  scale={scale}
+                  radius={10}
+                  className={STAGE_SHADOW}
+                  region={(r) => (
+                    <RegionEditor
+                      key={r}
+                      doc={doc}
+                      name={field(current.id, r)}
+                      editable={canEdit}
+                      placeholder={placeholderFor(current.layout, r)}
+                      onFocus={setActiveEditor}
+                      className="sl-r"
+                      data-region={r}
+                    />
+                  )}
+                  overlay={editor.overlay}
+                >
+                  {editor.layer}
+                </SlideView>
+              )
+            )}
+          </FileTransition>
         </div>
         {current && (canEdit || current.notes) && (
           <section

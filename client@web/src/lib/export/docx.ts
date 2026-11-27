@@ -1,5 +1,6 @@
 import { PX_PER_IN, type PaperSettings, pageGeometry, sheetInches } from "../paper";
-import { absoluteDocLinks, mathToMathml } from "./rich-nodes";
+import { mathToMathml } from "./mathml";
+import { absoluteDocLinks } from "./rich-nodes";
 
 const DOCX_CSS = `
 [data-page-break] { break-after: page; }

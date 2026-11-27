@@ -123,7 +123,7 @@ export function ShareDialog({
   const { user } = useStore($auth);
 
   const isOwner = user && document.owner === user.id;
-  const shareableLink = `${window.location.origin}${fileHref(document.id, fileKind(document))}?title=${btoa(unescape(encodeURIComponent(document.title)))}`;
+  const shareableLink = `${window.location.origin}${fileHref(document.id, fileKind(document))}`;
 
   // Security check
   useEffect(() => {

@@ -1,24 +1,16 @@
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import type { HocuspocusProvider } from "@hocuspocus/provider";
 import { useEffect, useState } from "react";
 import type * as Y from "yjs";
-import { authManager } from "@/lib/auth/manager";
+import { COLLAB_URL, joinRoom, onRoom } from "@/lib/collab-room";
 import { showToast } from "@/lib/toast";
 
 // Same rules as the document editor (editor.tsx): editors join the live room, wait for its copy, and
-// fall back to editing alone if the server does not answer in time; viewers never join.
-const COLLAB_URL = process.env.NEXT_PUBLIC_HOCUSPOCUS_URL;
+// fall back to editing alone if the server does not answer in time; viewers never join. A room
+// warmed from Home (lib/warm.ts) is adopted, so the copy may already be here.
 const CONNECT_TIMEOUT = 5000;
 const REJOIN_WINDOW = 10000;
 
 export type CollabState = "pending" | "connecting" | "live" | "solo";
-
-async function collabToken() {
-  const { tokens } = authManager.currentState;
-  if (tokens && authManager.isTokenExpired(tokens.accessToken))
-    await authManager.refreshToken();
-  return authManager.currentState.tokens?.accessToken ?? "";
-}
-
 /** `canEdit` is null until permissions are known. */
 export function useSlidesCollab(
   documentId: string,
@@ -47,20 +39,18 @@ export function useSlidesCollab(
       () => alive && !synced && goSolo(),
       CONNECT_TIMEOUT,
     );
+    let unwire = () => {};
     try {
-      hp = new HocuspocusProvider({
-        url: COLLAB_URL,
-        name: documentId,
-        document: doc,
-        token: collabToken,
-        onConnect: () => clearTimeout(dropTimer),
-        onSynced: () => {
+      hp = joinRoom(documentId, doc);
+      unwire = onRoom(hp, {
+        connect: () => clearTimeout(dropTimer),
+        synced: () => {
           if (!alive || synced) return;
           synced = true;
           setState((s) => (s === "connecting" ? "live" : s));
         },
-        onAuthenticationFailed: () => alive && goSolo(),
-        onDisconnect: () => {
+        authenticationFailed: () => alive && goSolo(),
+        disconnect: () => {
           if (!alive || !hp) return;
           // ponytail: same as the doc editor; after a long drop the room may have been reseeded, so
           // stop rejoining (merging would duplicate content) and keep saving alone.
@@ -80,6 +70,7 @@ export function useSlidesCollab(
     }
     return () => {
       alive = false;
+      unwire();
       clearTimeout(connectTimer);
       clearTimeout(dropTimer);
       hp?.destroy();

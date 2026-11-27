@@ -1,5 +1,5 @@
 "use client";
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import type { HocuspocusProvider } from "@hocuspocus/provider";
 import { useStore } from "@nanostores/react";
 import { debounce } from "@repo/shadcn-ui/lib/utils";
 import { Collaboration } from "@tiptap/extension-collaboration";
@@ -32,9 +32,9 @@ import {
 } from "react";
 import { CollaborationCaret } from "tiptap-collaboration-caret-plus";
 import { TableCellPlus, TableHeaderPlus, TablePlus, TableRowPlus } from "tiptap-pagination-plus";
-import * as Y from "yjs";
+import type * as Y from "yjs";
 import { useCloudStoreSaver } from "@/hooks/use-cloudstore-saver";
-import { authManager } from "@/lib/auth/manager";
+import { COLLAB_URL, joinRoom, onRoom, roomDoc } from "@/lib/collab-room";
 import { fileHref } from "@/lib/files";
 import { useComments } from "@/hooks/use-comments";
 import { useDocumentPermissions } from "@/hooks/use-document-permissions";
@@ -71,6 +71,8 @@ import { LinkedFrom } from "./links/linked-from";
 import { $pageSetupOpen, $shortcutsOpen } from "./dialogs-state";
 import { PaperSheet } from "./paper-sheet";
 import { SelectionMenu } from "./selection-menu";
+import { StoredPreview } from "./stored-preview";
+import { FileTransition } from "./file-transition";
 import "./editor-paper.css";
 
 // Rarely used panels load on first use.
@@ -138,26 +140,33 @@ const FlagTooltip = memo(({ flagTooltip, onMouseLeave }: { flagTooltip: FlagTool
 });
 FlagTooltip.displayName = "FlagTooltip";
 
-const COLLAB_URL = process.env.NEXT_PUBLIC_HOCUSPOCUS_URL;
 // How long to wait for the live server before editing alone, and how long a dropped connection
 // may last before we stop rejoining (see the provider effect).
 const COLLAB_CONNECT_TIMEOUT = 5000;
 const COLLAB_REJOIN_WINDOW = 10000;
 
-async function collabToken() {
-  const { tokens } = authManager.currentState;
-  if (tokens && authManager.isTokenExpired(tokens.accessToken)) await authManager.refreshToken();
-  return authManager.currentState.tokens?.accessToken ?? "";
-}
-
 const DocumentEditor = ({ documentId }: { documentId: string }) => {
   const yDocRef = useRef<Y.Doc | null>(null);
   const getYDoc = useCallback(() => {
-    yDocRef.current ??= new Y.Doc();
+    // A room warmed from Home (lib/warm.ts) may already hold the synced document.
+    yDocRef.current ??= roomDoc(documentId);
     return yDocRef.current;
-  }, []);
+  }, [documentId]);
 
-  const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
+  // The provider exists before the first editor is built, so the editor is created once (with its
+  // caret plugin) instead of again when the connection starts.
+  // ponytail: created during render; a render React throws away before commit would leak the socket
+  // (the effect below owns cleanup). Move to an effect + rebuild if that ever shows up.
+  const providerRef = useRef<HocuspocusProvider | null>(null);
+  const [provider, setProvider] = useState<HocuspocusProvider | null>(() => {
+    if (!COLLAB_URL) return null;
+    try {
+      providerRef.current = joinRoom(documentId, getYDoc());
+    } catch {
+      providerRef.current = null;
+    }
+    return providerRef.current;
+  });
   const { document: documentData, access } = useLiveDocument(documentId);
   const router = useRouter();
 
@@ -204,8 +213,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
 
   // "connecting" until the live server has sent its copy, "live" after, "solo" when there is no
   // server, it is unreachable, or the user cannot edit. Content is loaded only once this settles.
-  const [collab, setCollab] = useState<"connecting" | "live" | "solo">(COLLAB_URL ? "connecting" : "solo");
-  const providerRef = useRef<HocuspocusProvider | null>(null);
+  const [collab, setCollab] = useState<"connecting" | "live" | "solo">(provider ? "connecting" : "solo");
   const goSolo = useCallback(() => {
     providerRef.current?.destroy();
     providerRef.current = null;
@@ -215,52 +223,42 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
   }, []);
 
   useEffect(() => {
-    if (!COLLAB_URL) return;
+    const hp = providerRef.current;
+    if (!hp) return;
     let alive = true;
     let synced = false;
     let dropTimer: ReturnType<typeof setTimeout> | undefined;
     const connectTimer = setTimeout(() => alive && !synced && goSolo(), COLLAB_CONNECT_TIMEOUT);
-    try {
-      const hp = new HocuspocusProvider({
-        url: COLLAB_URL,
-        name: documentId,
-        document: getYDoc(),
-        token: collabToken,
-        onConnect: () => {
-          if (!alive) return;
-          clearTimeout(dropTimer);
-          editorUIState.set({ ...editorUIState.get(), isConnected: true });
-        },
-        onSynced: () => {
-          if (!alive || synced) return;
-          synced = true;
-          setCollab((c) => (c === "connecting" ? "live" : c));
-        },
-        onAuthenticationFailed: () => alive && goSolo(),
-        onDisconnect: () => {
+    const unwire = onRoom(hp, {
+      connect: () => {
+        if (!alive) return;
+        clearTimeout(dropTimer);
+        editorUIState.set({ ...editorUIState.get(), isConnected: true });
+      },
+      synced: () => {
+        if (!alive || synced) return;
+        synced = true;
+        setCollab((c) => (c === "connecting" ? "live" : c));
+      },
+      authenticationFailed: () => alive && goSolo(),
+      disconnect: () => {
+        if (!alive || !providerRef.current) return;
+        editorUIState.set({ ...editorUIState.get(), isConnected: false });
+        // ponytail: the server keeps a room only while someone is connected. After a long drop
+        // another editor may have reseeded it from the database, and merging our copy into that
+        // would duplicate the text. So we stop rejoining and keep saving on our own instead.
+        // A small window remains if someone opens the document during a short drop.
+        clearTimeout(dropTimer);
+        dropTimer = setTimeout(() => {
           if (!alive || !providerRef.current) return;
-          editorUIState.set({ ...editorUIState.get(), isConnected: false });
-          // ponytail: the server keeps a room only while someone is connected. After a long drop
-          // another editor may have reseeded it from the database, and merging our copy into that
-          // would duplicate the text. So we stop rejoining and keep saving on our own instead.
-          // A small window remains if someone opens the document during a short drop.
-          clearTimeout(dropTimer);
-          dropTimer = setTimeout(() => {
-            if (!alive || !providerRef.current) return;
-            goSolo();
-            showToast.error("Live editing disconnected", "Your changes still save. Reload to see others' edits.");
-          }, COLLAB_REJOIN_WINDOW);
-        },
-      });
-      providerRef.current = hp;
-      // Hand it to the editor now (it is still empty), not on connect, which would rebuild an
-      // editor that may already hold the document.
-      setProvider(hp);
-    } catch {
-      goSolo();
-    }
+          goSolo();
+          showToast.error("Live editing disconnected", "Your changes still save. Reload to see others' edits.");
+        }, COLLAB_REJOIN_WINDOW);
+      },
+    });
     return () => {
       alive = false;
+      unwire();
       clearTimeout(connectTimer);
       clearTimeout(dropTimer);
       providerRef.current?.destroy();
@@ -268,7 +266,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
       setProvider(null);
       editorUIState.set({ ...editorUIState.get(), isConnected: false });
     };
-  }, [documentId, getYDoc, goSolo]);
+  }, [goSolo]);
 
   // Presence avatars live in the header, outside this tree.
   useEffect(() => {
@@ -612,6 +610,9 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     return () => clearTimeout(t);
   }, [access, router]);
 
+  // Until the live room (or the solo fallback) lets the editor load content, show the stored text.
+  const showPreview = !contentReady && collab === "connecting" && !!initialContent;
+
   if (access === "loading") return <EditorSkeleton />;
   if (access !== "ok" || !documentData) {
     return (
@@ -638,9 +639,12 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
         <LinkedFrom documentId={documentId} />
         <FindBar canEdit={permissions.canEdit} />
         <FocusMode />
-        <PaperSheet geometry={geometry} pages={pages}>
-          <EditorContent editor={editor} className="contents" />
-        </PaperSheet>
+        <FileTransition id={documentId}>
+          <PaperSheet geometry={geometry} pages={pages}>
+            <EditorContent editor={editor} className={cn("contents", showPreview && "invisible")} />
+            {showPreview && editor && initialContent && <StoredPreview schema={editor.schema} html={initialContent} />}
+          </PaperSheet>
+        </FileTransition>
       </div>
 
       <EditorStatusBar className="pointer-events-auto absolute bottom-3 left-3 z-20 md:left-4" />

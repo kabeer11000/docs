@@ -1,4 +1,5 @@
 "use client";
+import { AI_ENABLED } from "@/lib/features";
 import { useStore } from "@nanostores/react";
 import type { Editor, Range } from "@tiptap/core";
 import { useEditorState } from "@tiptap/react";
@@ -237,7 +238,7 @@ export function EditorControls({
   ];
   const Align = ALIGNMENTS.find((a) => a.value === f?.align) ?? ALIGNMENTS[0];
 
-  const askAI = (
+  const askAI = AI_ENABLED && (
     <Tooltip delayDuration={500}>
       <TooltipTrigger asChild>
         <Button
