@@ -35,7 +35,7 @@ const preconnectOrigins = [
 
 // Debug overlays for whoever sets the `kn.docs.debug-env` cookie. Checked in the browser so the
 // layout does not read cookies on the server, which would make every page dynamic.
-const debugLoader = `if(document.cookie.split("; ").some(function(c){return c.indexOf("kn.docs.debug-env=")===0})){document.write('<script crossorigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js"><\/script><script crossorigin="anonymous" src="/__dev/stats.js"><\/script>')}`;
+const debugLoader = String.raw`if(document.cookie.split("; ").some(function(c){return c.indexOf("kn.docs.debug-env=")===0})){document.write('<script crossorigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js"><\/script><script crossorigin="anonymous" src="/__dev/stats.js"><\/script>')}`;
 
 export default function RootLayout({
   children,
