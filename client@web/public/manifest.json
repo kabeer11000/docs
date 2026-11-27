@@ -4,8 +4,8 @@
   "description": "Professional document management and collaboration platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ECEEF1",
-  "theme_color": "#ECEEF1",
+  "background_color": "#F5F5F7",
+  "theme_color": "#F5F5F7",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
