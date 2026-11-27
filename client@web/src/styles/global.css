@@ -72,6 +72,17 @@
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
   --shadow-float: var(--elev-float);
+  --shadow-card: var(--elev-card);
+  --shadow-card-hover: var(--elev-card-hover);
+  --color-doc: var(--doc);
+  --color-doc-soft: var(--doc-soft);
+  --color-sheet: var(--sheet);
+  --color-sheet-soft: var(--sheet-soft);
+  --color-slides: var(--slides);
+  --color-slides-soft: var(--slides-soft);
+  --color-app: var(--app);
+  --color-app-soft: var(--app-soft);
+  --color-app-foreground: var(--app-foreground);
   --shadow-paper: var(--elev-paper);
   --shadow-paper-hover: var(--elev-paper-hover);
 }
@@ -79,11 +90,11 @@
 /* Light-first palette ("quiet paper"). Dark overrides live in .dark below. */
 :root {
   color-scheme: light;
-  --radius: 0.375rem;
+  --radius: 0.625rem;
 
   /* Desk (app canvas and chrome) and paper (the only white: pages, dialogs, menus) */
-  --background: #eceef1;
-  --foreground: #1e2227;
+  --background: #f5f6f8;
+  --foreground: #121418;
 
   --card: #ffffff;
   --card-foreground: var(--foreground);
@@ -92,34 +103,48 @@
   --popover-foreground: var(--foreground);
 
   /* Ink: only for things you can act on (primary actions, links, focus, active nav) */
-  --primary: #2340b8;
+  --primary: #121418;
   --primary-foreground: #ffffff;
 
-  --secondary: #e2e5e9;
+  --secondary: #eceef2;
   --secondary-foreground: var(--foreground);
 
-  --muted: #e2e5e9;
-  --muted-foreground: #686e76;
+  --muted: #eceef2;
+  --muted-foreground: #646b76;
 
   /* Hover / selected background for neutral controls */
-  --accent: #dfe2e6;
+  --accent: #eaedf1;
   --accent-foreground: var(--foreground);
 
   --destructive: oklch(0.58 0.2 27);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: #d9dce0;
-  --input: #cdd1d6;
-  --ring: rgb(35 64 184 / 0.45);
+  --border: #e3e6eb;
+  --input: #d6dae1;
+  --ring: rgb(59 91 253 / 0.45);
 
   /* Document page */
   --paper: #ffffff;
-  --paper-foreground: #1e2227;
-  --paper-canvas: #eceef1;
-  --highlight: #ffe36b;
-  --highlight-foreground: #1e2227;
+  --paper-foreground: #121418;
+  --paper-canvas: #f5f6f8;
+  --highlight: #ffe45c;
+  --highlight-foreground: #121418;
 
-  --elev-float: 0 0 0 1px rgb(30 34 39 / 0.06), 0 10px 28px -10px rgb(30 34 39 / 0.25);
+  /* One colour per app; --app is set by [data-app] on each app root. */
+  --doc: #3b5bfd;
+  --doc-soft: #e9edff;
+  --sheet: #0e9f6e;
+  --sheet-soft: #e2f6ee;
+  --slides: #ff6a1f;
+  --slides-soft: #fff0e6;
+  --app: var(--doc);
+  --app-soft: var(--doc-soft);
+  --app-foreground: #ffffff;
+
+  --elev-card: 0 0 0 1px rgb(18 20 24 / 0.05), 0 1px 2px rgb(18 20 24 / 0.04), 0 4px 14px -6px rgb(18 20 24 / 0.08);
+  --elev-card-hover: 0 0 0 1px rgb(18 20 24 / 0.06), 0 2px 4px rgb(18 20 24 / 0.05), 0 14px 30px -12px rgb(18 20 24 / 0.22);
+
+  --elev-float: 0 0 0 1px rgb(18 20 24 / 0.06), 0 4px 10px -4px rgb(18 20 24 / 0.08), 0 18px 40px -16px rgb(18 20 24 / 0.28);
   --elev-paper: 0 0 0 1px rgb(30 34 39 / 0.06), 0 1px 2px rgb(30 34 39 / 0.08), 0 3px 10px -4px rgb(30 34 39 / 0.12);
   --elev-paper-hover: var(--elev-paper), 0 8px 20px -10px rgb(30 34 39 / 0.28);
 
@@ -145,29 +170,40 @@
 .dark {
   color-scheme: dark;
 
-  --background: #141619;
-  --foreground: #e7e9ec;
+  --background: #0e1014;
+  --foreground: #f1f3f7;
 
-  --card: #1d2024;
-  --popover: #22262b;
+  --card: #171a21;
+  --popover: #1c2029;
 
-  --primary: #8ba2ff;
-  --primary-foreground: #0f1530;
+  --primary: #f1f3f7;
+  --primary-foreground: #0e1014;
 
-  --secondary: #24282d;
-  --muted: #24282d;
-  --muted-foreground: #9097a0;
-  --accent: #2a2f35;
+  --secondary: #20242d;
+  --muted: #20242d;
+  --muted-foreground: #9aa1ad;
+  --accent: #232832;
 
   --destructive: oklch(0.62 0.19 25);
 
-  --border: #2c3036;
-  --input: #363b42;
-  --ring: rgb(139 162 255 / 0.5);
+  --border: #262a33;
+  --input: #323743;
+  --ring: rgb(127 149 255 / 0.5);
 
-  --paper: #1d2024;
-  --paper-foreground: #e7e9ec;
-  --paper-canvas: #141619;
+  --paper: #171a21;
+  --paper-foreground: #f1f3f7;
+  --paper-canvas: #0e1014;
+
+  --doc: #7f95ff;
+  --doc-soft: rgb(127 149 255 / 0.14);
+  --sheet: #3dd39b;
+  --sheet-soft: rgb(61 211 155 / 0.13);
+  --slides: #ff9257;
+  --slides-soft: rgb(255 146 87 / 0.14);
+  --app-foreground: #0e1014;
+
+  --elev-card: 0 0 0 1px rgb(255 255 255 / 0.05), 0 2px 8px rgb(0 0 0 / 0.3);
+  --elev-card-hover: 0 0 0 1px rgb(255 255 255 / 0.08), 0 16px 34px -12px rgb(0 0 0 / 0.7);
   --highlight: rgb(232 197 71 / 0.28);
   --highlight-foreground: #f3e3a6;
 
@@ -190,7 +226,7 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, #ffe36b 70%, transparent);
+    background: color-mix(in srgb, #ffe45c 75%, transparent);
     color: inherit;
   }
 
@@ -528,7 +564,9 @@
 
 @theme inline {
   --font-sans: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-literata), Georgia, serif;
+  --font-display: var(--font-display-face), var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+  /* Former serif titles now use the display face. */
+  --font-serif: var(--font-display-face), var(--font-ui), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --ease-soft: var(--ease-out-soft);
   --animate-rise: rise 520ms var(--ease-out-soft) both;
@@ -672,4 +710,18 @@ html[data-focus] [data-slot="sidebar"],
 html[data-focus] header,
 html[data-focus] .editor-toolbar {
   display: none !important;
+}
+
+
+/* App identity: each app root sets data-app; --app drives its accents and primary actions. */
+[data-app="doc"] { --app: var(--doc); --app-soft: var(--doc-soft); }
+[data-app="sheet"] { --app: var(--sheet); --app-soft: var(--sheet-soft); }
+[data-app="slides"] { --app: var(--slides); --app-soft: var(--slides-soft); }
+
+/* Tactile press for buttons and cards (off with reduced motion). */
+@media (prefers-reduced-motion: no-preference) {
+  .press { transition: transform 160ms cubic-bezier(.2, .9, .3, 1.2), box-shadow 180ms ease-out, background-color 150ms ease-out; }
+  .press:active { transform: scale(.97); }
+  .lift { transition: transform 200ms cubic-bezier(.2, .9, .3, 1.2), box-shadow 200ms ease-out; }
+  .lift:hover { transform: translateY(-2px); box-shadow: var(--elev-card-hover); }
 }

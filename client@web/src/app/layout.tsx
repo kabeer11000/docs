@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Literata, Schibsted_Grotesk } from "next/font/google";
+import { Bricolage_Grotesque, Figtree, Geist_Mono } from "next/font/google";
 import "@/styles/global.css";
 import { cookies } from 'next/headers';
 import { Providers } from "./providers";
 import { Fragment } from "react";
 
-const uiFont = Schibsted_Grotesk({ subsets: ["latin"], variable: "--font-ui" });
-const literata = Literata({ subsets: ["latin"], variable: "--font-literata", axes: ["opsz"] });
+const uiFont = Figtree({ subsets: ["latin"], variable: "--font-ui" });
+const displayFont = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display-face", axes: ["opsz", "wdth"] });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
@@ -17,8 +17,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eceef1" },
-    { media: "(prefers-color-scheme: dark)", color: "#141619" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f6f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1014" },
   ],
 };
 
@@ -29,7 +29,7 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   return (
-    <html lang="en" className={`${uiFont.variable} ${literata.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${uiFont.variable} ${displayFont.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="manifest" href="/manifest.json" />

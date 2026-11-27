@@ -36,6 +36,19 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true
   },
   compress: true,
+  // pptxgenjs imports "node:fs"/"node:https" behind runtime checks. Its package.json maps the bare
+  // names to false for browsers, so strip the node: scheme on the client and let that mapping apply.
+  webpack: (config, { isServer, webpack }) => {
+    if (!isServer) {
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(/^node:/, (resource: { request: string }) => {
+          resource.request = resource.request.replace(/^node:/, "");
+        }),
+      );
+      config.resolve.fallback = { ...config.resolve.fallback, fs: false, https: false, http: false };
+    }
+    return config;
+  },
 };
 
 export default bundleAnalyzer(nextConfig);
