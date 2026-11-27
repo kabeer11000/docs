@@ -1,4 +1,5 @@
 import { useStore } from "@nanostores/react";
+import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { type FileKind, fileHref } from "@/lib/files";
@@ -19,16 +20,21 @@ export function useCreateFile() {
       if (!user || busy.current) return;
       busy.current = true;
       setCreating(true);
-      try {
-        const id = await createDocument({ kind, folderId: folderId || user.id, initialContent: kind === "doc" ? "<p></p>" : undefined });
-        if (!id) throw new Error("create failed");
-        router.push(fileHref(id, kind));
-      } catch {
-        showToast.error("Could not create the file", "Check your connection and try again.");
-      } finally {
-        busy.current = false;
-        setCreating(false);
-      }
+      // Open at once: the file is primed in the local store before the insert is sent, so the
+      // editor renders immediately while the server catches up. If the insert fails, go back.
+      const id = nanoid();
+      const href = fileHref(id, kind);
+      createDocument({ id, kind, folderId: folderId || user.id, initialContent: kind === "doc" ? "<p></p>" : undefined })
+        .then((ok) => {
+          if (!ok) throw new Error("create failed");
+        })
+        .catch(() => {
+          showToast.error("Could not create the file", "Check your connection and try again.");
+          if (window.location.pathname === href) router.replace("/home");
+        });
+      router.push(href);
+      busy.current = false;
+      setCreating(false);
     },
     [user, createDocument, router],
   );

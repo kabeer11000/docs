@@ -1,3 +1,4 @@
+import { trackInsert } from "@/lib/pending-inserts";
 import { useStore } from "@nanostores/react";
 import type { Document, DocumentCreateInput, IFolderItem } from "@shared-types";
 import { nanoid } from "nanoid";
@@ -111,7 +112,7 @@ export async function createFile(
 
   const documentsCollection = cloudStore.collection("documents");
   primeDocument(newDocument);
-  await documentsCollection.insert(newDocument);
+  await trackInsert(docId, documentsCollection.insert(newDocument));
   return docId;
 }
 

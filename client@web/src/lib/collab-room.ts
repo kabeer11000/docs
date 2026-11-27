@@ -1,6 +1,7 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
 import * as Y from "yjs";
 import { authManager } from "@/lib/auth/manager";
+import { insertSettled } from "@/lib/pending-inserts";
 
 // Live rooms (Hocuspocus) shared by the document editor and slides. A room can be opened ahead of
 // time ("warmed", see lib/warm.ts) when the user shows intent to open a file; the editor then
@@ -27,8 +28,17 @@ interface Warm {
 
 const warm = new Map<string, Warm>();
 
+// The room server checks the file exists, so a file created a moment ago waits for its insert.
 const open = (id: string, doc: Y.Doc) =>
-  new HocuspocusProvider({ url: COLLAB_URL as string, name: id, document: doc, token: collabToken });
+  new HocuspocusProvider({
+    url: COLLAB_URL as string,
+    name: id,
+    document: doc,
+    token: async () => {
+      await insertSettled(id);
+      return collabToken();
+    },
+  });
 
 function release(id: string, w: Warm) {
   if (warm.get(id) === w) warm.delete(id);
