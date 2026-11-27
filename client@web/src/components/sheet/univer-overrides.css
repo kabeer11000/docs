@@ -1,4 +1,23 @@
-.univer-font-sans,
-.sheet-host {
+/* Imported after Univer's CSS. Everything here is scoped to the sheet host except the scrollbar fix. */
+
+/* Univer ships an unscoped `* { scrollbar-color: initial; scrollbar-width: initial }` that would undo the
+   app's thin scrollbars on every page once the sheet route has loaded. Restore the app values (global.css). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 18%, transparent) transparent;
+}
+
+.sheet-host,
+.univer-font-sans {
   font-family: var(--font-sans);
+}
+
+/* Lighter ribbon: it sits on the app canvas like the doc toolbar, with softer icon ink. */
+.sheet-host [data-u-comp="headerbar"] {
+  background: var(--background);
+  box-shadow: none;
+}
+
+.sheet-host [data-u-comp="ribbon-toolbar"] [data-u-command] svg {
+  color: color-mix(in oklch, var(--foreground) 72%, transparent);
 }

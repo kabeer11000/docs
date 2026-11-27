@@ -1,9 +1,8 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { Lock, Sheet, Star } from "lucide-react";
+import { BarChart3, Lock, Sheet, Star } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useLiveDocument } from "@/components/editor/core/use-document-loader";
 import { EditableTitle } from "@/components/editor/editable-title";
@@ -18,10 +17,10 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useDocumentPermissions } from "@/hooks/use-document-permissions";
-import { fileHref } from "@/lib/files";
+import { IMPORT_ACCEPT, useImportFiles } from "@/lib/import/use-import-files";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { downloadSheet, fileToSnapshot, SHEET_IMPORT_ACCEPT } from "./sheet-files";
+import { downloadSheet } from "./sheet-files";
 import { $sheetEngine, $sheetSave } from "./sheet-state";
 
 const ShareDialog = lazy(() => import("@/components/editor/share-dialog").then((m) => ({ default: m.ShareDialog })));
@@ -39,8 +38,8 @@ export const sheetHeaderPlaceholder = (
 );
 
 export function SheetHeader({ documentId }: { documentId: string }) {
-  const router = useRouter();
-  const { updateDocument, createDocument } = useCloudStore();
+  const { updateDocument } = useCloudStore();
+  const { importFiles, busy: importing } = useImportFiles();
   const { document: doc } = useLiveDocument(documentId);
   const permissions = useDocumentPermissions(doc);
   const engine = useStore($sheetEngine);
@@ -60,19 +59,7 @@ export function SheetHeader({ documentId }: { documentId: string }) {
     else showToast.error("Failed to update spreadsheet");
   };
 
-  const importFile = async (file: File) => {
-    try {
-      const { title, data } = await fileToSnapshot(file);
-      const id = await createDocument({ kind: "sheet", title, data });
-      if (!id) throw new Error("Could not create the spreadsheet");
-      showToast.success(`Imported as "${title}"`);
-      router.push(fileHref(id, "sheet"));
-    } catch (error) {
-      showToast.error("Import failed", error instanceof Error ? error.message : undefined);
-    }
-  };
-
-  const download = async (kind: "csv" | "xlsx") => {
+  const download = async (kind: "csv" | "xlsx" | "pdf") => {
     if (!engine) return;
     try {
       await downloadSheet(kind, doc.title, engine.activeSheet());
@@ -82,12 +69,12 @@ export function SheetHeader({ documentId }: { documentId: string }) {
   };
 
   return (
-    <>
+    <div data-app="sheet" className="contents">
       <div className="flex min-w-0 flex-1 items-center gap-1">
         <Link
           href="/home"
           aria-label="Back to files"
-          className="hidden size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:flex"
+          className="press mr-1 hidden size-8 shrink-0 items-center justify-center rounded-[10px] bg-app-soft text-app sm:flex"
         >
           <Sheet className="size-[18px]" />
         </Link>
@@ -116,7 +103,9 @@ export function SheetHeader({ documentId }: { documentId: string }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuItem onSelect={() => fileInput.current?.click()}>Import .xlsx or .csv...</DropdownMenuItem>
+            <DropdownMenuItem disabled={importing} onSelect={() => fileInput.current?.click()}>
+              Import a file...
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={!engine || !permissions.canDownload} onSelect={() => download("xlsx")}>
               Download sheet as Excel
@@ -126,14 +115,34 @@ export function SheetHeader({ documentId }: { documentId: string }) {
               Download sheet as CSV
               <span className="ml-auto pl-4 text-xs text-muted-foreground">.csv</span>
             </DropdownMenuItem>
+            <DropdownMenuItem disabled={!engine || !permissions.canDownload} onSelect={() => download("pdf")}>
+              Download sheet as PDF
+              <span className="ml-auto pl-4 text-xs text-muted-foreground">.pdf</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {permissions.canEdit && (
+          <Tooltip delayDuration={400}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                disabled={!engine}
+                onClick={() => engine?.insertChart()}
+                className="press h-8 shrink-0 gap-1.5 px-2 text-[13px] font-normal text-muted-foreground"
+              >
+                <BarChart3 className="size-4" />
+                <span className="hidden md:inline">Chart</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Insert a chart of the selected cells</TooltipContent>
+          </Tooltip>
+        )}
         {!permissions.canEdit && <span className="ml-1 hidden shrink-0 text-xs text-muted-foreground md:inline">View only</span>}
         <SaveIndicator />
       </div>
 
       {permissions.canShare && (
-        <Button onClick={() => setShare({ mounted: true, open: true })} className="ml-1 shrink-0 px-3">
+        <Button variant="app" onClick={() => setShare({ mounted: true, open: true })} className="press ml-1 shrink-0 px-3">
           <Lock className="hidden sm:block" />
           Share
         </Button>
@@ -147,32 +156,39 @@ export function SheetHeader({ documentId }: { documentId: string }) {
       <input
         ref={fileInput}
         type="file"
-        accept={SHEET_IMPORT_ACCEPT}
+        multiple
+        accept={IMPORT_ACCEPT}
         className="hidden"
         aria-hidden
         tabIndex={-1}
         onChange={(e) => {
-          const file = e.target.files?.[0];
+          const files = Array.from(e.target.files ?? []);
           e.target.value = "";
-          if (file) importFile(file);
+          if (files.length) void importFiles(files);
         }}
       />
-    </>
+    </div>
   );
 }
 
-const statusClass = "ml-1 hidden shrink-0 text-xs sm:inline";
+const SAVE_LABEL = { saving: "Saving...", saved: "Saved", error: "Save failed, retrying" } as const;
 
+/** A small dot next to the title: jade when saved, pulsing while saving, red (with text) when a save failed. */
 function SaveIndicator() {
   const { status, error } = useStore($sheetSave);
-  if (status === "saving") return <span className={cn(statusClass, "text-muted-foreground")}>Saving...</span>;
-  if (status === "saved") return <span className={cn(statusClass, "text-muted-foreground")}>Saved</span>;
-  if (status === "error") {
-    return (
-      <span className={cn(statusClass, "text-destructive")} title={error ?? undefined}>
-        Save failed, retrying
-      </span>
-    );
-  }
-  return null;
+  if (status === "idle") return null;
+  return (
+    <output title={status === "error" ? (error ?? undefined) : SAVE_LABEL[status]} className="ml-1.5 flex shrink-0 items-center gap-1.5 text-xs">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "size-2 rounded-full transition-colors",
+          status === "saved" && "bg-app",
+          status === "saving" && "animate-pulse bg-muted-foreground/60 motion-reduce:animate-none",
+          status === "error" && "bg-destructive",
+        )}
+      />
+      <span className={status === "error" ? "text-destructive" : "sr-only"}>{SAVE_LABEL[status]}</span>
+    </output>
+  );
 }

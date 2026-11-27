@@ -1,7 +1,6 @@
 import { csvToGrid, gridToCsv } from "@/lib/sheet/csv";
 import { type Grid, gridsToSnapshot, type WorkbookSnapshot } from "@/lib/sheet/grid";
-
-export const SHEET_IMPORT_ACCEPT = ".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+import { gridToPrintHtml } from "@/lib/sheet/print";
 
 const safeName = (title: string) => title.replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "Spreadsheet";
 
@@ -28,11 +27,28 @@ export async function fileToSnapshot(file: File): Promise<{ title: string; data:
   throw new Error("Choose an .xlsx or .csv file");
 }
 
-export async function downloadSheet(kind: "csv" | "xlsx", title: string, sheet: { name: string; grid: Grid }) {
+export async function downloadSheet(kind: "csv" | "xlsx" | "pdf", title: string, sheet: { name: string; grid: Grid }) {
+  if (kind === "pdf") return printHtml(gridToPrintHtml(sheet.grid, title));
   if (kind === "csv") {
     saveBlob(new Blob([`\uFEFF${gridToCsv(sheet.grid)}`], { type: "text/csv;charset=utf-8" }), `${safeName(title)}.csv`);
     return;
   }
   const { gridToXlsx } = await import("@/lib/sheet/xlsx");
   saveBlob(await gridToXlsx(sheet.grid, sheet.name), `${safeName(title)}.xlsx`);
+}
+
+/** Opens the browser print dialog (where "Save as PDF" lives) for a standalone HTML page. */
+function printHtml(html: string) {
+  for (const old of document.querySelectorAll("iframe[data-print-frame]")) old.remove();
+  const frame = document.createElement("iframe");
+  frame.dataset.printFrame = "";
+  frame.setAttribute("aria-hidden", "true");
+  frame.tabIndex = -1;
+  Object.assign(frame.style, { position: "fixed", right: "0", bottom: "0", width: "0", height: "0", border: "0" });
+  frame.srcdoc = html;
+  frame.onload = () => {
+    frame.contentWindow?.focus();
+    frame.contentWindow?.print();
+  };
+  document.body.appendChild(frame);
 }

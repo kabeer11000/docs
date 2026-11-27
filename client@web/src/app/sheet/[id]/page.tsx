@@ -35,7 +35,7 @@ export default function SheetPage({ params }: { params: Promise<{ id: string }> 
       hideSearch={true}
       editorHeaderContent={ready ? <SheetHeader documentId={id} /> : sheetHeaderPlaceholder}
     >
-      <div className="relative flex h-full flex-col overflow-hidden bg-background">
+      <div data-app="sheet" className="relative flex h-full flex-col overflow-hidden bg-background">
         {ready ? <SheetBody key={id} id={id} /> : gridSkeleton}
       </div>
     </ReactHome>
@@ -54,10 +54,10 @@ function SheetBody({ id }: { id: string }) {
   if (access === "denied" || access === "missing") {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-        <p className="font-serif text-lg font-medium">
+        <p className="font-display text-lg font-semibold tracking-[-0.02em]">
           {access === "denied" ? "You do not have access to this spreadsheet" : "This spreadsheet does not exist"}
         </p>
-        <Link href="/home" className="text-[13px] text-primary hover:underline">
+        <Link href="/home" className="text-[13px] text-app hover:underline">
           Go to your files
         </Link>
       </div>
