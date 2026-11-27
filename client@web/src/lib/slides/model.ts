@@ -14,7 +14,11 @@ export type Theme =
   | "editorial"
   | "lemon"
   | "forest"
-  | "blush";
+  | "blush"
+  | "volt"
+  | "lagoon"
+  | "grape"
+  | "sand";
 export type Layout =
   | "title"
   | "title-body"
@@ -211,6 +215,42 @@ export const THEMES: Record<Theme, ThemeDef> = {
     title: "mono",
     body: "sans",
     weight: 600,
+  },
+  volt: {
+    label: "Volt",
+    bg: "#111111",
+    fg: "#F4F4EE",
+    accent: "#C8FF3D",
+    title: "display",
+    body: "sans",
+    weight: 800,
+  },
+  lagoon: {
+    label: "Lagoon",
+    bg: "#0B2E3A",
+    fg: "#E6F6F7",
+    accent: "#3FE0C5",
+    title: "display",
+    body: "sans",
+    weight: 650,
+  },
+  grape: {
+    label: "Grape",
+    bg: "#2B0F4C",
+    fg: "#F8EEFF",
+    accent: "#FF6BCB",
+    title: "display",
+    body: "sans",
+    weight: 750,
+  },
+  sand: {
+    label: "Sand",
+    bg: "#F2EBDD",
+    fg: "#2A2118",
+    accent: "#B4532A",
+    title: "serif",
+    body: "sans",
+    weight: 500,
   },
 };
 
