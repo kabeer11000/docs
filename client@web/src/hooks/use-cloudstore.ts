@@ -24,9 +24,31 @@ export interface ChatConversation {
   lastMessageAt: string;
 }
 
+type FileOwner = { id: string; email?: string | null; displayName?: string | null };
+
+/** Sharing of a file only its owner can see. */
+const privateSharing = (user: FileOwner): Document["sharing"] => ({
+  isShared: false,
+  sharedWith: [
+    {
+      userId: user.id,
+      email: user.email || "",
+      displayName: user.displayName || user.email || null,
+      access: "owner",
+      status: "active",
+      invitedAt: new Date().toISOString(),
+    },
+  ],
+  settings: {
+    allowEditorsShare: true,
+    editorsCanDownload: true,
+    viewersCanDownload: true,
+  },
+});
+
 /** Builds and inserts a new file owned by `user`. Usable outside React (converters, importers). */
 export async function createFile(
-  user: { id: string; email?: string | null; displayName?: string | null },
+  user: FileOwner,
   input: Partial<DocumentCreateInput> & { _id?: string } = {},
 ): Promise<string> {
   const docId = input.id || nanoid();
@@ -64,24 +86,7 @@ export async function createFile(
     currentPage: 1,
     wordCount: 0,
     owner: user.id,
-    sharing: {
-      isShared: false,
-      sharedWith: [
-        {
-          userId: user.id,
-          email: user.email || "",
-          displayName: user.displayName || user.email || null,
-          access: "owner",
-          status: "active",
-          invitedAt: new Date().toISOString(),
-        },
-      ],
-      settings: {
-        allowEditorsShare: true,
-        editorsCanDownload: true,
-        viewersCanDownload: true,
-      },
-    },
+    sharing: privateSharing(user),
     permissions: {
       canRead: true,
       canWrite: true,
@@ -154,29 +159,10 @@ export function useCloudStore() {
       }
 
       try {
-        console.log(
-          "CloudStore getDocument - Searching for document with ID:",
-          id,
-        );
-        const documentsCollection = cloudStore.collection("documents");
-        const query = cloudStore.query.where("id", "EQUAL", id);
-
-        console.log("CloudStore getDocument - Executing query...");
-        const results = (await documentsCollection.get(query)) as Document[];
-
-        console.log("CloudStore getDocument - Query results:", results);
-        console.log("CloudStore getDocument - Results length:", results.length);
-
-        if (results.length > 0) {
-          console.log("CloudStore getDocument - Document found:", results[0]);
-          return results[0];
-        } else {
-          console.log(
-            "CloudStore getDocument - No document found with ID:",
-            id,
-          );
-          return null;
-        }
+        const results = (await cloudStore
+          .collection("documents")
+          .get(cloudStore.query.where("id", "EQUAL", id))) as Document[];
+        return results[0] ?? null;
       } catch (error) {
         console.error("CloudStore getDocument - Error occurred:", error);
         return null;
@@ -282,8 +268,14 @@ export function useCloudStore() {
 
         const newId = nanoid();
         const { _id, ...rest } = original as Document & { _id?: unknown };
+        // A copy belongs to whoever makes it (the server refuses inserts owned by someone else);
+        // a copy of a file shared with you lands in your Vault, unshared.
+        const theirs = original.owner !== user.id;
         const duplicated: Document = {
           ...rest,
+          ...(theirs
+            ? { owner: user.id, sharing: privateSharing(user), location: user.id, parents: [user.id], isStarred: false }
+            : {}),
           id: newId,
           title: `${original.title} (Copy)`,
           createdAt: new Date(),

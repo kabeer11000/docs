@@ -1,116 +1,46 @@
 import { useStore } from "@nanostores/react";
 import type { IFolderItem } from "@shared-types";
-import { useEffect, useState } from "react";
-import cloudStore from "@/lib/cloudstore";
+import { useMemo } from "react";
 import { $auth } from "@/state/auth";
+import { $foldersLoading, $patches, $rawFolders } from "@/state/cloudstore-data";
+import { applyPatches } from "@/state/file-logic";
+import { $nothing, folderWatch } from "@/state/live-queries";
 
 interface BreadcrumbItem {
   id: string;
   name: string;
 }
 
-// Last chain per folder, so revisiting a folder shows its title at once.
-const lastChain = new Map<string, BreadcrumbItem[]>();
-
+/**
+ * Vault > parent > folder for the folder page title, the top bar and the editor header.
+ * Folders are owner-only, so the Home folders list (already loaded, optimistic renames applied)
+ * holds the chain; only a folder past that list's limit opens a watch, shared by every caller.
+ */
 export function useFolderBreadcrumbs(folderId?: string) {
-  const cached = folderId ? lastChain.get(folderId) : undefined;
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>(cached ?? []);
-  const [isLoading, setIsLoading] = useState(!cached);
   const { user } = useStore($auth);
+  const raw = useStore($rawFolders);
+  const patches = useStore($patches);
+  const listLoading = useStore($foldersLoading);
+  const folders = useMemo(() => applyPatches(raw, patches), [raw, patches]);
+  const listed = folderId ? folders.find((f) => f.id === folderId) : undefined;
+  const fallback = useStore(
+    folderId && user && !listLoading && !listed ? folderWatch(folderId) : $nothing,
+  );
+  const current: IFolderItem | null | undefined = listed ?? fallback;
 
-  useEffect(() => {
-    if (!cloudStore || !folderId || !user) {
-      setIsLoading(false);
-      return;
+  const breadcrumbs = useMemo(() => {
+    if (!current || !user) return [];
+    const byId = new Map(folders.map((f) => [f.id, f]));
+    const chain: BreadcrumbItem[] = [{ id: user.id, name: "Vault" }];
+    for (const parentId of current.parents ?? []) {
+      const parent = parentId !== user.id ? byId.get(parentId) : undefined;
+      if (parent) chain.push({ id: parent.id, name: parent.name });
     }
+    chain.push({ id: current.id, name: current.name });
+    return chain;
+  }, [current, folders, user]);
 
-    let watchableCollection: any = null;
-
-    const startWatching = async () => {
-      try {
-        const known = lastChain.get(folderId);
-        setBreadcrumbs(known ?? []);
-        setIsLoading(!known);
-
-        // First get the current folder to find all parent IDs
-        const foldersCollection = cloudStore.collection("folders");
-        const currentFolderQuery = cloudStore.query.where(
-          "id",
-          "EQUAL",
-          folderId,
-        );
-        const currentFolderResults = (await foldersCollection.get(
-          currentFolderQuery,
-        )) as IFolderItem[];
-
-        if (currentFolderResults.length === 0) {
-          setBreadcrumbs([]);
-          setIsLoading(false);
-          return;
-        }
-
-        const currentFolder = currentFolderResults[0];
-        const allFolderIds = [folderId, ...(currentFolder.parents || [])];
-
-        // Watch all folders in the breadcrumb chain at once
-        const query = cloudStore.query.where("id", "ARRAY.IN", allFolderIds);
-        watchableCollection = foldersCollection.watch(
-          query,
-          ({ collection: folders }: { collection: IFolderItem[] }) => {
-            const folderMap = new Map(folders.map((f) => [f.id, f]));
-
-            const breadcrumbChain: BreadcrumbItem[] = [];
-
-            // Start with "Vault" (root)
-            breadcrumbChain.push({ id: user.id, name: "Vault" });
-
-            // Build chain from parents (excluding root user id)
-            if (currentFolder.parents && currentFolder.parents.length > 0) {
-              for (const parentId of currentFolder.parents) {
-                if (parentId !== user.id) {
-                  const parentFolder = folderMap.get(parentId);
-                  if (parentFolder) {
-                    breadcrumbChain.push({
-                      id: parentFolder.id,
-                      name: parentFolder.name,
-                    });
-                  }
-                }
-              }
-            }
-
-            // Add current folder
-            breadcrumbChain.push({
-              id: currentFolder.id,
-              name: currentFolder.name,
-            });
-
-            lastChain.set(folderId, breadcrumbChain);
-            setBreadcrumbs(breadcrumbChain);
-            setIsLoading(false);
-          },
-        );
-      } catch (error) {
-        console.error("Failed to watch folder breadcrumbs:", error);
-        setBreadcrumbs([]);
-        setIsLoading(false);
-      }
-    };
-
-    startWatching();
-
-    return () => {
-      if (
-        watchableCollection &&
-        typeof watchableCollection.stop === "function"
-      ) {
-        watchableCollection.stop();
-      }
-    };
-  }, [folderId, user]);
-
-  return {
-    breadcrumbs,
-    isLoading,
-  };
+  const isLoading =
+    !!folderId && !!user && !current && (listLoading || fallback === undefined);
+  return { breadcrumbs, isLoading };
 }

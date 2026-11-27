@@ -6,78 +6,19 @@ import type {
   ICommentReplyInput,
 } from "@shared-types";
 import { nanoid } from "nanoid";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import cloudStore from "@/lib/cloudstore";
 import { $auth } from "@/state/auth";
+import { $nothing, commentsWatch } from "@/state/live-queries";
+
+const NO_COMMENTS: IComment[] = [];
 
 export function useComments(documentId: string) {
-  const [comments, setComments] = useState<IComment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // One shared watch per document, however many components (header, editor) ask.
+  const live = useStore(documentId ? commentsWatch(documentId) : $nothing);
+  const comments = live ?? NO_COMMENTS;
+  const isLoading = !!documentId && live === undefined;
   const { user } = useStore($auth);
-
-  // Watch comments for this document in real-time
-  useEffect(() => {
-    if (!cloudStore || !documentId) {
-      setIsLoading(false);
-      return;
-    }
-
-    let watcher: any = null;
-
-    const startWatching = () => {
-      try {
-        const commentsCollection = cloudStore.collection("comments");
-        const query = cloudStore.query.where("documentId", "EQUAL", documentId);
-
-        watcher = commentsCollection.watch(
-          query,
-          ({ collection: data }: { collection: IComment[] }) => {
-            // Remove duplicates by ID
-            const uniqueComments =
-              data?.reduce((acc: IComment[], current: IComment) => {
-                const exists = acc.find((c) => c.id === current.id);
-                if (!exists) {
-                  acc.push(current);
-                } else {
-                  console.warn(
-                    "Duplicate comment found in CloudStore:",
-                    current.id,
-                  );
-                }
-                return acc;
-              }, []) || [];
-
-            // Sort by createdAt timestamp (newest first)
-            const sortedComments = uniqueComments.sort((a, b) => {
-              const dateA = new Date(a.timestamp.createdAt).getTime();
-              const dateB = new Date(b.timestamp.createdAt).getTime();
-              return dateB - dateA;
-            });
-
-            console.log(
-              "[useComments] Received comments:",
-              data?.length,
-              "Unique:",
-              uniqueComments.length,
-            );
-            setComments(sortedComments);
-            setIsLoading(false);
-          },
-        );
-      } catch (error) {
-        console.error("Failed to watch comments:", error);
-        setIsLoading(false);
-      }
-    };
-
-    startWatching();
-
-    return () => {
-      if (watcher && typeof watcher.stop === "function") {
-        watcher.stop();
-      }
-    };
-  }, [documentId]);
 
   // Create a new comment
   const createComment = useCallback(

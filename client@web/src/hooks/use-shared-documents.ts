@@ -4,10 +4,13 @@ import { $nothing, sharedDocumentsWatch } from "@/state/live-queries";
 import { $auth } from "../state/auth";
 import { sameEmail } from "@/lib/email";
 
-/** Documents other people shared with the current user (one shared, cached watch). */
+/**
+ * Documents other people shared with the current user (one shared, cached watch keyed by email).
+ * The server only returns rows the user may read; the filter below keeps active shares only.
+ */
 export function useSharedDocuments() {
   const { user } = useStore($auth);
-  const rows = useStore(user ? sharedDocumentsWatch(user.id) : $nothing);
+  const rows = useStore(user?.email ? sharedDocumentsWatch(user.email) : $nothing);
 
   const documents = useMemo(() => {
     if (!user || !rows) return [];
@@ -23,5 +26,5 @@ export function useSharedDocuments() {
     );
   }, [rows, user]);
 
-  return { documents, isLoading: !!user && rows === undefined };
+  return { documents, isLoading: !!user?.email && rows === undefined };
 }

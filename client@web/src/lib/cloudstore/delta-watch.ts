@@ -3,6 +3,8 @@ import { v4 as uuid } from "uuid";
 // Replacement for the cloudstore client's collection.watch():
 // - asks the server for deltas instead of the full result set on every change
 // - re-subscribes after a socket reconnect (the stock client goes silent)
+// - opens one collection handle per name (the stock client asks the server whether the collection
+//   exists on every collection() call) and builds queries without leaking them
 // - returns stop()/close()/destroy(); callers use stop(), which the stock watcher lacked
 // Callers still receive { collection, _update } with the full, ordered list.
 
@@ -83,14 +85,16 @@ export function deltaWatch(
     });
 
   socket.on(`watchable-change-${id}`, onChange);
-  socket.io.on("reconnect", subscribe);
-  subscribe();
+  // "connect" fires for the first connect and every reconnect (including a manual connect after
+  // the server refused an expired token), so the server always holds this watch while connected.
+  socket.on("connect", subscribe);
+  if (socket.connected) subscribe();
 
   const stop = () => {
     if (stopped) return;
     stopped = true;
     socket.off(`watchable-change-${id}`, onChange);
-    socket.io.off("reconnect", subscribe);
+    socket.off("connect", subscribe);
     socket.emit(`watch:${id}:close`, { stream: { id } });
   };
   return { id, stop, close: stop, destroy: stop };
@@ -100,7 +104,10 @@ export function deltaWatch(
 export function enableDeltaWatch<T>(store: T): T {
   const s = store as any;
   const collection = s.collection.bind(s);
+  const handles = new Map<string, any>();
   s.collection = (name: string) => {
+    const cached = handles.get(name);
+    if (cached) return cached;
     const handle = collection(name);
     if (handle) {
       handle.watch = (query: { _query: StructuredQuery }, onUpdate: any) =>
@@ -111,8 +118,20 @@ export function enableDeltaWatch<T>(store: T): T {
           query._query,
           onUpdate,
         );
+      handles.set(name, handle);
     }
     return handle;
   };
+  // The stock getter files every builder under internals.contexts forever; nothing reads them back.
+  const query = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(s), "query")?.get;
+  if (query) {
+    Object.defineProperty(s, "query", {
+      get() {
+        const builder = query.call(s);
+        delete s.info.contexts[builder._query.id];
+        return builder;
+      },
+    });
+  }
   return store;
 }

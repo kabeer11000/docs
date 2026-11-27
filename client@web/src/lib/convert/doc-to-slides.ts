@@ -4,11 +4,12 @@ import { docHtml } from "@/lib/api/content";
 import cloudStore from "@/lib/cloudstore";
 import { normalizeDeck } from "@/lib/slides/model";
 import { $auth } from "@/state/auth";
-import { $documents } from "@/state/cloudstore-data";
+import { $documents, $documentsLive } from "@/state/cloudstore-data";
 import { docHtmlToSlides } from "./split";
 
 async function findDocument(id: string): Promise<Document | null> {
-  const listed = $documents.get().find((d) => d.id === id);
+  // Rows restored from the IndexedDB cache may be stale; only trust the live list.
+  const listed = $documentsLive.get() ? $documents.get().find((d) => d.id === id) : undefined;
   if (listed) return listed;
   const found = (await cloudStore
     .collection("documents")

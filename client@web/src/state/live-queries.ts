@@ -1,112 +1,115 @@
-import type { Document } from "@shared-types";
+import type { Document, IComment, IFolderItem } from "@shared-types";
 import { atom, type ReadableAtom } from "nanostores";
-import cloudStore from "@/lib/cloudstore";
-import { type Stop, sharedWatch } from "@/lib/swr-watch";
-import { $auth } from "@/state/auth";
+import { type QueryBuilder, watchQuery } from "@/lib/cloudstore";
+import { sharedWatch } from "@/lib/swr-watch";
+import { $documentsLoading, $rawDocuments, HOME_LIST_LIMIT } from "@/state/cloudstore-data";
 import { isTrashed } from "@/state/file-logic";
+import type { ChatConversation } from "@/hooks/use-cloudstore";
 
-// The cloudstore query builder is untyped.
-// biome-ignore lint/suspicious/noExplicitAny: third-party builder without types
-type QueryBuilder = any;
-
-/**
- * Cached, shared cloudstore watch. Restarts when the access token changes,
- * because lib/cloudstore replaces its client (and socket) on every new token.
- */
+/** Cached, shared watch: one per key, however many components read it. */
 function cloudWatch<Row, T = Row[]>(
   key: string,
   collection: string,
   build: (q: QueryBuilder) => QueryBuilder,
   select: (rows: Row[]) => T = (rows) => rows as T,
+  opts: { persist?: boolean } = {},
 ): ReadableAtom<T | undefined> {
-  return sharedWatch<T>(key, (emit) => {
-    let token: string | undefined;
-    let stop: Stop | undefined;
-    const unsubscribe = $auth.subscribe(({ tokens }) => {
-      if (tokens?.accessToken === token) return;
-      token = tokens?.accessToken;
-      stop?.();
-      stop = undefined;
-      if (!token || !cloudStore.query) return;
-      try {
-        const watcher = cloudStore
-          .collection(collection)
-          .watch(
-            build(cloudStore.query),
-            (r: { collection?: Row[]; error?: unknown }) => {
-              if (!r?.error && r?.collection) emit(select(r.collection));
-            },
-          );
-        stop = () => watcher?.stop?.();
-      } catch (error) {
-        console.error(`Failed to watch ${key}:`, error);
-      }
-    });
-    return () => {
-      unsubscribe();
-      stop?.();
-    };
-  });
+  return sharedWatch<T>(key, (emit) => watchQuery<Row>(collection, build, (rows) => emit(select(rows))), opts);
 }
 
 /** Stand-in store while there is no user, so hooks can call useStore unconditionally. */
 export const $nothing: ReadableAtom<undefined> = atom(undefined);
 
-export type StarredItem = {
-  id: string;
-  title?: string;
-  name?: string;
-  kind?: "doc" | "sheet" | "slides";
-  trashedAt?: string | null;
-};
+/** Lists exclude Trash on the server, so trashed rows never use up a query's limit. */
+const notTrashed = (q: QueryBuilder) => q.where("trashedAt", "EQUAL", null);
 
-export const starredWatch = (
-  userId: string,
-  collection: "documents" | "folders",
-) =>
-  cloudWatch<StarredItem>(
-    `starred:${collection}:${userId}`,
-    collection,
-    (q) =>
-      q
-        .where(
-          collection === "documents" ? "owner" : "permissions.owner",
-          "EQUAL",
-          userId,
-        )
-        .where("isStarred", "EQUAL", true)
-        .orderBy("timestamp.updatedAt", "DESCENDING")
-        .limit(10),
-    (rows) => rows.filter((r) => !isTrashed(r)),
-  );
-
-/** Number of documents the user owns (the storage line). */
-export const ownedCountWatch = (userId: string) =>
-  cloudWatch<unknown, number>(
+/** Every owned document, for the storage line when the Home list is cut off at its limit. */
+const allOwnedDocumentsWatch = (userId: string) =>
+  cloudWatch<{ id: string; trashedAt?: string | null }, number>(
     `owned-count:${userId}`,
     "documents",
-    (q) =>
-      q
-        .where("owner", "EQUAL", userId)
-        .orderBy("timestamp.updatedAt", "DESCENDING"),
-    (rows) =>
-      rows.filter((r) => !isTrashed(r as { trashedAt?: string | null })).length,
+    (q) => notTrashed(q.where("owner", "EQUAL", userId)),
+    (rows) => rows.filter((r) => !isTrashed(r)).length,
   );
 
-/** Every shared document visible to the user; callers filter to "shared with me". */
-// ponytail: scans every shared document (limit 100) and filters client-side. Matching
-// "sharing.sharedWith.email" directly works for the initial query but not for live updates: the
-// backend's in-memory matcher (watch.ts documentMatches) does not walk arrays, so edits would drop rows.
-export const sharedDocumentsWatch = (userId: string) =>
-  cloudWatch<Document>(
-    `shared-docs:${userId}`,
+/**
+ * Number of documents the user owns (the storage line). The Home list already holds every owned
+ * document unless it hit its limit, so only then is the full (heavy) list watched.
+ */
+export const ownedCountWatch = (userId: string) =>
+  sharedWatch<number>(`owned-count-derived:${userId}`, (emit) => {
+    let stopFull: (() => void) | undefined;
+    const update = () => {
+      if ($documentsLoading.get()) return;
+      const rows = $rawDocuments.get();
+      if (rows.length < HOME_LIST_LIMIT) {
+        stopFull?.();
+        stopFull = undefined;
+        emit(rows.filter((r) => !isTrashed(r)).length);
+      } else if (!stopFull) {
+        stopFull = allOwnedDocumentsWatch(userId).subscribe((n) => {
+          if (n !== undefined) emit(n);
+        });
+      }
+    };
+    const offRows = $rawDocuments.listen(update);
+    const offLoading = $documentsLoading.listen(update);
+    update();
+    return () => {
+      offRows();
+      offLoading();
+      stopFull?.();
+    };
+  });
+
+/**
+ * Documents shared with this email, newest first. Shares are stored with lowercased emails, and the
+ * server also limits results to documents the caller may read; callers drop the user's own files.
+ */
+export const sharedDocumentsWatch = (email: string) => {
+  const normalized = email.trim().toLowerCase();
+  return cloudWatch<Document>(
+    `shared-docs:${normalized}`,
     "documents",
     (q) =>
-      q
-        .where("sharing.isShared", "EQUAL", true)
+      notTrashed(q.where("sharing.sharedWith.email", "EQUAL", normalized))
         .orderBy("updatedAt", "DESCENDING")
         .limit(100),
     (rows) => rows.filter((r) => !isTrashed(r)),
+    { persist: true },
+  );
+};
+
+/** A document's comments, newest first (duplicate ids dropped). */
+export const commentsWatch = (documentId: string) =>
+  cloudWatch<IComment>(
+    `comments:${documentId}`,
+    "comments",
+    (q) => q.where("documentId", "EQUAL", documentId),
+    (rows) =>
+      [...new Map(rows.map((c) => [c.id, c])).values()].sort(
+        (a, b) =>
+          new Date(b.timestamp.createdAt).getTime() -
+          new Date(a.timestamp.createdAt).getTime(),
+      ),
+  );
+
+/** The user's AI chats, most recent first. */
+export const chatsWatch = (userId: string) =>
+  cloudWatch<ChatConversation>(
+    `chats:${userId}`,
+    "chats",
+    (q) => q.where("owner", "EQUAL", userId).orderBy("lastMessageAt", "DESCENDING"),
+    (rows) => [...new Map(rows.map((c) => [c.id, c])).values()],
+  );
+
+/** One folder by id, for folders the Home list does not hold (past its limit). */
+export const folderWatch = (folderId: string) =>
+  cloudWatch<IFolderItem, IFolderItem | null>(
+    `folder:${folderId}`,
+    "folders",
+    (q) => q.where("id", "EQUAL", folderId),
+    (rows) => rows[0] ?? null,
   );
 
 export type TrashedRow = {

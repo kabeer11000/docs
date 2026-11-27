@@ -174,17 +174,15 @@ export function ShareDialog({
 
       results.push(...localMatches);
 
-      // Then search CloudStore if available
-      if (cloudStore) {
+      // Then look the address up: the server only answers exact-email lookups, with id, email and name.
+      if (cloudStore && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(searchLower.trim())) {
         const usersCollection = cloudStore.collection("users");
 
-        const emailQuery = cloudStore.query
-          .where("email", "CONTAINS", searchLower)
-          .limit(10);
+        const emailQuery = cloudStore.query.where("email", "EQUAL", searchLower.trim());
 
         const result = await usersCollection.get(emailQuery);
 
-        const dbUsers: UserSearchResult[] = (result?.collection || []).map(
+        const dbUsers: UserSearchResult[] = (Array.isArray(result) ? result : []).map(
           (u: any) => ({
             id: u.id || u.id,
             email: u.email,

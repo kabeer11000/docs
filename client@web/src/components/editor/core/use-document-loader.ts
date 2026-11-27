@@ -2,9 +2,9 @@ import { useStore } from "@nanostores/react";
 import type { Document } from "@shared-types";
 import { atom, onMount, type WritableAtom } from "nanostores";
 import { useMemo } from "react";
-import cloudStore from "@/lib/cloudstore";
+import { watchQuery } from "@/lib/cloudstore";
 import { $auth } from "@/state/auth";
-import { $documents } from "@/state/cloudstore-data";
+import { $documents, $documentsLive } from "@/state/cloudstore-data";
 import { sameEmail } from "@/lib/email";
 
 interface DocState {
@@ -13,36 +13,42 @@ interface DocState {
   notFound: boolean;
 }
 
-// One live store per document id, shared by the header and the editor (previously each opened its
-// own watcher). Seeded from the Home documents list so a document opened from Home renders at once.
+// One live store and one watch per document id, shared by the header, the editor and anything else
+// showing the document. Seeded from the Home documents list so a document opened from Home renders
+// at once, but only from live rows: rows restored from IndexedDB may be stale and must never seed an
+// editor (it would autosave them over newer content).
 const stores = new Map<string, WritableAtom<DocState>>();
+const listed = (id: string) => ($documentsLive.get() ? $documents.get().find((d) => d.id === id) : undefined);
 
 function documentStore(id: string, primed?: Document): WritableAtom<DocState> {
   let store = stores.get(id);
   if (store) return store;
-  const seed = primed ?? $documents.get().find((d) => d.id === id) ?? null;
+  const seed = primed ?? listed(id) ?? null;
   store = atom<DocState>({ document: seed, isLoading: !seed, notFound: false });
   const s = store;
   onMount(s, () => {
-    let watcher: { stop?: () => void; destroy?: () => void } | null = null;
-    // Keep in step with the global list while the dedicated watcher warms up.
-    const unlist = $documents.listen((docs) => {
-      const d = docs.find((x) => x.id === id);
+    // Keep in step with the global list while the dedicated watch warms up.
+    const unlist = $documents.listen(() => {
+      const d = listed(id);
       if (d && d !== s.get().document) s.set({ document: d, isLoading: false, notFound: false });
     });
-    try {
-      const query = cloudStore.query.where("id", "EQUAL", id);
-      watcher = cloudStore.collection("documents").watch(query, ({ collection }: { collection: Document[] }) => {
-        const d = collection?.[0] ?? null;
-        s.set({ document: d ?? s.get().document, isLoading: false, notFound: !d && !s.get().document });
-      });
-    } catch (error) {
-      console.error("[document] watch failed", error);
-      s.set({ ...s.get(), isLoading: false });
-    }
+    // An empty first answer can race a just-created file, so the seed stays. Once the server has
+    // sent the document, an empty answer means it was deleted or this user's access was revoked
+    // (the server only returns readable rows), so the document goes away.
+    let delivered = false;
+    const stop = watchQuery<Document>(
+      "documents",
+      (q) => q.where("id", "EQUAL", id),
+      (rows) => {
+        const d = rows[0] ?? null;
+        if (d) delivered = true;
+        if (!d && delivered) s.set({ document: null, isLoading: false, notFound: true });
+        else s.set({ document: d ?? s.get().document, isLoading: false, notFound: !d && !s.get().document });
+      },
+    );
     return () => {
       unlist();
-      watcher?.stop?.();
+      stop();
       stores.delete(id);
     };
   });

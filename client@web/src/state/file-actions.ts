@@ -6,6 +6,7 @@ import cloudStore from "@/lib/cloudstore";
 import { hrefForId } from "@/lib/files";
 import { $auth } from "./auth";
 import {
+  $documentsLive,
   $folders,
   $rawDocuments,
   $rawFolders,
@@ -67,6 +68,8 @@ export function markFresh(id: string) {
 
 const folderRow = (id: string) => $rawFolders.get().find((f) => f.id === id);
 const docRow = (id: string) => $rawDocuments.get().find((d) => d.id === id);
+/** For actions that copy or export content: rows restored from the IndexedDB cache may be stale. */
+const liveDocRow = (id: string) => ($documentsLive.get() ? docRow(id) : undefined);
 
 /** Folder when it is one of the user's folders, otherwise a file. */
 export const refFor = (id: string): ItemRef => ({
@@ -330,7 +333,7 @@ export async function newFolder(parent: string) {
 
 /** Copy of a file next to the original. */
 export async function duplicate(ref: ItemRef) {
-  const original = docRow(ref.id);
+  const original = liveDocRow(ref.id);
   if (ref.type !== "file" || !original) return;
   const {
     _id,
@@ -360,7 +363,7 @@ export async function duplicate(ref: ItemRef) {
 
 /** Whether Download works from Home (docs saved as HTML, spreadsheets); presentations download inside the app. */
 export function canDownload(ref: ItemRef) {
-  const doc = ref.type === "file" ? docRow(ref.id) : undefined;
+  const doc = ref.type === "file" ? liveDocRow(ref.id) : undefined;
   if (!doc) return false;
   if (doc.kind === "sheet") return !!doc.data;
   return !doc.kind || doc.kind === "doc"
@@ -375,7 +378,7 @@ const safeName = (title: string) =>
     .slice(0, 120) || "Untitled";
 
 export async function download(ref: ItemRef) {
-  const doc = docRow(ref.id);
+  const doc = liveDocRow(ref.id);
   if (!doc || !canDownload(ref)) return;
   const { saveBlob } = await import("@/components/sheet/sheet-files");
   try {

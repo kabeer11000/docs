@@ -1,6 +1,7 @@
 import type { Document, IFolderItem } from "@shared-types";
 import { atom, computed } from "nanostores";
-import cloudStore from "@/lib/cloudstore";
+import { watchQuery } from "@/lib/cloudstore";
+import { persist, readPersisted } from "@/lib/swr-watch";
 import { $auth } from "./auth";
 import {
   applyPatches,
@@ -13,11 +14,22 @@ import {
 // GLOBAL DATA ATOMS
 // ============================================================================
 
-/** Everything the watchers return for the user, trashed rows included. */
+/** Rows per Home list query. */
+export const HOME_LIST_LIMIT = 100;
+
+/**
+ * What the watchers return for the user. Folders include trashed ones (trashing a folder only marks
+ * the folder, so its contents are hidden through it); documents exclude Trash on the server.
+ */
 export const $rawFolders = atom<IFolderItem[]>([]);
 export const $rawDocuments = atom<Document[]>([]);
 export const $foldersLoading = atom(true);
 export const $documentsLoading = atom(true);
+/**
+ * False while the lists show rows saved on an earlier visit (IndexedDB) and the server has not
+ * answered yet. Those rows are for display only: never seed an editor or a write from them.
+ */
+export const $documentsLive = atom(false);
 
 /**
  * Optimistic edits by row id (trash, restore, move, rename, star), shown before the server echoes them.
@@ -43,8 +55,6 @@ const $tree = computed(
     visibleTree(applyPatches(folders, patches), applyPatches(docs, patches)),
 );
 
-// ponytail: trashed rows still count toward the watchers' limit of 100; add a server-side
-// "not trashed" filter once cloudstore's in-memory matcher treats a missing field as null.
 /** Listed folders and files: not in Trash and not inside a trashed folder, optimistic edits applied. */
 export const $folders = computed($tree, (t) => t.folders);
 export const $documents = computed($tree, (t) => t.docs);
@@ -54,91 +64,103 @@ const settle = (rows: { id: string }[]) => {
   if (done.length) dropPatches(done);
 };
 
+// Trashed documents leave the (server-filtered) list instead of echoing trashedAt back, so their
+// patch settles when they leave it. Left behind, it would hide the file after a restore elsewhere.
+const settleTrashed = (before: { id: string }[], after: { id: string }[]) => {
+  const now = new Set(after.map((r) => r.id));
+  const patches = $patches.get();
+  const left = before
+    .map((r) => r.id)
+    .filter((id) => !now.has(id) && patches[id]?.trashedAt);
+  if (left.length) dropPatches(left);
+};
+
 // ============================================================================
 // WATCHER MANAGEMENT
 // ============================================================================
 
-let foldersWatcher: { stop?: () => void } | null = null;
-let documentsWatcher: { stop?: () => void } | null = null;
+let stopWatchers: (() => void) | null = null;
 
 function startGlobalWatchers(userId: string) {
   stopGlobalWatchers();
+  const foldersKey = `home-folders:${userId}`;
+  const documentsKey = `home-documents:${userId}`;
 
-  try {
-    const foldersQuery = cloudStore.query
-      .limit(100)
-      .orderBy("timestamp.createdAt", "DESCENDING")
-      .where("permissions.owner", "EQUAL", userId);
+  // Last visit's rows paint at once; the watchers replace them when the server answers.
+  readPersisted<IFolderItem[]>(foldersKey).then((rows) => {
+    if (rows && activeUser === userId && $foldersLoading.get()) {
+      $rawFolders.set(rows);
+      $foldersLoading.set(false);
+    }
+  });
+  readPersisted<Document[]>(documentsKey).then((rows) => {
+    if (rows && activeUser === userId && !$documentsLive.get()) {
+      $rawDocuments.set(rows);
+      $documentsLoading.set(false);
+    }
+  });
 
-    foldersWatcher = cloudStore
-      .collection("folders")
-      .watch(
-        foldersQuery,
-        ({ collection: data }: { collection: IFolderItem[] }) => {
-          $rawFolders.set(data || []);
-          settle(data || []);
-          $foldersLoading.set(false);
-        },
-      );
-  } catch (error) {
-    console.error("Failed to start folders watcher:", error);
-    $foldersLoading.set(false);
-  }
-
-  try {
-    const documentsQuery = cloudStore.query
-      .limit(100)
-      .orderBy("createdAt", "DESCENDING")
-      .where("owner", "EQUAL", userId);
-
-    documentsWatcher = cloudStore
-      .collection("documents")
-      .watch(
-        documentsQuery,
-        ({ collection: data }: { collection: Document[] }) => {
-          $rawDocuments.set(data || []);
-          settle(data || []);
-          $documentsLoading.set(false);
-        },
-      );
-  } catch (error) {
-    console.error("Failed to start documents watcher:", error);
-    $documentsLoading.set(false);
-  }
+  const stopFolders = watchQuery<IFolderItem>(
+    "folders",
+    (q) =>
+      q
+        .limit(HOME_LIST_LIMIT)
+        .orderBy("timestamp.createdAt", "DESCENDING")
+        .where("permissions.owner", "EQUAL", userId),
+    (rows) => {
+      $rawFolders.set(rows);
+      settle(rows);
+      $foldersLoading.set(false);
+      persist(foldersKey, rows);
+    },
+  );
+  const stopDocuments = watchQuery<Document>(
+    "documents",
+    (q) =>
+      q
+        .limit(HOME_LIST_LIMIT)
+        .orderBy("createdAt", "DESCENDING")
+        .where("owner", "EQUAL", userId)
+        .where("trashedAt", "EQUAL", null),
+    (rows) => {
+      const before = $rawDocuments.get();
+      $rawDocuments.set(rows);
+      $documentsLive.set(true);
+      settle(rows);
+      settleTrashed(before, rows);
+      $documentsLoading.set(false);
+      persist(documentsKey, rows);
+    },
+  );
+  stopWatchers = () => {
+    stopFolders();
+    stopDocuments();
+  };
 }
 
 function stopGlobalWatchers() {
-  foldersWatcher?.stop?.();
-  foldersWatcher = null;
-  documentsWatcher?.stop?.();
-  documentsWatcher = null;
+  stopWatchers?.();
+  stopWatchers = null;
 }
 
 // ============================================================================
 // AUTH SUBSCRIPTION - START/STOP WATCHERS
 // ============================================================================
 
-// $auth is set for every loading/profile tweak; only a new user or token needs new
-// watchers (lib/cloudstore swaps its client per token). Data stays on screen while
-// the new watchers catch up.
-let activeSession: string | null = null;
+// $auth is set for every loading/profile tweak and token refresh; only another user needs new
+// watchers (lib/cloudstore keeps its client, and the watches, across token refreshes).
+let activeUser: string | null = null;
 
 $auth.subscribe((authState) => {
-  const session =
-    authState.isAuthenticated && authState.user
-      ? `${authState.user.id}:${authState.tokens?.accessToken}`
-      : null;
-  if (session === activeSession) return;
-  activeSession = session;
-
-  if (session && authState.user) {
-    startGlobalWatchers(authState.user.id);
-  } else {
-    stopGlobalWatchers();
-    $rawFolders.set([]);
-    $rawDocuments.set([]);
-    $patches.set({});
-    $foldersLoading.set(true);
-    $documentsLoading.set(true);
-  }
+  const user = authState.isAuthenticated && authState.user ? authState.user.id : null;
+  if (user === activeUser) return;
+  activeUser = user;
+  stopGlobalWatchers();
+  $rawFolders.set([]);
+  $rawDocuments.set([]);
+  $patches.set({});
+  $foldersLoading.set(true);
+  $documentsLoading.set(true);
+  $documentsLive.set(false);
+  if (user) startGlobalWatchers(user);
 });
