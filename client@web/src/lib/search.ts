@@ -1,5 +1,5 @@
 import Fuse from "fuse.js";
-import templatesData from "@/data/templates.json";
+import { TEMPLATES } from "@/data/templates";
 import type { SearchableItem } from "@/hooks/use-search-data";
 import type { SearchResult, SearchResultType } from "@/state/search";
 
@@ -222,19 +222,17 @@ const searchableJudgments: SearchableItem[] = judgmentsData.map((judgment) => ({
 }));
 
 // Templates data
-const searchableTemplates: SearchableItem[] = templatesData.map(
-  (template: any) => ({
-    id: template.id,
-    title: template.name,
-    subtitle: template.group,
-    description: template.description,
-    type: "template" as any,
-    tags: template.tags,
-    category: template.group,
-    path: `/new?template=${template.id}`,
-    meta: template,
-  }),
-);
+const searchableTemplates: SearchableItem[] = TEMPLATES.map((template) => ({
+  id: template.id,
+  title: template.name,
+  subtitle: "Template",
+  description: template.description,
+  type: "template" as SearchableItem["type"],
+  tags: [],
+  category: "template",
+  path: `/document/new/templates`,
+  meta: template,
+}));
 
 /**
  * Get searchable items based on current page and user data

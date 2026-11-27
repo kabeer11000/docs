@@ -117,13 +117,7 @@ export const API_ENDPOINTS = {
   },
 
   // Templates
-  TEMPLATES: {
-    LIST: `${BACKEND_BASE_URL}/api/templates`,
-    GET: (id: string) => `${BACKEND_BASE_URL}/api/templates/${id}`,
-    CREATE: `${BACKEND_BASE_URL}/api/templates`,
-    UPDATE: (id: string) => `${BACKEND_BASE_URL}/api/templates/${id}`,
-    DELETE: (id: string) => `${BACKEND_BASE_URL}/api/templates/${id}`,
-  },
+
 
   // Organization & Teams
   ORGANIZATION: {

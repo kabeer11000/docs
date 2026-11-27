@@ -1,10 +1,8 @@
-import { useRouter } from "next/navigation";
 import { useStore } from "@nanostores/react";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useCloudStore } from "@/hooks/use-cloudstore";
-import { showToast } from "@/lib/toast";
+import { useCreateFile } from "@/hooks/use-create-file";
 import { $auth } from "@/state/auth";
 import { PaperSheet } from "./paper-sheet";
 
@@ -19,28 +17,8 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ title, description, folderId }: EmptyStateProps) {
-  const router = useRouter();
   const { user } = useStore($auth);
-  const { createDocument } = useCloudStore();
-  const [isCreating, setIsCreating] = useState(false);
-
-  // Same path as the "Blank" tile on the templates page.
-  const handleNewDocument = async () => {
-    if (!user || isCreating) return;
-    setIsCreating(true);
-    try {
-      const docId = await createDocument({ folderId: folderId || user.id });
-      if (docId) {
-        router.push(`/document/${docId}`);
-        return;
-      }
-      showToast.error("Failed to create document", "Please try again");
-    } catch (error) {
-      console.error("Failed to create document:", error);
-      showToast.error("Failed to create document", "Please try again");
-    }
-    setIsCreating(false);
-  };
+  const { create, creating } = useCreateFile();
 
   return (
     <div className="flex flex-col items-center px-4 py-12 text-center">
@@ -51,12 +29,12 @@ export function EmptyState({ title, description, folderId }: EmptyStateProps) {
       <p className="mt-1 max-w-sm text-sm text-balance text-muted-foreground">{description}</p>
       {folderId !== undefined && (
         <div className="mt-5 flex items-center gap-2">
-          <Button onClick={handleNewDocument} disabled={isCreating || !user}>
-            {isCreating && <Loader2 className="animate-spin" />}
+          <Button onClick={() => create("doc", folderId)} disabled={creating || !user}>
+            {creating && <Loader2 className="animate-spin" />}
             Start a document
           </Button>
           <Button variant="outline" asChild>
-            <a href={templatesHref(folderId || user?.id || "")}>Pick a template</a>
+            <Link href={templatesHref(folderId || user?.id || "")}>Pick a template</Link>
           </Button>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { primeDocument } from "@/components/editor/core/use-document-loader";
 import { useStore } from "@nanostores/react";
 import type { Document, DocumentCreateInput, IFolderItem } from "@shared-types";
 import { nanoid } from "nanoid";
@@ -96,9 +97,11 @@ export function useCloudStore() {
         // Default to user.id as parent (same pattern as folders)
         const parentLocation = input.folderId || user.id;
 
+        const kind = input.kind ?? "doc";
         const newDocument: Document = {
           id: docId,
-          title: input.title || "Untitled Document",
+          ...(kind === "doc" ? {} : { kind, data: input.data ?? null }),
+          title: input.title || (kind === "sheet" ? "Untitled spreadsheet" : kind === "slides" ? "Untitled presentation" : "Untitled document"),
           pages: [
             {
               id: nanoid(),
@@ -151,6 +154,7 @@ export function useCloudStore() {
         };
 
         const documentsCollection = cloudStore.collection("documents");
+        primeDocument(newDocument);
         await documentsCollection.insert(newDocument);
         return docId;
       } catch (error) {

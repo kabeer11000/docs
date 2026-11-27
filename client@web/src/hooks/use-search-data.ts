@@ -1,3 +1,4 @@
+import { hrefForId } from "@/lib/files";
 import { useStore } from "@nanostores/react";
 import { useMemo } from "react";
 import { $auth } from "@/state/auth";
@@ -61,7 +62,7 @@ export function useSearchData(currentPage: string = "home") {
             type: "file",
             tags: doc.tags,
             category: doc.meta?.type?.mime,
-            path: `/document/${doc.id}`,
+            path: hrefForId(doc.id),
             meta: doc,
           });
         }

@@ -13,8 +13,30 @@ function nodeText(node: PMNode): string {
   return (node.content || []).map(nodeText).join(node.type === "listItem" ? " " : "");
 }
 
-/** Flattens the first page's ProseMirror JSON into a few text blocks for a thumbnail. */
-export function getPreviewBlocks(content: unknown): PreviewBlock[] {
+type ParseHtml = (html: string) => Pick<Document, "querySelectorAll">;
+const browserParse: ParseHtml | null =
+  typeof DOMParser === "undefined" ? null : (html) => new DOMParser().parseFromString(html, "text/html");
+
+/** Text blocks from saved HTML (what the editor stores today). */
+function htmlBlocks(html: string, parse: ParseHtml): PreviewBlock[] {
+  const blocks: PreviewBlock[] = [];
+  let chars = 0;
+  for (const el of Array.from(parse(html).querySelectorAll("h1,h2,h3,h4,h5,h6,p,li"))) {
+    if (blocks.length >= MAX_BLOCKS || chars >= MAX_CHARS) break;
+    const tag = el.tagName.toLowerCase();
+    if (tag === "p" && el.closest("li")) continue; // the list item already carries its text
+    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    if (!text) continue;
+    const kind = tag === "h1" ? "h1" : tag[0] === "h" ? "h2" : tag === "li" ? "li" : "p";
+    blocks.push({ kind, text: text.slice(0, 400) });
+    chars += text.length;
+  }
+  return blocks;
+}
+
+/** Flattens the first page (saved HTML, or older ProseMirror JSON) into a few text blocks for a thumbnail. */
+export function getPreviewBlocks(content: unknown, parse: ParseHtml | null = browserParse): PreviewBlock[] {
+  if (typeof content === "string") return parse ? htmlBlocks(content, parse) : [];
   const blocks: PreviewBlock[] = [];
   let chars = 0;
   const walk = (node: PMNode) => {

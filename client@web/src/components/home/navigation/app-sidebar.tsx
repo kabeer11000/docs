@@ -10,7 +10,9 @@ import {
   LockIcon,
   PanelLeft,
   PlusIcon,
+  Presentation,
   Search,
+  Sheet,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -27,6 +29,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useCloudStore } from "@/hooks/use-cloudstore";
+import { useCreateFile } from "@/hooks/use-create-file";
+import { type FileKind, fileHref, fileKind } from "@/lib/files";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { $auth, getUserInitials } from "@/state/auth";
@@ -107,13 +111,11 @@ export function AppSidebar({
     }
   };
 
-  const handleNewDocument = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
+  const { create, creating } = useCreateFile();
+  const newFile = (kind: FileKind) => {
     if (!canCreate || !user) return;
-    // The templates page creates the document once a template (or blank) is picked.
     if (isMobile) setOpenMobile(false);
-    router.push(templatesHref(folderId || user.id));
+    create(kind, folderId || user.id);
   };
 
   return (
@@ -145,8 +147,8 @@ export function AppSidebar({
         <div className="flex" data-tour="new-document">
           <Button
             className="flex-1 justify-start rounded-r-none"
-            onClick={(e) => handleNewDocument(e)}
-            disabled={!canCreate}
+            onClick={() => newFile("doc")}
+            disabled={!canCreate || creating}
           >
             <PlusIcon />
             New document
@@ -163,7 +165,20 @@ export function AppSidebar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={(e) => handleNewDocument(e)}>
+              <DropdownMenuItem onClick={() => newFile("sheet")}>
+                <Sheet />
+                New spreadsheet
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => newFile("slides")}>
+                <Presentation />
+                New presentation
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (isMobile) setOpenMobile(false);
+                  if (user) router.push(templatesHref(folderId || user.id));
+                }}
+              >
                 <LayoutTemplate />
                 Browse templates
               </DropdownMenuItem>
@@ -242,6 +257,8 @@ export function AppSidebar({
   );
 }
 
+const KIND_ICON = { doc: FileText, sheet: Sheet, slides: Presentation } as const;
+
 const navItemClass =
   "relative flex h-8 items-center gap-2 rounded-md px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground";
 
@@ -308,17 +325,16 @@ function StarredItems({
           </NavLink>
         );
       })}
-      {/* Documents open with a full load, like everywhere else in the app. */}
-      {docs?.map((doc) => (
-        <a
-          key={doc.id}
-          href={`/document/${doc.id}`}
-          className={cn(navItemClass, "h-7")}
-        >
-          <FileText className="size-4 shrink-0 text-muted-foreground" />
-          <span className="truncate">{doc.title || "Untitled document"}</span>
-        </a>
-      ))}
+      {docs?.map((doc) => {
+        const url = fileHref(doc.id, fileKind(doc));
+        const Icon = KIND_ICON[fileKind(doc)];
+        return (
+          <NavLink key={doc.id} href={url} active={activeUrl === url} onClick={() => onNavigate(url)} className="h-7">
+            <Icon className="size-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">{doc.title || "Untitled"}</span>
+          </NavLink>
+        );
+      })}
     </div>
   );
 }

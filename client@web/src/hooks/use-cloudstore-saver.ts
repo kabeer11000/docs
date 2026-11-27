@@ -2,6 +2,7 @@ import { debounce } from "@repo/shadcn-ui/lib/utils";
 import type { Document } from "@shared-types";
 import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isPlaceholderTitle, titleFromHtml } from "@/lib/titles";
 import { useCloudStore } from "./use-cloudstore";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -67,7 +68,9 @@ export function useCloudStoreSaver(
         const now = new Date();
 
         // Update the document with new content
+        const autoTitle = isPlaceholderTitle(document.title) ? titleFromHtml(htmlContent) : null;
         const updates: Partial<Document> = {
+          ...(autoTitle ? { title: autoTitle } : {}),
           pages: [
             {
               ...document.pages[0],

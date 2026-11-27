@@ -48,7 +48,7 @@ function cloudWatch<Row, T = Row[]>(
 /** Stand-in store while there is no user, so hooks can call useStore unconditionally. */
 export const $nothing: ReadableAtom<undefined> = atom(undefined);
 
-export type StarredItem = { id: string; title?: string; name?: string };
+export type StarredItem = { id: string; title?: string; name?: string; kind?: "doc" | "sheet" | "slides" };
 
 export const starredWatch = (userId: string, collection: "documents" | "folders") =>
   cloudWatch<StarredItem>(`starred:${collection}:${userId}`, collection, (q) =>

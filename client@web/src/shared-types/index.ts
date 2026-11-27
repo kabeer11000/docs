@@ -80,6 +80,10 @@ export type {
 export interface Document {
   id: string;
   title: string;
+  /** Which app opens the file. Missing means "doc" (every file created before sheets and slides). */
+  kind?: "doc" | "sheet" | "slides";
+  /** Kind-specific content for sheets and slides (docs keep using pages[0].content). */
+  data?: unknown;
   pages: Array<{
     id: string;
     content: any;
@@ -155,6 +159,9 @@ export interface Document {
 }
 
 export interface DocumentCreateInput {
+  id?: string;
+  kind?: "doc" | "sheet" | "slides";
+  data?: unknown;
   title?: string;
   initialContent?: any;
   format?: string;

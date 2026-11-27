@@ -82,7 +82,8 @@ import { $auth } from "@/state/auth";
 import { EmptyState } from "@/components/home/empty-state";
 import { FolderTab } from "@/components/home/folder-tab";
 import { ItemMenu } from "@/components/home/item-menu";
-import { PaperSheet } from "@/components/home/paper-sheet";
+import { fileKind, hrefForId } from "@/lib/files";
+import { FileThumbnail } from "@/components/home/file-thumbnail";
 import { SectionHeader } from "@/components/home/section-header";
 import { $documents } from "@/state/cloudstore-data";
 import { cn } from "@/lib/utils";
@@ -222,10 +223,7 @@ export const ListView = React.memo(function ListView({
   const isMobile = useIsMobile();
   const { getLocationName } = useLocationNames();
   const allDocuments = useStore($documents);
-  const firstPageById = useMemo(
-    () => new Map(allDocuments.map((d) => [d.id, d.pages?.[0]?.content])),
-    [allDocuments],
-  );
+  const docById = useMemo(() => new Map(allDocuments.map((d) => [d.id, d])), [allDocuments]);
   const {
     deleteDocument,
     deleteFolder,
@@ -263,7 +261,7 @@ export const ListView = React.memo(function ListView({
               if (item.itemType === "folder") {
                 router.push(`/folder/${item.id}`);
               } else {
-                router.push(`/document/${item.id}`);
+                router.push(hrefForId(item.id));
               }
             },
           },
@@ -279,7 +277,7 @@ export const ListView = React.memo(function ListView({
               if (item.itemType === "folder") {
                 window.open(`/folder/${item.id}`, "_blank");
               } else {
-                window.open(`/document/${item.id}`, "_blank");
+                window.open(hrefForId(item.id), "_blank");
               }
             },
           },
@@ -604,7 +602,7 @@ export const ListView = React.memo(function ListView({
     if (item.itemType === "folder") {
       router.push(`/folder/${item.id}`);
     } else {
-      router.push(`/document/${item.id}`);
+      router.push(hrefForId(item.id));
     }
   }, [router]);
 
@@ -969,14 +967,17 @@ export const ListView = React.memo(function ListView({
           isProcessing.has(item.id) && "pointer-events-none opacity-50",
         )}
         onClick={() => handleItemClick(item)}
+        onPointerEnter={() => router.prefetch(item.itemType === "folder" ? `/folder/${item.id}` : hrefForId(item.id))}
         onKeyDown={(e) => {
           if (e.target !== e.currentTarget) return;
           if (e.key === "Enter") handleItemClick(item);
         }}
       >
-        <PaperSheet
+        <FileThumbnail
+          kind={fileKind(docById.get(item.id))}
           title={item.name}
-          content={firstPageById.get(item.id)}
+          content={docById.get(item.id)?.pages?.[0]?.content}
+          data={docById.get(item.id)?.data}
           className="transition-[box-shadow,transform] duration-150 group-hover:-translate-y-px group-hover:ring-1 group-hover:ring-foreground/20 group-focus-visible:ring-2 group-focus-visible:ring-ring"
         />
         <div className="flex items-start gap-1">

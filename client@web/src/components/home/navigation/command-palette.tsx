@@ -7,12 +7,16 @@ import {
   LayoutTemplate,
   type LucideIcon,
   Plus,
+  Presentation,
+  Sheet,
   SunMoon,
   Users,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
+import { useCreateFile } from "@/hooks/use-create-file";
+import { hrefForId } from "@/lib/files";
 import {
   Command,
   CommandEmpty,
@@ -82,13 +86,21 @@ function PaletteBody() {
 
   const folderId = pathname.match(/^\/folder\/([^/?#]+)/)?.[1] ?? user?.id ?? "";
 
+  const { create } = useCreateFile();
+  const make = (kind: "doc" | "sheet" | "slides") => {
+    searchActions.close();
+    create(kind, folderId);
+  };
+
   const go = (path: string) => {
     searchActions.close();
     router.push(path);
   };
 
   const actions: Entry[] = [
-    { id: "new", label: "New document", icon: Plus, run: () => go(templatesHref(folderId)) },
+    { id: "new", label: "New document", icon: Plus, run: () => make("doc") },
+    { id: "new-sheet", label: "New spreadsheet", icon: Sheet, run: () => make("sheet") },
+    { id: "new-slides", label: "New presentation", icon: Presentation, run: () => make("slides") },
     { id: "templates", label: "Browse templates", icon: LayoutTemplate, run: () => go(templatesHref(folderId)) },
     { id: "vault", label: "Go to Vault", icon: FolderLock, run: () => go("/vault") },
     { id: "shared", label: "Go to Shared with me", icon: Users, run: () => go("/shared") },
@@ -125,7 +137,7 @@ function PaletteBody() {
             ? `/folder/${r.id}`
             : r.type === "template"
               ? templatesHref(folderId)
-              : `/document/${r.id}`,
+              : hrefForId(r.id),
         ),
     });
   // Empty query: recent documents. Otherwise fuzzy matches (lib/search), templates last.
