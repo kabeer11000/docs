@@ -1,6 +1,3 @@
-import { ChevronRight } from "lucide-react";
-import Link from "next/link";
-import { Fragment } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFolderBreadcrumbs } from "@/hooks/use-folder-breadcrumbs";
 
@@ -8,6 +5,7 @@ interface FolderBreadcrumbsProps {
   folderId?: string;
 }
 
+/** The open folder's name as the page title. */
 export function FolderBreadcrumbs({ folderId }: FolderBreadcrumbsProps) {
   const { breadcrumbs, isLoading } = useFolderBreadcrumbs(folderId);
 
@@ -17,31 +15,11 @@ export function FolderBreadcrumbs({ folderId }: FolderBreadcrumbsProps) {
 
   const current = breadcrumbs.at(-1);
   if (!current) return null;
-  const trail = breadcrumbs.slice(0, -1);
 
+  // The path to this folder lives in the top bar.
   return (
-    <div className="min-w-0">
-      {trail.length > 0 && (
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-1 flex min-w-0 items-center gap-1 text-[13px] text-muted-foreground"
-        >
-          {trail.map((item, index) => (
-            <Fragment key={item.id}>
-              {index > 0 && <ChevronRight className="size-3 shrink-0" />}
-              <Link
-                href={index === 0 ? "/vault" : `/folder/${item.id}`}
-                className="truncate transition-colors hover:text-foreground"
-              >
-                {item.name}
-              </Link>
-            </Fragment>
-          ))}
-        </nav>
-      )}
-      <h1 className="truncate font-display text-[28px] leading-[1.15] font-bold tracking-[-0.03em] md:text-[32px]">
-        {current.name}
-      </h1>
-    </div>
+    <h1 className="truncate font-display text-[28px] leading-[1.15] font-bold tracking-[-0.03em] md:text-[32px]">
+      {current.name}
+    </h1>
   );
 }

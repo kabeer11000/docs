@@ -2,6 +2,8 @@
 
 import { useStore } from "@nanostores/react";
 import { useEffect } from "react";
+import { Greeting } from "@/components/home/home-sections";
+import { HomeTabs } from "@/components/home/home-tabs";
 import { PageBody } from "@/components/home/page-body";
 import { useViewMode, ViewToggle } from "@/components/home/view-toggle";
 import { LiveListView } from "@/components/shared/ui/live-list-view";
@@ -20,7 +22,8 @@ export default function VaultPage() {
   if (!user) return null;
 
   return (
-    <PageBody title="Vault" actions={<ViewToggle view={view} onChange={setView} />}>
+    <PageBody title={<Greeting />}>
+      <HomeTabs active="vault" actions={<ViewToggle view={view} onChange={setView} />} />
       <LiveListView
         parent={user.id}
         showHeadline={false}

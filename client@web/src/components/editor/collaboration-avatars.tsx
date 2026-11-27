@@ -2,6 +2,7 @@ import type { HocuspocusProvider } from "@hocuspocus/provider";
 import { useStore } from "@nanostores/react";
 import { atom } from "nanostores";
 import { useEffect, useState } from "react";
+import { UserAvatar } from "@/components/avatar/user-avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -15,11 +16,10 @@ export const $collabProvider = atom<HocuspocusProvider | null>(null);
 interface Peer {
   id?: string;
   name?: string;
+  email?: string;
+  photoURL?: string;
   color?: string;
 }
-
-const avatar =
-  "flex size-7 cursor-default items-center justify-center rounded-full text-xs font-semibold ring-2 ring-offset-2 ring-offset-background";
 
 /** People in the document now, each with a ring in their caret colour. */
 export function CollaborationAvatars() {
@@ -46,38 +46,31 @@ export function CollaborationAvatars() {
   const overflow = peers.length - visible.length;
 
   return (
-    <div className="hidden shrink-0 items-center gap-1.5 px-1.5 sm:flex">
-      {visible.map((user, index) => {
-        const color = user.color || "var(--muted-foreground)";
-        return (
-          <Tooltip key={user.id || index} delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div
-                role="img"
-                aria-label={user.name || "Anonymous"}
-                className={`${avatar} studio-pop`}
-                style={{
-                  color: `color-mix(in oklab, ${color} 70%, var(--foreground))`,
-                  background: `color-mix(in oklab, ${color} 16%, var(--card))`,
-                  ["--tw-ring-color" as string]: color,
-                }}
-              >
-                {user.name?.charAt(0)?.toUpperCase() || "?"}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              {user.name || "Anonymous"} is here
-            </TooltipContent>
-          </Tooltip>
-        );
-      })}
+    <div className="hidden shrink-0 items-center gap-2 px-1.5 sm:flex">
+      {visible.map((user, index) => (
+        <Tooltip key={user.id || index} delayDuration={300}>
+          <TooltipTrigger asChild>
+            <span className="studio-pop flex cursor-default">
+              <UserAvatar
+                id={user.id}
+                name={user.name || "Anonymous"}
+                email={user.email}
+                photoURL={user.photoURL}
+                size="sm"
+                ring={user.color || "var(--muted-foreground)"}
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{user.name || "Anonymous"} is here</TooltipContent>
+        </Tooltip>
+      ))}
       {overflow > 0 && (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <div
               role="img"
               aria-label={`${overflow} more`}
-              className={`${avatar} bg-muted text-muted-foreground ring-border`}
+              className="flex size-6 cursor-default items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground ring-2 ring-border ring-offset-2 ring-offset-background"
             >
               +{overflow}
             </div>

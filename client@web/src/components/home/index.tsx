@@ -1,34 +1,35 @@
-import { SiteHeader } from "@/components/home/header";
-import { WorkspaceShell } from "@/components/home/workspace-shell";
+import { AccountPopover } from "@/components/home/navigation/account-popover";
+import { CommandPalette } from "@/components/home/navigation/command-palette";
+import { NotificationsPopover } from "@/components/home/notifications-popover";
 
-interface PageProps {
-  children: React.ReactNode | React.ReactNode[];
-  /** Unused; search lives in the sidebar and Ctrl+K palette. Kept for callers. */
-  hideSearch?: boolean;
-  /** Unused; the sidebar reads the route. Kept for callers. */
+interface EditorFrameProps {
+  children: React.ReactNode;
+  /** The app's own title row (title, share, menus); it carries the back-to-home link. */
+  editorHeaderContent?: React.ReactNode;
+  /** Unused; kept for callers. */
   pathname?: string;
-  folderId?: string;
+  hideSearch?: boolean;
   isEditorPage?: boolean;
-  editorHeaderContent?: React.ReactNode; // For editor page: title row content
 }
 
-/** Shell with a top bar, used by the editor. Workspace pages get the shell from app/(workspace)/layout. */
-export default function HomePage({
+/** Frame for the document, sheet and slides editors: their header row on top, the app below. No sidebar. */
+export default function EditorFrame({
   children,
-  isEditorPage = false,
   editorHeaderContent,
-}: PageProps) {
+}: EditorFrameProps) {
   return (
-    <WorkspaceShell
-      defaultOpen={!isEditorPage}
-      header={
-        <SiteHeader
-          isEditorPage={isEditorPage}
-          editorHeaderContent={editorHeaderContent}
-        />
-      }
-    >
-      {children}
-    </WorkspaceShell>
+    <div className="flex h-svh flex-col overflow-hidden bg-background">
+      <header className="flex h-12 shrink-0 items-center gap-3 px-3 md:px-4">
+        <div className="flex min-w-0 flex-1 items-center justify-between">
+          {editorHeaderContent}
+        </div>
+        <div className="flex items-center gap-1">
+          <NotificationsPopover />
+          <AccountPopover />
+        </div>
+      </header>
+      <div className="min-h-0 w-full flex-1">{children}</div>
+      <CommandPalette />
+    </div>
   );
 }

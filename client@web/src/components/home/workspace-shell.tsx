@@ -1,60 +1,34 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
-import { AppSidebar } from "@/components/home/navigation/app-sidebar";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { CommandPalette } from "@/components/home/navigation/command-palette";
-import { SidebarInset, SidebarProvider, useSidebar } from "@/components/ui/sidebar";
+import { TopBar } from "@/components/home/navigation/top-bar";
 
-interface WorkspaceShellProps {
-  children: ReactNode;
-  /** Optional bar above the content (the editor's title row). */
-  header?: ReactNode;
-  defaultOpen?: boolean;
-}
-
-const shellVars = {
-  "--sidebar-width": "calc(var(--spacing) * 60)",
-  "--header-height": "calc(var(--spacing) * 12)",
-} as CSSProperties;
-
-/** Sidebar + content frame. Rendered once per layout so it survives page switches. */
-export function WorkspaceShell({ children, header, defaultOpen = true }: WorkspaceShellProps) {
+/** Top bar + scrolling content. Rendered once per layout so it survives page switches. */
+export function WorkspaceShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   // The content pane is the scroller, so the browser's own scroll reset does not reach it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs on every route change by design
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0);
+    setScrolled(false);
   }, [pathname]);
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen} style={shellVars}>
-      <AppSidebar variant="inset" />
-      <SidebarInset className="h-svh overflow-hidden bg-background md:peer-data-[variant=inset]:rounded-none md:peer-data-[variant=inset]:shadow-none">
-        {header}
-        <div ref={scrollRef} className="min-h-0 w-full flex-1 overflow-y-auto scrollbar-hide">
-          {children}
-        </div>
-      </SidebarInset>
-      <SidebarShortcut />
+    <div className="flex h-svh flex-col overflow-hidden bg-background">
+      <TopBar scrolled={scrolled} />
+      <div
+        ref={scrollRef}
+        onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 4)}
+        className="min-h-0 w-full flex-1 overflow-y-auto scrollbar-hide"
+      >
+        {children}
+      </div>
       <CommandPalette />
-    </SidebarProvider>
+    </div>
   );
-}
-
-/** Ctrl/Cmd+\ toggles the sidebar. */
-function SidebarShortcut() {
-  const { toggleSidebar } = useSidebar();
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "\\" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        toggleSidebar();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [toggleSidebar]);
-  return null;
 }

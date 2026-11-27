@@ -32,6 +32,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { UserAvatar } from "@/components/avatar/user-avatar";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -92,7 +93,6 @@ import { KIND, KindIcon, type KindFilterValue } from "@/components/home/kind";
 import { SectionHeader } from "@/components/home/section-header";
 import { $documents } from "@/state/cloudstore-data";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "../../ui/avatar";
 
 export interface IListItem extends Omit<IFileItem, "meta"> {
   // Extend with folder-specific properties when it's a folder
@@ -185,7 +185,7 @@ export const ListView = React.memo(function ListView({
 }: IListViewProps) {
   const router = useRouter();
   const { user } = useStore($auth);
-  const { getUserName, getUserInitials } = useUserNames();
+  const { getUserName } = useUserNames();
   const [isOpen, setIsOpen] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
@@ -907,11 +907,7 @@ export const ListView = React.memo(function ListView({
         <TableCell className="hidden py-0 text-muted-foreground md:table-cell">
           <span className="flex min-w-0 items-center gap-2">
             {!isOwner && (
-              <Avatar className="size-5 shrink-0">
-                <AvatarFallback className="text-[10px] font-medium text-muted-foreground">
-                  {getUserInitials(item.owner)}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar id={item.owner} name={ownerName} size="xs" className="shrink-0" decorative />
             )}
             <span className="truncate">{ownerName}</span>
           </span>

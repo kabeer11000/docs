@@ -2,27 +2,33 @@ import { useStore } from "@nanostores/react";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
+  Camera,
   Compass,
+  KeyRound,
   LogOut,
   Monitor,
   Moon,
   Settings,
   Shield,
   Sun,
+  Trash2,
   User,
 } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { type ReactNode, useEffect, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { useChangePhoto } from "@/components/avatar/use-change-photo";
+import { UserAvatar } from "@/components/avatar/user-avatar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { $localPhotos } from "@/lib/auth/local-photo";
 import { cn } from "@/lib/utils";
-import { $auth, auth, getUserInitials } from "@/state/auth";
+import { $auth, auth } from "@/state/auth";
+import { $nothing, ownedCountWatch } from "@/state/live-queries";
 import { openSettingsDialog, type SettingsSection } from "@/state/settings-dialog";
 
 const themes = [
@@ -43,10 +49,36 @@ const itemClass =
   "flex h-8 w-full items-center gap-2.5 rounded-[8px] px-2.5 text-[13px] text-foreground transition-colors hover:bg-accent [&_svg]:size-[15px] [&_svg]:text-muted-foreground";
 
 interface AccountPopoverProps {
-  /** Custom trigger (rendered asChild); defaults to an avatar icon button. */
+  /** Custom trigger (rendered asChild); defaults to the user's avatar. */
   children?: ReactNode;
   side?: "top" | "bottom";
   align?: "start" | "end";
+}
+
+const FREE_FILE_LIMIT = 200;
+
+/** "9 of 200 files" with a thin meter. */
+function StorageLine({ userId }: { userId?: string }) {
+  const count = useStore(userId ? ownedCountWatch(userId) : $nothing);
+  const used = count ?? 0;
+  const pct = (100 * Math.min(used, FREE_FILE_LIMIT)) / FREE_FILE_LIMIT;
+  return (
+    <div className="px-2 pb-2.5">
+      <p className="text-xs text-muted-foreground tabular-nums">
+        {count === undefined ? " " : `${used} of ${FREE_FILE_LIMIT} files`}
+      </p>
+      <div
+        className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-label="Files used"
+        aria-valuenow={used}
+        aria-valuemin={0}
+        aria-valuemax={FREE_FILE_LIMIT}
+      >
+        <div className="h-full rounded-full bg-foreground/70 transition-[width] duration-300" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
 }
 
 export function AccountPopover({
@@ -58,13 +90,14 @@ export function AccountPopover({
   const [mounted, setMounted] = useState(false);
   const { user } = useStore($auth);
   const { theme, setTheme } = useTheme();
+  const photos = useStore($localPhotos);
+  const photo = useChangePhoto();
 
   // next-themes only knows the theme on the client.
   useEffect(() => setMounted(true), []);
 
   const name = user?.displayName || user?.email || "User";
-  const photo = user?.photoURL || "/avatars/avatar-3.png";
-  const initials = getUserInitials(user) || "U";
+  const hasPhoto = !!(user && photos[user.id]);
 
   const run = (fn: () => void) => () => {
     setOpen(false);
@@ -75,25 +108,19 @@ export function AccountPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         {children ?? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
+          <button
+            type="button"
+            data-tour="account-menu"
             aria-label="Account menu"
+            className="press flex size-9 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40"
           >
-            <Avatar className="size-7 bg-muted">
-              <AvatarImage src={photo} alt="" />
-              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-            </Avatar>
-          </Button>
+            <UserAvatar id={user?.id} name={user?.displayName} email={user?.email} photoURL={user?.photoURL} decorative />
+          </button>
         )}
       </PopoverTrigger>
-      <PopoverContent className="w-64 rounded-[14px] p-1.5" side={side} align={align} sideOffset={8}>
+      <PopoverContent className="w-72 rounded-[14px] p-1.5" side={side} align={align} sideOffset={8}>
         <div className="flex items-center gap-3 px-2 pt-1.5 pb-2.5">
-          <Avatar className="size-9 bg-muted">
-            <AvatarImage src={photo} alt="" />
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-          </Avatar>
+          <UserAvatar id={user?.id} name={user?.displayName} email={user?.email} photoURL={user?.photoURL} size="lg" decorative />
           <div className="min-w-0">
             <p className="truncate font-display text-[15px] font-semibold tracking-[-0.01em]">{name}</p>
             {user?.email && user.email !== name && (
@@ -103,6 +130,21 @@ export function AccountPopover({
             )}
           </div>
         </div>
+
+        <StorageLine userId={user?.id} />
+
+        <button type="button" className={itemClass} disabled={photo.busy} onClick={run(photo.change)}>
+          <Camera />
+          {photo.busy ? "Saving photo..." : hasPhoto ? "Change photo" : "Add a photo"}
+        </button>
+        {hasPhoto && (
+          <button type="button" className={itemClass} onClick={run(photo.remove)}>
+            <Trash2 />
+            Remove photo
+          </button>
+        )}
+
+        <Separator className="my-1" />
 
         <div className="px-2 pt-1 pb-2">
           <p className="mb-1.5 text-xs font-medium text-muted-foreground">
@@ -148,6 +190,10 @@ export function AccountPopover({
             {item.label}
           </button>
         ))}
+        <Link href="/settings/api" className={itemClass} onClick={() => setOpen(false)}>
+          <KeyRound />
+          API keys
+        </Link>
         <button
           type="button"
           className={itemClass}

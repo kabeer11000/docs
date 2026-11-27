@@ -2,33 +2,32 @@
 
 import { useStore } from "@nanostores/react";
 import { ArrowUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { CreateTiles } from "@/components/home/create-tiles";
 import { Greeting, JumpBackIn } from "@/components/home/home-sections";
+import { HomeTabs, StarredView } from "@/components/home/home-tabs";
 import { KindFilter, type KindFilterValue } from "@/components/home/kind";
 import { PageBody } from "@/components/home/page-body";
 import { SectionHeader } from "@/components/home/section-header";
 import { useViewMode, ViewToggle } from "@/components/home/view-toggle";
 import { ListView } from "@/components/shared/ui/list-view";
 import { LiveFoldersView } from "@/components/shared/ui/live-folders-view";
-import { useSidebar } from "@/components/ui/sidebar";
 import { useDocuments } from "@/hooks/use-documents";
 import { useImportFiles } from "@/lib/import/use-import-files";
-import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
 
 const hasFiles = (e: React.DragEvent) =>
   Array.from(e.dataTransfer.types).includes("Files");
 
-export default function HomePage() {
+export default function HomePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const starred = use(searchParams).tab === "starred";
   const { user } = useStore($auth);
   const [view, setView] = useViewMode();
   const [kind, setKind] = useState<KindFilterValue>("all");
   const { documents, isLoading } = useDocuments(undefined, "recent-files");
   const { importFiles } = useImportFiles();
   const [dragging, setDragging] = useState(false);
-  const sidebar = useSidebar();
   // dragenter/dragleave fire for every child; count them so the overlay does not flicker.
   const depth = useRef(0);
 
@@ -72,12 +71,7 @@ export default function HomePage() {
     >
       {dragging && (
         <output
-          className={cn(
-            "pointer-events-none fixed inset-3 z-50 flex items-center justify-center rounded-[20px] border-2 border-dashed border-foreground/40 bg-background/85 px-6",
-            !sidebar.isMobile &&
-              sidebar.state === "expanded" &&
-              "left-[calc(var(--sidebar-width)+0.75rem)]",
-          )}
+          className="pointer-events-none fixed inset-3 top-[3.75rem] z-50 flex items-center justify-center rounded-[20px] border-2 border-dashed border-foreground/40 bg-background/85 px-6"
           aria-live="polite"
         >
           <span className="flex flex-col items-center text-center">
@@ -96,43 +90,44 @@ export default function HomePage() {
       )}
 
       <PageBody title={<Greeting />}>
-        <div className="flex flex-col gap-12">
-          <CreateTiles folderId={user.id} dragging={dragging} />
+        <HomeTabs
+          active={starred ? "starred" : "recent"}
+          actions={<ViewToggle view={view} onChange={setView} />}
+        />
+        {starred ? (
+          <StarredView view={view} />
+        ) : (
+          <div className="flex flex-col gap-12">
+            <CreateTiles folderId={user.id} dragging={dragging} />
 
-          <JumpBackIn />
+            <JumpBackIn />
 
-          <LiveFoldersView
-            showHeadline
-            headlineText="Folders"
-            mode="recent-folders"
-            collapsible={false}
-            creationParent={user.id}
-          />
-
-          <section aria-labelledby="all-files">
-            <SectionHeader
-              title={<span id="all-files">All files</span>}
-              actions={<ViewToggle view={view} onChange={setView} />}
-            />
-            <ListView
-              items={documents}
-              isLoading={isLoading}
-              mode="recent-files"
-              creationParent={user.id}
+            <LiveFoldersView
+              showHeadline
+              headlineText="Folders"
+              mode="recent-folders"
               collapsible={false}
-              defaultSortField="modified"
-              enableCopy={false}
-              enableBulkSelection
-              view={view}
-              kindFilter={kind}
-              filters={
-                documents.length > 0 && (
-                  <KindFilter value={kind} onChange={setKind} />
-                )
-              }
+              creationParent={user.id}
             />
-          </section>
-        </div>
+
+            <section aria-labelledby="all-files">
+              <SectionHeader title={<span id="all-files">All files</span>} />
+              <ListView
+                items={documents}
+                isLoading={isLoading}
+                mode="recent-files"
+                creationParent={user.id}
+                collapsible={false}
+                defaultSortField="modified"
+                enableCopy={false}
+                enableBulkSelection
+                view={view}
+                kindFilter={kind}
+                filters={documents.length > 0 && <KindFilter value={kind} onChange={setKind} />}
+              />
+            </section>
+          </div>
+        )}
       </PageBody>
     </section>
   );

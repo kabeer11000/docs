@@ -2,6 +2,7 @@ import { atom } from 'nanostores'
 import { showToast } from '@/lib/toast'
 import { AUTH_ENDPOINTS } from '@/lib/endpoints'
 import { clientCookies } from './cookies'
+import { saveLocalPhoto } from './local-photo'
 import type { IAuthTokens, IUser } from '@shared-types'
 
 interface AuthState {
@@ -513,8 +514,11 @@ export class AuthManager {
     this.state.set({ ...state, isLoading: true, error: null })
 
     try {
+      // The photo is kept per device (see local-photo.ts), never in the user cookie.
+      const { photoURL, ...rest } = userData
+      if (photoURL !== undefined) await saveLocalPhoto(state.user.id, photoURL || null, this.getAuthHeader())
       // TODO: Implement actual profile update API call
-      const updatedUser = { ...state.user, ...userData } // Placeholder
+      const updatedUser = { ...state.user, ...rest } // Placeholder
 
       this.state.set({
         ...state,

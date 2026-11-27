@@ -2,6 +2,7 @@ import type { IComment } from "@shared-types";
 import { Check, MessagesSquare, Trash, X } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import { UserAvatar } from "@/components/avatar/user-avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -135,9 +136,14 @@ export const CommentsSidebar: React.FC<CommentsSidebarProps> = ({
                     onClick={() => onCommentClick(comment.id)}
                   >
                     <div className="mb-1.5 flex items-center gap-2">
-                      <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-medium text-foreground">
-                        {comment.author.name.charAt(0).toUpperCase()}
-                      </div>
+                      <UserAvatar
+                        id={comment.author.id}
+                        name={comment.author.name}
+                        email={comment.author.email}
+                        photoURL={comment.author.avatar}
+                        size="sm"
+                        decorative
+                      />
                       <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
                         {comment.author.name}
                       </span>

@@ -1,13 +1,16 @@
-import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Monitor, Moon, Palette, Settings, Shield, Sun } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import * as React from "react";
+import { useChangePhoto } from "@/components/avatar/use-change-photo";
+import { UserAvatar } from "@/components/avatar/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { $localPhotos } from "@/lib/auth/local-photo";
 import { cn } from "@/lib/utils";
-import { auth } from "@/state/auth";
+import { $auth, auth } from "@/state/auth";
 import {
   $settingsDialogState,
   $settingsState,
@@ -124,44 +127,39 @@ function EditableRow({
   );
 }
 
+function PhotoRow() {
+  const { user } = useStore($auth);
+  const photos = useStore($localPhotos);
+  const photo = useChangePhoto();
+  const hasPhoto = !!(user && photos[user.id]);
+
+  return (
+    <SettingRow
+      label="Profile photo"
+      description="Any image. It is cropped to a square and kept on this device."
+      action={
+        <div className="flex items-center gap-2">
+          <UserAvatar id={user?.id} name={user?.displayName} email={user?.email} photoURL={user?.photoURL} decorative />
+          {hasPhoto && (
+            <Button variant="ghost" size="sm" onClick={photo.remove}>
+              Remove
+            </Button>
+          )}
+          <Button variant="outline" size="sm" disabled={photo.busy} onClick={photo.change}>
+            {photo.busy ? "Saving..." : hasPhoto ? "Change" : "Upload"}
+          </Button>
+        </div>
+      }
+    />
+  );
+}
+
 function GeneralSettings() {
   const settings = useStore($settingsState);
 
   return (
     <div>
-      <SettingRow
-        label="Profile picture"
-        description="JPG, GIF or PNG. 1MB max."
-        action={
-          <div className="flex items-center gap-3">
-            <img
-              src={settings.profilePicture || "/avatars/avatar-3.png"}
-              alt=""
-              className="size-9 rounded-full bg-muted object-cover"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const input = document.createElement("input");
-                input.type = "file";
-                input.accept = "image/*";
-                input.onchange = (e) => {
-                  const file = (e.target as HTMLInputElement).files?.[0];
-                  if (file) {
-                    // In a real app, you'd upload to a server and get back a URL
-                    const imageUrl = URL.createObjectURL(file);
-                    updateSettings({ profilePicture: imageUrl });
-                  }
-                };
-                input.click();
-              }}
-            >
-              Upload
-            </Button>
-          </div>
-        }
-      />
+      <PhotoRow />
       <EditableRow
         label="Name"
         value={settings.name}

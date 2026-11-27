@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/avatar/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -105,14 +105,6 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
     return date.toLocaleDateString();
   };
 
-  const getUserInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
   return (
     <div
       className={cn(
@@ -161,12 +153,14 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
       {/* Main Comment */}
       <div className="p-3 space-y-3">
         <div className="flex items-start gap-2">
-          <Avatar className="w-6 h-6">
-            <AvatarImage src={comment.author.avatar} />
-            <AvatarFallback className="text-xs">
-              {getUserInitials(comment.author.name)}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            id={comment.author.id}
+            name={comment.author.name}
+            email={comment.author.email}
+            photoURL={comment.author.avatar}
+            size="sm"
+            decorative
+          />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -254,12 +248,14 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
           <div className="space-y-2 border-l-2 border-border pl-3 ml-3">
             {comment.replies.map((reply) => (
               <div key={reply.id} className="flex items-start gap-2">
-                <Avatar className="w-5 h-5">
-                  <AvatarImage src={reply.author.avatar} />
-                  <AvatarFallback className="text-xs">
-                    {getUserInitials(reply.author.name)}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  id={reply.author.id}
+                  name={reply.author.name}
+                  email={reply.author.email}
+                  photoURL={reply.author.avatar}
+                  size="xs"
+                  decorative
+                />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">

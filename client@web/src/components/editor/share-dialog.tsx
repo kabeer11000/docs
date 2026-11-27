@@ -20,7 +20,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/avatar/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -383,11 +383,6 @@ export function ShareDialog({
     }
   }, [document, sharedUsers, updateDocument, onOpenChange, user, isOwner]);
 
-  const getInitials = (name?: string | null, email?: string | null) => {
-    const displayName = name || email || "?";
-    return displayName.charAt(0).toUpperCase();
-  };
-
   // Main view
   if (viewState === "main") {
     return (
@@ -470,11 +465,12 @@ export function ShareDialog({
                             onSelect={() => selectUser(result)}
                             className="flex items-center gap-3 px-3 py-2"
                           >
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-accent text-foreground text-sm font-medium">
-                                {getInitials(result.displayName, result.email)}
-                              </AvatarFallback>
-                            </Avatar>
+                            <UserAvatar
+                              id={result.id}
+                              name={result.displayName || result.name}
+                              email={result.email}
+                              decorative
+                            />
                             <div className="flex-1 min-w-0">
                               <div className="text-sm font-medium truncate">
                                 {result.displayName || result.email}
@@ -547,11 +543,13 @@ export function ShareDialog({
                 {/* Owner */}
                 <div className="flex items-center justify-between py-2">
                   <div className="flex items-center gap-3">
-                    <Avatar className="size-9">
-                      <AvatarFallback className="bg-accent text-foreground text-sm font-medium">
-                        {getInitials(user?.displayName, user?.email)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      id={user?.id}
+                      name={user?.displayName}
+                      email={user?.email}
+                      photoURL={user?.photoURL}
+                      decorative
+                    />
                     <div>
                       <div className="text-sm font-medium">
                         {user?.displayName || user?.email} (you)
@@ -575,14 +573,12 @@ export function ShareDialog({
                       className="flex items-center justify-between py-2"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Avatar className="size-9">
-                          <AvatarFallback className="bg-accent text-foreground text-sm font-medium">
-                            {getInitials(
-                              sharedUser.displayName,
-                              sharedUser.email,
-                            )}
-                          </AvatarFallback>
-                        </Avatar>
+                        <UserAvatar
+                          id={sharedUser.userId}
+                          name={sharedUser.displayName}
+                          email={sharedUser.email}
+                          decorative
+                        />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium truncate">
                             {sharedUser.displayName || sharedUser.email}
@@ -720,11 +716,13 @@ export function ShareDialog({
             {/* Selected user chip */}
             <div className="flex items-center gap-2 p-2 border rounded-md">
               <div className="flex items-center gap-2 flex-1 min-w-0 bg-muted rounded px-3 py-1.5">
-                <Avatar className="h-6 w-6">
-                  <AvatarFallback className="bg-accent text-foreground text-xs font-medium">
-                    {getInitials(selectedUser.displayName, selectedUser.email)}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  id={selectedUser.id}
+                  name={selectedUser.displayName || selectedUser.name}
+                  email={selectedUser.email}
+                  size="sm"
+                  decorative
+                />
                 <span className="text-sm font-medium truncate">
                   {selectedUser.displayName || selectedUser.email}
                 </span>
