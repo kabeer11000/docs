@@ -98,7 +98,8 @@ export function Outline() {
 
   return (
     <div ref={anchor} className="sticky top-16 z-10 hidden h-0 lg:block">
-      {open && width > 0 && (
+      {/* Only once the document has headings; an empty rail is just clutter. */}
+      {open && width > 0 && data.headings.length > 0 && (
         <nav
           aria-label="Document outline"
           style={{ width }}
