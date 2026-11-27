@@ -626,15 +626,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
 
   return (
     <Fragment>
-      <div className={cn("relative flex-1 overflow-auto bg-background px-2 pb-16 md:px-8", sideMargin)}>
-        <div className="editor-toolbar pointer-events-none sticky top-0 z-30 flex justify-center px-1 pt-3 pb-4">
-          <div
-            data-tour="editor-toolbar"
-            className="studio-rise scrollbar-hidden pointer-events-auto max-w-full overflow-x-auto rounded-full bg-card p-1 shadow-float"
-          >
-            <EditorControls canEdit={permissions.canEdit} />
-          </div>
-        </div>
+      <div className={cn("relative flex-1 overflow-auto bg-background px-2 pt-6 pb-32 md:px-8", sideMargin)}>
         <Outline />
         <LinkedFrom documentId={documentId} />
         <FindBar canEdit={permissions.canEdit} />
@@ -647,7 +639,16 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
         </FileTransition>
       </div>
 
-      <EditorStatusBar className="pointer-events-auto absolute bottom-3 left-3 z-20 md:left-4" />
+      {/* Formatting toolbar floats at the bottom, out of the way of the page and close to the hands. */}
+      <div className={cn("editor-toolbar pointer-events-none absolute inset-x-0 bottom-4 z-30 flex justify-center px-3", sideMargin)}>
+        <div
+          data-tour="editor-toolbar"
+          className="studio-rise scrollbar-hidden pointer-events-auto max-w-full overflow-x-auto rounded-full border border-border bg-card p-1 shadow-float"
+        >
+          <EditorControls canEdit={permissions.canEdit} />
+        </div>
+      </div>
+      <EditorStatusBar className="pointer-events-auto absolute bottom-4 left-4 z-20 hidden 2xl:flex" />
 
       <SelectionMenu
         isVisible={showSelectionMenu}
