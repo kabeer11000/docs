@@ -1,6 +1,6 @@
 import { type Editor, Node } from "@tiptap/core";
 import type { Mermaid } from "mermaid";
-import { diagramSvgs } from "@/lib/export/rich-nodes";
+import { diagramSvgs } from "@/lib/export/diagram-cache";
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {

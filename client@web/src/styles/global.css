@@ -93,8 +93,8 @@
   --radius: 0.625rem;
 
   /* Desk (app canvas and chrome) and paper (the only white: pages, dialogs, menus) */
-  --background: #f5f6f8;
-  --foreground: #121418;
+  --background: #f6f6f6;
+  --foreground: #111111;
 
   --card: #ffffff;
   --card-foreground: var(--foreground);
@@ -103,40 +103,40 @@
   --popover-foreground: var(--foreground);
 
   /* Ink: only for things you can act on (primary actions, links, focus, active nav) */
-  --primary: #121418;
+  --primary: #111111;
   --primary-foreground: #ffffff;
 
-  --secondary: #eceef2;
+  --secondary: #efefef;
   --secondary-foreground: var(--foreground);
 
-  --muted: #eceef2;
-  --muted-foreground: #646b76;
+  --muted: #efefef;
+  --muted-foreground: #6b6b6b;
 
   /* Hover / selected background for neutral controls */
-  --accent: #eaedf1;
+  --accent: #ededed;
   --accent-foreground: var(--foreground);
 
   --destructive: oklch(0.58 0.2 27);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: #e3e6eb;
-  --input: #d6dae1;
+  --border: #e6e6e6;
+  --input: #d9d9d9;
   --ring: rgb(59 91 253 / 0.45);
 
   /* Document page */
   --paper: #ffffff;
-  --paper-foreground: #121418;
-  --paper-canvas: #f5f6f8;
+  --paper-foreground: #111111;
+  --paper-canvas: #f6f6f6;
   --highlight: #ffe45c;
   --highlight-foreground: #121418;
 
   /* One colour per app; --app is set by [data-app] on each app root. */
-  --doc: #3b5bfd;
-  --doc-soft: #e9edff;
-  --sheet: #0e9f6e;
-  --sheet-soft: #e2f6ee;
-  --slides: #ff6a1f;
-  --slides-soft: #fff0e6;
+  --doc: #4a63e7;
+  --doc-soft: #f0f2fd;
+  --sheet: #17975f;
+  --sheet-soft: #eef7f2;
+  --slides: #ea6a2a;
+  --slides-soft: #fdf2ec;
   --app: var(--doc);
   --app-soft: var(--doc-soft);
   --app-foreground: #ffffff;
@@ -170,37 +170,37 @@
 .dark {
   color-scheme: dark;
 
-  --background: #0e1014;
-  --foreground: #f1f3f7;
+  --background: #0f0f10;
+  --foreground: #f2f2f2;
 
-  --card: #171a21;
-  --popover: #1c2029;
+  --card: #18181a;
+  --popover: #1d1d20;
 
-  --primary: #f1f3f7;
-  --primary-foreground: #0e1014;
+  --primary: #f2f2f2;
+  --primary-foreground: #0f0f10;
 
-  --secondary: #20242d;
-  --muted: #20242d;
-  --muted-foreground: #9aa1ad;
-  --accent: #232832;
+  --secondary: #222225;
+  --muted: #222225;
+  --muted-foreground: #a0a0a6;
+  --accent: #26262a;
 
   --destructive: oklch(0.62 0.19 25);
 
-  --border: #262a33;
-  --input: #323743;
+  --border: #2a2a2e;
+  --input: #36363b;
   --ring: rgb(127 149 255 / 0.5);
 
-  --paper: #171a21;
-  --paper-foreground: #f1f3f7;
-  --paper-canvas: #0e1014;
+  --paper: #18181a;
+  --paper-foreground: #f2f2f2;
+  --paper-canvas: #0f0f10;
 
-  --doc: #7f95ff;
-  --doc-soft: rgb(127 149 255 / 0.14);
-  --sheet: #3dd39b;
-  --sheet-soft: rgb(61 211 155 / 0.13);
-  --slides: #ff9257;
-  --slides-soft: rgb(255 146 87 / 0.14);
-  --app-foreground: #0e1014;
+  --doc: #8a9cf5;
+  --doc-soft: rgb(138 156 245 / 0.1);
+  --sheet: #4cc993;
+  --sheet-soft: rgb(76 201 147 / 0.1);
+  --slides: #f6925e;
+  --slides-soft: rgb(246 146 94 / 0.1);
+  --app-foreground: #0f0f10;
 
   --elev-card: 0 0 0 1px rgb(255 255 255 / 0.05), 0 2px 8px rgb(0 0 0 / 0.3);
   --elev-card-hover: 0 0 0 1px rgb(255 255 255 / 0.08), 0 16px 34px -12px rgb(0 0 0 / 0.7);

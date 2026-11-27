@@ -1,4 +1,7 @@
 import katex from "katex";
+import { diagramSvgs } from "./diagram-cache";
+
+export { diagramSvgs };
 
 // Serialization helpers for editor nodes whose saved HTML is not what a reader should see.
 
@@ -22,7 +25,6 @@ export const mathToMathml = (html: string) =>
   replaceMath(html, (latex, block) => katex.renderToString(latex, { output: "mathml", displayMode: block, throwOnError: false }));
 
 /** Mermaid source -> last SVG the editor rendered for it (light theme), for exports that can show it. */
-export const diagramSvgs = new Map<string, string>();
 
 const DIAGRAM_RE = /<div\b[^>]*\bdata-diagram="[^"]*"[^>]*><pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre><\/div>/g;
 

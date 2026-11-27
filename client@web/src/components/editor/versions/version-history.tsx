@@ -8,7 +8,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getAuthHeader } from "@/lib/auth/manager";
-import { sanitizeHtml } from "@/lib/export/import";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { editorInstance } from "@/state/editor";
@@ -57,6 +56,8 @@ export function VersionHistory({ documentId, canEdit }: { documentId: string; ca
     try {
       const { version } = await api(`/files/${documentId}/versions/${id}`);
       const html = typeof version.content === "string" ? version.content : "";
+      // Loaded on demand: the import module pulls in the markdown toolchain.
+      const { sanitizeHtml } = await import("@/lib/export/import");
       setPreview(sanitizeHtml(html, (h) => new DOMParser().parseFromString(h, "text/html")));
     } catch {
       setPreview("");
