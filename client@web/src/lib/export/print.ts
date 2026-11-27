@@ -50,7 +50,7 @@ export function snapshotEditor(dom: HTMLElement): string {
   clone.removeAttribute("style");
   clone.classList.remove("ProseMirror-focused");
   for (const el of clone.querySelectorAll(
-    ".collaboration-carets__caret, .collaboration-cursor__caret, .ProseMirror-gapcursor, .ProseMirror-dropcursor, .slash-query",
+    ".collaboration-carets__caret, .collaboration-cursor__caret, .ProseMirror-gapcursor, .ProseMirror-dropcursor, .slash-query, div[data-embed] iframe, .diagram-source",
   )) {
     el.remove();
   }

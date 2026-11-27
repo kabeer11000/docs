@@ -25,6 +25,11 @@ describe("sanitizeHtml", () => {
   });
 });
 
+it("keeps callout and math attributes", () => {
+  const html = '<div data-callout="tip" onclick="x()"><p>t</p></div><span data-type="inline-math" data-latex="x" style="color:red"></span>';
+  expect(sanitizeHtml(html, parse)).toBe('<div data-callout="tip"><p>t</p></div><span data-type="inline-math" data-latex="x"></span>');
+});
+
 describe("textToHtml", () => {
   it("makes paragraphs and line breaks, escaping markup", () => {
     expect(textToHtml("a <b>\nb\r\n\r\nc")).toBe("<p>a &lt;b&gt;<br>b</p><p>c</p>");
@@ -40,6 +45,19 @@ describe("htmlToText", () => {
       parse,
     );
     expect(text).toBe("T\n\nBody\n\n- one\n  - deep\n1. first\n2. second\n[x] done\n\nq\n\na\tb\nc\td\n");
+  });
+
+  it("writes math as its LaTeX and reads inside callouts", () => {
+    const text = htmlToText(
+      '<p>So <span data-latex="x^2" data-type="inline-math"></span>.</p><div data-latex="a+b" data-type="block-math"></div><div data-callout="tip"><p>hint</p></div>',
+      parse,
+    );
+    expect(text).toBe("So x^2.\n\na+b\n\nhint\n");
+  });
+
+  it("writes embeds as their title and address", () => {
+    const text = htmlToText('<div data-embed="Loom"><iframe src="https://www.loom.com/embed/x"></iframe><a class="embed-link" href="https://www.loom.com/embed/x">Loom</a></div>', parse);
+    expect(text).toBe("Loom: https://www.loom.com/embed/x\n");
   });
 });
 

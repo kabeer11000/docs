@@ -1,4 +1,15 @@
 import { PX_PER_IN, type PaperSettings, pageGeometry, sheetInches } from "../paper";
+import { mathToMathml } from "./rich-nodes";
+
+const DOCX_CSS = `
+[data-page-break] { break-after: page; }
+mark { background: #ffe36b; }
+pre, code { font-family: Consolas, "Courier New", monospace; }
+pre { background: #f1f2f4; }
+[data-callout] p { border-left: 3px solid #686e76; background: #f1f2f4; padding-left: 8px; }
+[data-callout="tip"] p { border-left-color: #16a34a; background: #eef8f1; }
+[data-callout="warning"] p { border-left-color: #d97706; background: #fdf4e7; }
+`;
 
 const twip = (inches: number) => Math.round(inches * 1440);
 
@@ -23,8 +34,8 @@ export async function htmlToDocx(opts: { html: string; title: string; paper: Pap
           },
         },
         children: [
-          ...htmlToContent(opts.html, {
-            stylesheet: "[data-page-break] { break-after: page; }",
+          ...htmlToContent(mathToMathml(opts.html), {
+            stylesheet: DOCX_CSS,
             maxImageWidth: Math.floor((pageGeometry(paper).contentWidth / PX_PER_IN) * 96),
           }),
         ],

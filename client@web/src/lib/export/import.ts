@@ -18,7 +18,8 @@ const ALLOWED_ATTRS: Record<string, string[]> = {
   ul: ["data-type"],
   li: ["data-type", "data-checked"],
   code: ["class"],
-  div: ["data-page-break"],
+  div: ["data-page-break", "data-callout", "data-type", "data-latex"],
+  span: ["data-type", "data-latex"],
   input: ["type", "checked"],
 };
 const SAFE_URL = /^(https?:|mailto:|#|\/)/i;

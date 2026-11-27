@@ -4,9 +4,12 @@ import { useStore } from "@nanostores/react";
 import { debounce } from "@repo/shadcn-ui/lib/utils";
 import { Collaboration } from "@tiptap/extension-collaboration";
 import Color from "@tiptap/extension-color";
+import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import Placeholder from "@tiptap/extension-placeholder";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 import TextAlign from "@tiptap/extension-text-align";
 import { FontSize, TextStyle } from "@tiptap/extension-text-style";
 import { type Editor, EditorContent, useEditor } from "@tiptap/react";
@@ -33,6 +36,7 @@ import * as Y from "yjs";
 import { Button } from "@/components/ui/button";
 import { useCloudStoreSaver } from "@/hooks/use-cloudstore-saver";
 import { authManager } from "@/lib/auth/manager";
+import { fileHref } from "@/lib/files";
 import { useComments } from "@/hooks/use-comments";
 import { useDocumentPermissions } from "@/hooks/use-document-permissions";
 import { $paperSettings, fromStored, pageGeometry } from "@/lib/paper";
@@ -42,15 +46,26 @@ import { $auth } from "@/state/auth";
 import { editorActions, editorUIState } from "@/state/editor";
 import { CollaborationAvatars } from "./collaboration-avatars";
 import { useLiveDocument } from "./core/use-document-loader";
+import { useWritingMemory } from "./core/use-writing-memory";
+import { FocusMode } from "./focus-mode";
 import { printDocument } from "./document-actions";
 import { EditorControls, EditorStatusBar } from "./editor-controls";
 import { EditorSkeleton } from "./editor-skeleton";
+import { Callout } from "./extensions/callout";
+import { CodeBlock } from "./extensions/code-block";
 import { CustomHeading } from "./extensions/custom-heading";
+import { Diagram } from "./extensions/diagram";
+import { Embed } from "./extensions/embed";
 import { GreenFlag, RedFlag } from "./extensions/flag-mark";
 import { FontFamily } from "./extensions/font-family";
+import { ImageDrop } from "./extensions/image-drop";
+import { BlockMath, InlineMath } from "./extensions/math";
 import { PageBreak } from "./extensions/page-break";
 import { Pagination, repaginate } from "./extensions/pagination";
 import { SlashCommand } from "./extensions/slash-command";
+import { FindBar } from "./find/find-bar";
+import { Find } from "./find/find-extension";
+import { Outline } from "./outline/outline";
 import { $pageSetupOpen, $shortcutsOpen } from "./dialogs-state";
 import { PaperSheet } from "./paper-sheet";
 import { SelectionMenu } from "./selection-menu";
@@ -258,7 +273,21 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
 
   const extensions = useMemo(
     () => [
-      StarterKit.configure({ heading: false, undoRedo: false }),
+      StarterKit.configure({
+        heading: false,
+        undoRedo: false,
+        codeBlock: false,
+        link: { openOnClick: false, autolink: true, linkOnPaste: true, defaultProtocol: "https" },
+      }),
+      CodeBlock,
+      Highlight,
+      Subscript,
+      Superscript,
+      Callout,
+      InlineMath,
+      BlockMath,
+      Embed,
+      Diagram,
       CustomHeading.configure({ levels: [1, 2, 3] }),
       TextStyle,
       FontSize,
@@ -272,6 +301,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
       TaskList,
       TaskItem.configure({ nested: true }),
       Image.configure({ allowBase64: true }),
+      ImageDrop,
       PageBreak,
       Placeholder.configure({ placeholder: "Start writing, or type / for blocks" }),
       SlashCommand,
@@ -296,6 +326,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
         user: { id: userId, name: userName, color: `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}` },
       }),
       Collaboration.configure({ document: getYDoc() }),
+      Find,
     ],
     [provider, userId, userName, getYDoc],
   );
@@ -396,6 +427,8 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     documentId,
     documentData,
   );
+
+  useWritingMemory(editor, documentId, contentReady, canEdit);
 
   useEffect(() => {
     editorActions.setSaveStatus(saveStatus, lastSaved, errorMessage);
@@ -553,6 +586,12 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     isAIPanelOpen && isCommentsSidebarOpen ? "md:mr-[640px]" : isAIPanelOpen || isCommentsSidebarOpen ? "md:mr-80" : "md:mr-0",
   );
 
+  // Sheets and slides share the documents collection; send them to their own app.
+  const otherKind = documentData?.kind && documentData.kind !== "doc" ? documentData.kind : null;
+  useEffect(() => {
+    if (otherKind) router.replace(fileHref(documentId, otherKind));
+  }, [otherKind, documentId, router]);
+
   useEffect(() => {
     if (access !== "denied") return;
     showToast.error("You do not have permission to access this document.");
@@ -600,6 +639,9 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
       </div>
 
       <div className={cn("relative flex-1 overflow-auto bg-paper-canvas px-2 pt-4 pb-10 md:px-8", sideMargin)}>
+        <Outline />
+        <FindBar canEdit={permissions.canEdit} />
+          <FocusMode />
         <PaperSheet geometry={geometry} pages={pages}>
           <EditorContent editor={editor} className="contents" />
         </PaperSheet>

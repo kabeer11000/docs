@@ -6,6 +6,10 @@ import Suggestion, { type SuggestionKeyDownProps, type SuggestionProps } from "@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { editDiagram } from "./diagram";
+import { insertImages } from "./image-drop";
+import { askInline } from "./inline-prompt";
+import { askLatex } from "./math";
 
 export interface SlashItem {
   title: string;
@@ -14,24 +18,52 @@ export interface SlashItem {
   run: (editor: Editor, range: Range) => void;
 }
 
-const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
-
 function pickImage(editor: Editor) {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
   input.onchange = () => {
     const file = input.files?.[0];
-    if (!file) return;
-    if (file.size > MAX_IMAGE_BYTES) {
-      showToast.error("Image is larger than 2 MB");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => editor.chain().focus().setImage({ src: String(reader.result), alt: file.name }).run();
-    reader.readAsDataURL(file);
+    if (file) void insertImages(editor, [file]);
   };
   input.click();
+}
+
+function linkTo(editor: Editor, raw: string) {
+  const href = /^[a-z][a-z\d+.-]*:/i.test(raw) ? raw : `https://${raw}`;
+  if (!/^(https?|mailto|tel):/i.test(href)) {
+    showToast.error("Only web, mail and phone links are allowed");
+    return;
+  }
+  editor.chain().focus().insertContent({ type: "text", text: raw, marks: [{ type: "link", attrs: { href } }] }).insertContent(" ").run();
+}
+
+async function insertLink(editor: Editor, range: Range) {
+  editor.chain().focus().deleteRange(range).run();
+  const raw = await askInline(editor, { label: "Link address", placeholder: "Paste or type a link" });
+  if (raw) linkTo(editor, raw);
+}
+
+async function insertEmbed(editor: Editor, range: Range) {
+  editor.chain().focus().deleteRange(range).run();
+  const raw = await askInline(editor, { label: "Embed link", placeholder: "YouTube, Figma, Loom, Spotify, Maps..." });
+  if (raw && !editor.chain().focus().setEmbed(raw).run()) linkTo(editor, raw);
+}
+
+async function insertMath(editor: Editor, range: Range, block: boolean) {
+  editor.chain().focus().deleteRange(range).run();
+  const latex = await askLatex(editor);
+  if (!latex) return;
+  const chain = editor.chain().focus();
+  (block ? chain.insertBlockMath({ latex }) : chain.insertInlineMath({ latex })).run();
+}
+
+function insertDiagram(editor: Editor, range: Range) {
+  const pos = range.from;
+  editor.chain().focus().deleteRange(range).insertDiagram().run();
+  // The diagram lands at the cursor, or right after the paragraph it split.
+  const at = [pos, pos + 1, pos - 1].find((p) => editor.state.doc.nodeAt(p)?.type.name === "diagram");
+  if (at != null) requestAnimationFrame(() => editDiagram(editor, at));
 }
 
 export const SLASH_ITEMS: SlashItem[] = [
@@ -44,9 +76,17 @@ export const SLASH_ITEMS: SlashItem[] = [
   { title: "To-do list", hint: "[ ]", keywords: "task checkbox todo check", run: (e, r) => e.chain().focus().deleteRange(r).toggleTaskList().run() },
   { title: "Table", hint: "", keywords: "grid rows columns", run: (e, r) => e.chain().focus().deleteRange(r).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
   { title: "Code block", hint: "```", keywords: "code pre snippet", run: (e, r) => e.chain().focus().deleteRange(r).toggleCodeBlock().run() },
+  { title: "Callout", hint: "", keywords: "callout note info box aside", run: (e, r) => e.chain().focus().deleteRange(r).setCallout("note").run() },
+  { title: "Tip", hint: "", keywords: "callout tip hint", run: (e, r) => e.chain().focus().deleteRange(r).setCallout("tip").run() },
+  { title: "Warning", hint: "", keywords: "callout warning caution alert", run: (e, r) => e.chain().focus().deleteRange(r).setCallout("warning").run() },
   { title: "Quote", hint: ">", keywords: "blockquote citation", run: (e, r) => e.chain().focus().deleteRange(r).toggleBlockquote().run() },
   { title: "Divider", hint: "---", keywords: "hr horizontal rule line separator", run: (e, r) => e.chain().focus().deleteRange(r).setHorizontalRule().run() },
   { title: "Image", hint: "", keywords: "picture photo upload", run: (e, r) => { e.chain().focus().deleteRange(r).run(); pickImage(e); } },
+  { title: "Link", hint: "", keywords: "url hyperlink web address", run: insertLink },
+  { title: "Embed", hint: "", keywords: "embed video youtube vimeo loom figma spotify codepen maps slides sheets tweet iframe", run: insertEmbed },
+  { title: "Diagram", hint: "", keywords: "diagram mermaid flowchart chart sequence graph", run: insertDiagram },
+  { title: "Equation", hint: "$x$", keywords: "math inline latex formula katex", run: (e, r) => insertMath(e, r, false) },
+  { title: "Math block", hint: "$$", keywords: "math display equation latex formula katex", run: (e, r) => insertMath(e, r, true) },
   { title: "Page break", hint: "Ctrl+Enter", keywords: "new page break", run: (e, r) => e.chain().focus().deleteRange(r).setPageBreak().run() },
 ];
 

@@ -1,4 +1,5 @@
 import { cssPageRule, type PaperSettings, pageGeometry } from "../paper";
+import { diagramsToSvg, mathToMathml } from "./rich-nodes";
 
 // A single self-contained .html file that looks like the page: a sheet on a desk on screen,
 // and the same paper size and margins when printed. No external requests.
@@ -42,11 +43,28 @@ th { background: #f5f6f8; font-weight: 500; }
 hr { border: 0; border-top: 1px solid #d9dce0; margin: 24px 0; }
 img { max-width: 100%; height: auto; }
 .page-break { break-after: page; height: 0; margin: 0; border-top: 1px dashed #d9dce0; }
-mark, .comment-highlight { background: none; }
+.comment-highlight { background: none; }
+mark { background: #ffe36b; color: inherit; border-radius: 2px; padding: 0 1px; }
+div[data-callout] { margin: 12px 0; padding: 10px 14px; border-left: 3px solid #686e76; border-radius: 2px; background: #f3f4f6; }
+div[data-callout="tip"] { border-left-color: #16a34a; background: #eef8f1; }
+div[data-callout="warning"] { border-left-color: #d97706; background: #fdf4e7; }
+div[data-callout] > :first-child { margin-top: 0; }
+div[data-callout] > :last-child { margin-bottom: 0; }
+div[data-type="block-math"] { margin: 16px 0; overflow-x: auto; }
+div[data-embed] { margin: 16px 0; border: 1px solid #d9dce0; border-radius: 2px; overflow: hidden; }
+div[data-embed] iframe { display: block; width: 100%; aspect-ratio: var(--embed-aspect, 16 / 9); border: 0; }
+div[data-embed] .embed-link { display: block; padding: 6px 10px; border-top: 1px solid #d9dce0; font-size: 12px; color: #686e76; text-decoration: none; }
+div[data-diagram] { margin: 16px 0; text-align: center; }
+div[data-diagram] svg { max-width: 100%; height: auto; }
 @media print {
   body { background: none; }
   .page { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; border-radius: 0; }
   .page-break { border: 0; }
+  div[data-embed] { border: 0; }
+  div[data-embed] iframe { display: none; }
+  div[data-embed] .embed-link { padding: 0; border: 0; font-size: inherit; color: inherit; text-decoration: underline; }
+  div[data-embed] .embed-link::after { content: " (" attr(href) ")"; }
+  pre, div[data-callout], div[data-type="block-math"], div[data-diagram] { break-inside: avoid; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   h1, h2, h3 { break-after: avoid; }
 }`;
 }
@@ -64,7 +82,7 @@ ${documentCss(opts.paper)}
 </head>
 <body>
 <article class="page">
-${opts.bodyHtml}
+${diagramsToSvg(mathToMathml(opts.bodyHtml))}
 </article>
 </body>
 </html>
@@ -74,11 +92,13 @@ ${opts.bodyHtml}
 /** Plain text: blank lines between blocks, list items and table rows on consecutive lines. */
 export function htmlToText(html: string, parse: (html: string) => Document): string {
   const doc = parse(html);
+  for (const el of Array.from(doc.querySelectorAll("[data-latex]"))) el.textContent = el.getAttribute("data-latex");
   const lines: { text: string; tight: boolean }[] = [];
   const walk = (el: Element, depth: number) => {
     for (const child of Array.from(el.children)) {
       const tag = child.tagName;
-      if (/^(P|H[1-6]|PRE)$/.test(tag)) lines.push({ text: (child.textContent ?? "").trimEnd(), tight: false });
+      if (child.classList.contains("embed-link")) lines.push({ text: `${child.textContent}: ${child.getAttribute("href")}`, tight: false });
+      else if (/^(P|H[1-6]|PRE)$/.test(tag) || child.hasAttribute("data-latex")) lines.push({ text: (child.textContent ?? "").trimEnd(), tight: false });
       else if (tag === "LI") {
         const checked = child.getAttribute("data-checked");
         const parent = child.parentElement;

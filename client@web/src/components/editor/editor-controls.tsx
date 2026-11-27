@@ -1,3 +1,4 @@
+import { $wordsToday } from "./core/use-writing-memory";
 import { useStore } from "@nanostores/react";
 import {
   AlignCenter,
@@ -133,6 +134,7 @@ const PROCESSING_LABELS: Record<string, string> = {
 export function EditorStatusBar({ className }: EditorStatusBarProps) {
   const { wordCount, characterCount, totalPages, aiProcessing } =
     useStore(editorUIState);
+  const wordsToday = useStore($wordsToday);
 
   return (
     <div
@@ -148,6 +150,11 @@ export function EditorStatusBar({ className }: EditorStatusBarProps) {
       <span>
         {totalPages ?? 1} {(totalPages ?? 1) === 1 ? "page" : "pages"}
       </span>
+      {wordsToday > 0 && (
+        <span title="Words you added today, across all documents">
+          +{wordsToday.toLocaleString()} today
+        </span>
+      )}
       {aiProcessing && PROCESSING_LABELS[aiProcessing] && (
         <span className="ml-auto flex items-center gap-1.5 text-primary">
           <span className="size-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />

@@ -92,3 +92,44 @@ describe("round trip md -> html -> md", () => {
     });
   }
 });
+
+describe("rich blocks to markdown", () => {
+  it("keeps the code block language", () => {
+    expect(htmlToMarkdown('<pre><code class="language-python">print(1)\n</code></pre>')).toBe("```python\nprint(1)\n```\n");
+  });
+
+  it("writes highlights, sub and superscript", () => {
+    expect(htmlToMarkdown("<p><mark>key</mark> H<sub>2</sub>O x<sup>2</sup></p>")).toBe("==key== H<sub>2</sub>O x<sup>2</sup>\n");
+  });
+
+  it("writes callouts as GitHub alerts", () => {
+    expect(htmlToMarkdown('<div data-callout="warning" class="callout"><p>Careful</p><p>Two</p></div><p>after</p>')).toBe(
+      "> [!WARNING]\n> Careful\n> \n> Two\n\nafter\n",
+    );
+  });
+
+  it("writes inline and block math", () => {
+    const html =
+      '<p>Energy <span data-latex="E = mc^2" data-type="inline-math"></span> here, <span data-latex="a_1 &lt; b" data-type="inline-math"></span></p><div data-latex="\\sum_i x_i" data-type="block-math"></div>';
+    expect(htmlToMarkdown(html)).toBe("Energy $E = mc^2$ here, $a_1 < b$\n\n$$\n\\sum_i x_i\n$$\n");
+  });
+});
+
+describe("embeds and diagrams to markdown", () => {
+  const embed =
+    '<div data-embed="YouTube" class="embed" style="--embed-aspect: 16/9"><iframe src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="YouTube" sandbox="allow-scripts"></iframe>' +
+    '<a class="embed-link" href="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" target="_blank" rel="noopener noreferrer">YouTube</a></div>';
+
+  it("writes an embed as a link", () => {
+    expect(htmlToMarkdown(`<p>before</p>${embed}<p>after</p>`)).toBe(
+      "before\n\n[YouTube](https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ)\n\nafter\n",
+    );
+  });
+
+  it("writes a diagram as a mermaid fence and reads it back as one", () => {
+    const html = '<div data-diagram="" class="diagram"><pre><code class="language-mermaid">flowchart LR\n  A --&gt; B</code></pre></div>';
+    const md = htmlToMarkdown(html);
+    expect(md).toBe("```mermaid\nflowchart LR\n  A --> B\n```\n");
+    expect(markdownToHtml(md)).toContain('<code class="language-mermaid">');
+  });
+});

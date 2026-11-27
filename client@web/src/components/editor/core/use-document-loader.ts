@@ -16,10 +16,10 @@ interface DocState {
 // own watcher). Seeded from the Home documents list so a document opened from Home renders at once.
 const stores = new Map<string, WritableAtom<DocState>>();
 
-function documentStore(id: string): WritableAtom<DocState> {
+function documentStore(id: string, primed?: Document): WritableAtom<DocState> {
   let store = stores.get(id);
   if (store) return store;
-  const seed = $documents.get().find((d) => d.id === id) ?? null;
+  const seed = primed ?? $documents.get().find((d) => d.id === id) ?? null;
   store = atom<DocState>({ document: seed, isLoading: !seed, notFound: false });
   const s = store;
   onMount(s, () => {
@@ -47,6 +47,11 @@ function documentStore(id: string): WritableAtom<DocState> {
   });
   stores.set(id, s);
   return s;
+}
+
+/** Seeds the store for a file just created here, so opening it never waits for (or races) the server echo. */
+export function primeDocument(doc: Document) {
+  if (!stores.has(doc.id)) documentStore(doc.id, doc);
 }
 
 export type DocumentAccess = "ok" | "denied" | "missing" | "loading";

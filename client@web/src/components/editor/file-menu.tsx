@@ -17,6 +17,8 @@ import { useCloudStore } from "@/hooks/use-cloudstore";
 import { showToast } from "@/lib/toast";
 import { $pageSetupOpen, $shortcutsOpen } from "./dialogs-state";
 import { copyDocumentAs, type DownloadKind, downloadDocument, printDocument } from "./document-actions";
+import { toggleFocusMode } from "./focus-mode";
+import { $outlineOpen, toggleOutline } from "./outline/outline-state";
 
 const mod = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "Cmd" : "Ctrl";
 
@@ -86,6 +88,14 @@ export function FileMenu({ title, canEdit, onCopy }: { title: string; canEdit: b
             <DropdownMenuShortcut>{mod} P</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={toggleOutline}>
+            {$outlineOpen.get() ? "Hide outline" : "Show outline"}
+            <DropdownMenuShortcut>{mod} Shift O</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={toggleFocusMode}>
+            Focus mode
+            <DropdownMenuShortcut>{mod} Shift F</DropdownMenuShortcut>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => $shortcutsOpen.set(true)}>
             Keyboard shortcuts
             <DropdownMenuShortcut>{mod} /</DropdownMenuShortcut>

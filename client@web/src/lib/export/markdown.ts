@@ -6,6 +6,7 @@ import remarkRehype from "remark-rehype";
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 import { unified } from "unified";
+import { replaceMath } from "./rich-nodes";
 
 // HTML (editor output) <-> GitHub-flavoured Markdown.
 
@@ -39,7 +40,29 @@ function createTurndown() {
           ? "\n\n"
           : "",
   });
+  // Math arrives filled with its LaTeX (see htmlToMarkdown); read it raw so it is not escaped.
+  td.addRule("math", {
+    filter: (node) => /^(inline|block)-math$/.test(node.getAttribute("data-type") ?? ""),
+    replacement: (_content, node) => {
+      const latex = node.textContent ?? "";
+      return (node as HTMLElement).getAttribute("data-type") === "block-math" ? `\n\n$$\n${latex}\n$$\n\n` : `$${latex}$`;
+    },
+  });
   td.use(gfm);
+  td.keep(["sub", "sup"]);
+  td.addRule("highlight", {
+    filter: "mark",
+    replacement: (content) => (content ? `==${content}==` : ""),
+  });
+  // GitHub alert syntax: > [!NOTE]
+  td.addRule("callout", {
+    filter: (node) => node.nodeName === "DIV" && node.hasAttribute("data-callout"),
+    replacement: (content, node) => {
+      const tone = ((node as HTMLElement).getAttribute("data-callout") || "note").toUpperCase();
+      const body = content.replace(/^\n+|\n+$/g, "").replace(/^/gm, "> ");
+      return `\n\n> [!${tone}]\n${body}\n\n`;
+    },
+  });
   // Rules added later win (turndown checks them first).
   td.addRule("listItem", {
     filter: "li",
@@ -80,7 +103,8 @@ let turndown: TurndownService | null = null;
 
 export function htmlToMarkdown(html: string): string {
   turndown ??= createTurndown();
-  return `${turndown.turndown(html).replace(/\n{3,}/g, "\n\n").trim()}\n`;
+  const filled = replaceMath(html, (latex) => latex.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] as string));
+  return `${turndown.turndown(filled).replace(/\n{3,}/g, "\n\n").trim()}\n`;
 }
 
 const cls = (el: Element) => {

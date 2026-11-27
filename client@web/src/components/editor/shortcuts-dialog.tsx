@@ -49,6 +49,9 @@ const GROUPS: { title: string; items: [string, string][] }[] = [
     items: [
       ["Save now", `${mod} S`],
       ["Print or save as PDF", `${mod} P`],
+      ["Find, find and replace", `${mod} F, ${mod} H`],
+      ["Show or hide outline", `${mod} Shift O`],
+      ["Focus mode", `${mod} Shift F`],
       ["Keyboard shortcuts", `${mod} /`],
     ],
   },

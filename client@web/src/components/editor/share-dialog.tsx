@@ -1,5 +1,6 @@
 "use client";
 
+import { fileHref, fileKind } from "@/lib/files";
 import { useStore } from "@nanostores/react";
 import type { Document } from "@shared-types";
 import {
@@ -121,7 +122,7 @@ export function ShareDialog({
   const { user } = useStore($auth);
 
   const isOwner = user && document.owner === user.id;
-  const shareableLink = `${window.location.origin}/document/${document.id}?title=${btoa(document.title)}`;
+  const shareableLink = `${window.location.origin}${fileHref(document.id, fileKind(document))}?title=${btoa(unescape(encodeURIComponent(document.title)))}`;
 
   // Security check
   useEffect(() => {

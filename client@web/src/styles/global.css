@@ -664,3 +664,12 @@
 .docs-tour .driver-popover-arrow-side-right.driver-popover-arrow { border-right-color: var(--popover); }
 .docs-tour .driver-popover-arrow-side-top.driver-popover-arrow { border-top-color: var(--popover); }
 .docs-tour .driver-popover-arrow-side-bottom.driver-popover-arrow { border-bottom-color: var(--popover); }
+
+/* Focus mode (editor): only the page remains. */
+html[data-focus] [data-slot="sidebar-gap"],
+html[data-focus] [data-slot="sidebar-container"],
+html[data-focus] [data-slot="sidebar"],
+html[data-focus] header,
+html[data-focus] .editor-toolbar {
+  display: none !important;
+}
