@@ -13,6 +13,7 @@ import { type Editor, EditorContent, useEditor } from "@tiptap/react";
 import { yUndoPluginKey } from "@tiptap/y-tiptap";
 import StarterKit from "@tiptap/starter-kit";
 import { CheckCircle2, Flag, Lightbulb, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { computed } from "nanostores";
 import {
   Fragment,
@@ -31,6 +32,7 @@ import { TableCellPlus, TableHeaderPlus, TablePlus, TableRowPlus } from "tiptap-
 import * as Y from "yjs";
 import { Button } from "@/components/ui/button";
 import { useCloudStoreSaver } from "@/hooks/use-cloudstore-saver";
+import { authManager } from "@/lib/auth/manager";
 import { useComments } from "@/hooks/use-comments";
 import { useDocumentPermissions } from "@/hooks/use-document-permissions";
 import { $paperSettings, fromStored, pageGeometry } from "@/lib/paper";
@@ -120,13 +122,19 @@ const FlagTooltip = memo(({ flagTooltip, onMouseLeave }: { flagTooltip: FlagTool
 });
 FlagTooltip.displayName = "FlagTooltip";
 
-const DocumentEditor = ({
-  documentId,
-  hocusPocusHost = "http://localhost:4321",
-}: {
-  documentId: string;
-  hocusPocusHost: string;
-}) => {
+const COLLAB_URL = process.env.NEXT_PUBLIC_HOCUSPOCUS_URL;
+// How long to wait for the live server before editing alone, and how long a dropped connection
+// may last before we stop rejoining (see the provider effect).
+const COLLAB_CONNECT_TIMEOUT = 5000;
+const COLLAB_REJOIN_WINDOW = 10000;
+
+async function collabToken() {
+  const { tokens } = authManager.currentState;
+  if (tokens && authManager.isTokenExpired(tokens.accessToken)) await authManager.refreshToken();
+  return authManager.currentState.tokens?.accessToken ?? "";
+}
+
+const DocumentEditor = ({ documentId }: { documentId: string }) => {
   const yDocRef = useRef<Y.Doc | null>(null);
   const getYDoc = useCallback(() => {
     yDocRef.current ??= new Y.Doc();
@@ -135,6 +143,7 @@ const DocumentEditor = ({
 
   const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
   const { document: documentData, access } = useLiveDocument(documentId);
+  const router = useRouter();
 
   const selectionRangeRef = useRef<{ from: number; to: number; text: string } | null>(null);
   const showCommentDialogRef = useRef(false);
@@ -177,42 +186,70 @@ const DocumentEditor = ({
   }, [storedPaper]);
   const [pages, setPages] = useState(1);
 
+  // "connecting" until the live server has sent its copy, "live" after, "solo" when there is no
+  // server, it is unreachable, or the user cannot edit. Content is loaded only once this settles.
+  const [collab, setCollab] = useState<"connecting" | "live" | "solo">(COLLAB_URL ? "connecting" : "solo");
+  const providerRef = useRef<HocuspocusProvider | null>(null);
+  const goSolo = useCallback(() => {
+    providerRef.current?.destroy();
+    providerRef.current = null;
+    editorUIState.set({ ...editorUIState.get(), isConnected: false });
+    setCollab((c) => (c === "solo" ? c : "solo"));
+  }, []);
+
   useEffect(() => {
-    let hp: HocuspocusProvider | null = null;
+    if (!COLLAB_URL) return;
     let alive = true;
+    let synced = false;
+    let dropTimer: ReturnType<typeof setTimeout> | undefined;
+    const connectTimer = setTimeout(() => alive && !synced && goSolo(), COLLAB_CONNECT_TIMEOUT);
     (async () => {
-      try {
-        const { HocuspocusProvider } = await import("@hocuspocus/provider");
-        if (!alive) return;
-        hp = new HocuspocusProvider({
-          url: hocusPocusHost,
-          name: documentId,
-          document: getYDoc(),
-          onConnect: () => {
-            if (!alive) return;
-            setProvider(hp);
-            editorUIState.set({ ...editorUIState.get(), isConnected: true });
-          },
-          onDisconnect: () => {
-            if (alive) editorUIState.set({ ...editorUIState.get(), isConnected: false });
-          },
-          onSynced: () => {
-            if (alive) editorUIState.set({ ...editorUIState.get(), isConnected: true });
-          },
-        });
-      } catch {
-        showToast.error("Failed to connect to document provider. Please try again later.");
-      }
-    })();
+      const { HocuspocusProvider } = await import("@hocuspocus/provider");
+      if (!alive) return;
+      const hp = new HocuspocusProvider({
+        url: COLLAB_URL,
+        name: documentId,
+        document: getYDoc(),
+        token: collabToken,
+        onConnect: () => {
+          if (!alive) return;
+          clearTimeout(dropTimer);
+          setProvider(hp);
+          editorUIState.set({ ...editorUIState.get(), isConnected: true });
+        },
+        onSynced: () => {
+          if (!alive || synced) return;
+          synced = true;
+          setCollab((c) => (c === "connecting" ? "live" : c));
+        },
+        onAuthenticationFailed: () => alive && goSolo(),
+        onDisconnect: () => {
+          if (!alive || !providerRef.current) return;
+          editorUIState.set({ ...editorUIState.get(), isConnected: false });
+          // ponytail: the server keeps a room only while someone is connected. After a long drop
+          // another editor may have reseeded it from the database, and merging our copy into that
+          // would duplicate the text. So we stop rejoining and keep saving on our own instead.
+          // A small window remains if someone opens the document during a short drop.
+          clearTimeout(dropTimer);
+          dropTimer = setTimeout(() => {
+            if (!alive || !providerRef.current) return;
+            goSolo();
+            showToast.error("Live editing disconnected", "Your changes still save. Reload to see others' edits.");
+          }, COLLAB_REJOIN_WINDOW);
+        },
+      });
+      providerRef.current = hp;
+    })().catch(() => alive && goSolo());
     return () => {
       alive = false;
-      if (hp) {
-        editorUIState.set({ ...editorUIState.get(), isConnected: false });
-        hp.destroy();
-        setProvider(null);
-      }
+      clearTimeout(connectTimer);
+      clearTimeout(dropTimer);
+      providerRef.current?.destroy();
+      providerRef.current = null;
+      setProvider(null);
+      editorUIState.set({ ...editorUIState.get(), isConnected: false });
     };
-  }, [documentId, hocusPocusHost, getYDoc]);
+  }, [documentId, getYDoc, goSolo]);
 
   const permissions = useDocumentPermissions(documentData);
 
@@ -316,10 +353,18 @@ const DocumentEditor = ({
   const loadedRef = useRef(false);
   const [contentReady, setContentReady] = useState(false);
   const initialContent = documentData?.pages?.[0]?.content;
+  const canEdit = permissions.canEdit;
   useLayoutEffect(() => {
-    if (!editor || editor.isDestroyed || loadedRef.current || documentData === null) return;
+    if (!editor || editor.isDestroyed || loadedRef.current || !documentData) return;
+    // Viewers read the stored copy only; live rooms are for editors.
+    if (!canEdit && collab !== "solo") return goSolo();
+    if (collab === "connecting") return;
     try {
-      if (initialContent && editor.isEmpty) {
+      // In a live room someone already loaded the document: use the room's copy, never load it
+      // a second time (the two copies would merge into duplicated text).
+      // ponytail: two editors opening an empty room in the same instant can both load it.
+      const roomHasContent = collab === "live" && getYDoc().getXmlFragment("default").length > 0;
+      if (initialContent && !roomHasContent && editor.isEmpty) {
         editor.chain().setMeta("addToHistory", false).setContent(initialContent, { emitUpdate: false }).run();
       }
       // y-tiptap still records the initial load when the view mounts in the same commit, so Ctrl+Z
@@ -335,7 +380,7 @@ const DocumentEditor = ({
       console.error("[Editor] Failed to set content:", error);
       showToast.error("Failed to load document content.");
     }
-  }, [editor, documentData, initialContent]);
+  }, [editor, documentData, initialContent, collab, canEdit, goSolo, getYDoc]);
 
   useEffect(() => {
     repaginate(editor?.isDestroyed ? null : editor?.view);
@@ -344,7 +389,7 @@ const DocumentEditor = ({
   // Saving starts only once the stored content is in the editor, so an early unload can never
   // write an empty document over the real one.
   const { saveStatus, lastSaved, forceSave, errorMessage } = useCloudStoreSaver(
-    contentReady ? editor : null,
+    contentReady && canEdit ? editor : null,
     documentId,
     documentData,
   );
@@ -509,10 +554,10 @@ const DocumentEditor = ({
     if (access !== "denied") return;
     showToast.error("You do not have permission to access this document.");
     const t = setTimeout(() => {
-      window.location.href = "/home";
+      router.replace("/home");
     }, 2000);
     return () => clearTimeout(t);
-  }, [access]);
+  }, [access, router]);
 
   if (access === "loading") return <EditorSkeleton />;
   if (access !== "ok" || !documentData) {

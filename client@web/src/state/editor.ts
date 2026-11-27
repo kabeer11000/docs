@@ -21,18 +21,6 @@ export const collaborationState = atom({
   documentId: "",
 });
 
-// Page settings state
-export const pageSettingsState = atom({
-  pageSize: "letter",
-  orientation: "portrait",
-  marginTop: 1,
-  marginBottom: 1,
-  marginLeft: 1,
-  marginRight: 1,
-  customWidth: 8.5,
-  customHeight: 11,
-});
-
 // Editor UI state
 export const editorUIState = atom({
   selectedText: "",
@@ -309,15 +297,6 @@ export const editorActions = {
   deleteTable: () => {
     const editor = editorInstance.get();
     editor?.chain().focus().deleteTable().run();
-  },
-
-  // Page settings
-  updatePageSettings: (settings: Partial<typeof pageSettingsState.value>) => {
-    const current = pageSettingsState.get();
-    pageSettingsState.set({
-      ...current,
-      ...settings,
-    });
   },
 
   // Comments sidebar

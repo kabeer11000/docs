@@ -77,7 +77,7 @@ export default function DocumentPage({ params }: { params: Promise<{ id: string 
       editorHeaderContent={ready ? <EditorHeaderContent documentId={documentId} /> : headerPlaceholder}
     >
       <div className="relative flex h-full flex-col overflow-hidden bg-background" id="editor-container">
-        {ready ? <Editor key={documentId} documentId={documentId} hocusPocusHost="http://localhost:4321" /> : <EditorSkeleton />}
+        {ready ? <Editor key={documentId} documentId={documentId} /> : <EditorSkeleton />}
       </div>
     </ReactHome>
   );
