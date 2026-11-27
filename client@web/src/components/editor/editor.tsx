@@ -1,5 +1,5 @@
 "use client";
-import type { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProvider } from "@hocuspocus/provider";
 import { useStore } from "@nanostores/react";
 import { debounce } from "@repo/shadcn-ui/lib/utils";
 import { Collaboration } from "@tiptap/extension-collaboration";
@@ -193,6 +193,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
   const goSolo = useCallback(() => {
     providerRef.current?.destroy();
     providerRef.current = null;
+    setProvider(null);
     editorUIState.set({ ...editorUIState.get(), isConnected: false });
     setCollab((c) => (c === "solo" ? c : "solo"));
   }, []);
@@ -203,9 +204,7 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
     let synced = false;
     let dropTimer: ReturnType<typeof setTimeout> | undefined;
     const connectTimer = setTimeout(() => alive && !synced && goSolo(), COLLAB_CONNECT_TIMEOUT);
-    (async () => {
-      const { HocuspocusProvider } = await import("@hocuspocus/provider");
-      if (!alive) return;
+    try {
       const hp = new HocuspocusProvider({
         url: COLLAB_URL,
         name: documentId,
@@ -214,7 +213,6 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
         onConnect: () => {
           if (!alive) return;
           clearTimeout(dropTimer);
-          setProvider(hp);
           editorUIState.set({ ...editorUIState.get(), isConnected: true });
         },
         onSynced: () => {
@@ -239,7 +237,12 @@ const DocumentEditor = ({ documentId }: { documentId: string }) => {
         },
       });
       providerRef.current = hp;
-    })().catch(() => alive && goSolo());
+      // Hand it to the editor now (it is still empty), not on connect, which would rebuild an
+      // editor that may already hold the document.
+      setProvider(hp);
+    } catch {
+      goSolo();
+    }
     return () => {
       alive = false;
       clearTimeout(connectTimer);
