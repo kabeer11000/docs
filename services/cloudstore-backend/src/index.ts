@@ -34,9 +34,10 @@ io.on("connection", async (socket: any) => {
         })
         try {
             const db = (await MongoDatabasePromise).db(socket.data.config.database);
-            const collections = await db.collections();
+            // One named lookup instead of listing every collection on each collection() call.
+            const found = await db.listCollections({ name: config.name }, { nameOnly: true }).toArray();
             socket.emit(Events.collection.collectionCB(config.ref.id), {
-                exists: !!collections.find((a: { collectionName: string; }) => a.collectionName === config.name),
+                exists: found.length > 0,
                 name: config.name,
             });
         } catch (e) {

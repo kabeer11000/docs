@@ -10,6 +10,7 @@
     "access": "public"
   },
   "scripts": {
+    "test": "bun test",
     "dev": "concurrently \"bun run run:ts-watch\" \"bun run run:node-start\"",
     "run:node-start": "nodemon --inspect ./bundled/index.js",
     "run:ts-watch": "tsc --watch",

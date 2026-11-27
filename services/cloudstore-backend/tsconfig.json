@@ -16,6 +16,12 @@
       "@/config": [
         "./src/config"
       ],
+      "@/access": [
+        "./src/access"
+      ],
+      "@/query": [
+        "./src/query"
+      ],
       "@/controllers/*": [
         "./src/controllers/*"
       ],

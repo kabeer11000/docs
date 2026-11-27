@@ -4,6 +4,9 @@ import { Socket } from "socket.io";
 import Events from "@/events";
 import * as crypto from "crypto";
 import { computeWindow, diffWindows, toWindowMap, docId, OrderBy } from "@/controllers/watch-delta";
+import { contextFor } from "@/controllers/crud";
+import { authorizeRead } from "@/access";
+import { matches, type MongoQuery } from "@/query";
 
 // One change stream per collection, one cached result set per distinct query,
 // many watchers (socket streams) per query.
@@ -18,8 +21,9 @@ type SharedStream = {
 type QueryEntry = {
     hash: string;
     stream: SharedStream;
-    mongoQuery: object;
-    rawFilters: any[];
+    // The client filter ANDed with the caller's access filter; both the initial find and the
+    // live fanout use it, so watchers only ever see rows they may read.
+    mongoQuery: MongoQuery;
     orderBy: OrderBy;
     limit?: number | null;
     results: any[];
@@ -33,62 +37,8 @@ const queries = new Map<string, QueryEntry>();
 const pending = new Map<string, Promise<QueryEntry>>();
 const STREAM_RETRY_MS = 1000;
 
-export const FilterOperatorToMongoDBMap = {
-    "EQUAL": "$eq",
-    "GREATER": "$gt",
-    "LESSER": "$lt",
-    "GREATER_EQUAL": "$gte",
-    "LESSER_EQUAL": "$lte",
-    "ARRAY.IN": "$in",
-    "ARRAY.NOT_IN": "$nin",
-    "ARRAY.EQUALS": "$eq",
-    "ARRAY.ELEMENT_AT": "$expr"
-}
-
-function buildFilter(filter: any) {
-    if (filter.op === "ARRAY.ELEMENT_AT") {
-        return {
-            $expr: {
-                $eq: [
-                    { $arrayElemAt: ["$" + filter.field, filter.value.index] },
-                    filter.value.value
-                ]
-            }
-        };
-    } else {
-        return {
-            [filter.field]: {
-                [FilterOperatorToMongoDBMap[filter.op as keyof typeof FilterOperatorToMongoDBMap]]: filter.value
-            }
-        };
-    }
-}
-
-function documentMatches(doc: any, filters: any[]) {
-    if (!filters.length) return true;
-    return filters.every(filter => {
-        const value = filter.field.split('.').reduce((obj, key) => obj?.[key], doc);
-        switch (filter.op) {
-            case "EQUAL": return value === filter.value;
-            case "GREATER": return value > filter.value;
-            case "LESSER": return value < filter.value;
-            case "GREATER_EQUAL": return value >= filter.value;
-            case "LESSER_EQUAL": return value <= filter.value;
-            case "ARRAY.IN": return Array.isArray(value) && value.includes(filter.value);
-            case "ARRAY.NOT_IN": return Array.isArray(value) && !value.includes(filter.value);
-            case "ARRAY.EQUALS": return Array.isArray(value) && Array.isArray(filter.value) &&
-                value.length === filter.value.length && value.every((v, i) => v === filter.value[i]);
-            case "ARRAY.ELEMENT_AT":
-                if (!Array.isArray(value)) return false;
-                const idx = filter.value.index < 0 ? value.length + filter.value.index : filter.value.index;
-                return idx >= 0 && idx < value.length && value[idx] === filter.value.value;
-            default: return false;
-        }
-    });
-}
-
 // Applies a change event to a cached result set in place. Returns whether it changed.
-function applyChange(results: any[], filters: any[], change: any) {
+function applyChange(results: any[], query: MongoQuery, change: any) {
     if (!change.documentKey) return false;
     const id = String(change.documentKey._id);
     const idx = results.findIndex(doc => docId(doc) === id);
@@ -99,10 +49,11 @@ function applyChange(results: any[], filters: any[], change: any) {
         results.splice(idx, 1);
         return true;
     }
-    const matches = documentMatches(doc, filters);
-    if (idx >= 0 && matches) results[idx] = doc;
+    let match = false;
+    try { match = matches(doc, query); } catch { /* unsupported shapes never match */ }
+    if (idx >= 0 && match) results[idx] = doc;
     else if (idx >= 0) results.splice(idx, 1);
-    else if (matches) results.push(doc);
+    else if (match) results.push(doc);
     else return false;
     return true;
 }
@@ -115,10 +66,12 @@ function publish(entry: QueryEntry, update: any) {
     if (!delta.upsert.length && !delta.remove.length) return;
     entry.window = toWindowMap(next);
 
+    // Only the operation type goes out: the raw change event carries the full document even when it
+    // just left this caller's readable set.
     const op = { operationType: update.operationType };
     for (const w of entry.watchers) {
         w.socket.emit(Events.server.WATCH_CALLBACK(w.streamId),
-            w.delta ? { delta, _update: op } : { collection: next, _update: update });
+            w.delta ? { delta, _update: op } : { collection: next, _update: op });
     }
 }
 
@@ -128,7 +81,7 @@ async function openStream(s: SharedStream) {
     s.stream = stream;
     stream.on("change", (change) => {
         for (const entry of s.entries) {
-            if (applyChange(entry.results, entry.rawFilters, change)) publish(entry, change);
+            if (applyChange(entry.results, entry.mongoQuery, change)) publish(entry, change);
         }
     });
     stream.on("error", (error) => {
@@ -181,17 +134,16 @@ function dropStreamIfUnused(s: SharedStream) {
     stream?.close().catch(() => { });
 }
 
-async function loadEntry(hash: string, dbName: string, collectionName: string, structured: IWatchConfig["watchable"]["query"]["structured"]) {
+type Structured = IWatchConfig["watchable"]["query"]["structured"];
+
+async function loadEntry(hash: string, dbName: string, collectionName: string, mongoQuery: MongoQuery, structured: Structured) {
     // Stream opens before the initial find so changes during the find aren't lost.
     // ponytail: a change landing mid-find can still be missed until the next change to that doc; buffer events during load if that bites.
     const s = await ensureStream(dbName, collectionName);
     try {
-        const rawFilters = structured.where || [];
-        const mongoFilters = rawFilters.map(buildFilter);
-        const mongoQuery = mongoFilters.length ? { $and: mongoFilters } : {};
         const results = await (await MongoDatabasePromise).db(dbName).collection(collectionName).find(mongoQuery).toArray();
         const entry: QueryEntry = {
-            hash, stream: s, mongoQuery, rawFilters,
+            hash, stream: s, mongoQuery,
             orderBy: structured.orderBy, limit: structured.limit,
             results, window: new Map(), watchers: new Set(),
         };
@@ -205,16 +157,17 @@ async function loadEntry(hash: string, dbName: string, collectionName: string, s
     }
 }
 
-function acquireEntry(dbName: string, collectionName: string, structured: IWatchConfig["watchable"]["query"]["structured"]) {
-    // Database and collection are part of the key: identical filters on two collections must not share results.
+function acquireEntry(dbName: string, collectionName: string, mongoQuery: MongoQuery, structured: Structured) {
+    // Database, collection and the access-filtered query are the key: only callers allowed the same
+    // rows share a result set.
     const hash = crypto.createHash('sha256').update(JSON.stringify({
-        dbName, collectionName, filters: structured.where, orderBy: structured.orderBy, limit: structured.limit
+        dbName, collectionName, mongoQuery, orderBy: structured.orderBy, limit: structured.limit
     })).digest('hex');
     const existing = queries.get(hash);
     if (existing) return Promise.resolve(existing);
     let load = pending.get(hash);
     if (!load) {
-        load = loadEntry(hash, dbName, collectionName, structured).finally(() => pending.delete(hash));
+        load = loadEntry(hash, dbName, collectionName, mongoQuery, structured).finally(() => pending.delete(hash));
         pending.set(hash, load);
     }
     return load;
@@ -250,7 +203,9 @@ export default async function WatchController(socket: Socket<any, any>, config: 
     if (!streamId) return;
     try {
         const { database, collection, query } = config.watchable;
-        const entry = await acquireEntry(database.name, collection.name, query.structured);
+        const ctx = await contextFor(socket, database.name, collection.name);
+        const { query: mongoQuery } = await authorizeRead(ctx, query.structured.where, { watch: true });
+        const entry = await acquireEntry(database.name, collection.name, mongoQuery, query.structured);
         if (socket.disconnected) {
             // Socket left while we were loading; don't register a watcher nobody will release.
             // Deferred so other sockets awaiting the same load can attach first.
