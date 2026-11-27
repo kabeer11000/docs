@@ -12,7 +12,7 @@ import { searchActions } from "@/state/search";
 
 export default function VaultPage() {
   const { user } = useStore($auth);
-  const [view, setView] = useViewMode();
+  const [view, setView] = useViewMode("vault");
 
   useEffect(() => {
     searchActions.setCurrentPage("vault");
@@ -23,14 +23,17 @@ export default function VaultPage() {
 
   return (
     <PageBody title={<Greeting />}>
-      <HomeTabs active="vault" actions={<ViewToggle view={view} onChange={setView} />} />
+      <HomeTabs
+        active="vault"
+        actions={<ViewToggle view={view} onChange={setView} />}
+      />
       <LiveListView
         parent={user.id}
         showHeadline={false}
         defaultSortField="modified"
         collapsible={false}
-        sortable={true}
         view={view}
+        prefsKey="vault"
       />
     </PageBody>
   );

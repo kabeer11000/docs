@@ -9,7 +9,11 @@ import { HomeTabs, StarredView } from "@/components/home/home-tabs";
 import { KindFilter, type KindFilterValue } from "@/components/home/kind";
 import { PageBody } from "@/components/home/page-body";
 import { SectionHeader } from "@/components/home/section-header";
-import { useViewMode, ViewToggle } from "@/components/home/view-toggle";
+import {
+  usePref,
+  useViewMode,
+  ViewToggle,
+} from "@/components/home/view-toggle";
 import { ListView } from "@/components/shared/ui/list-view";
 import { LiveFoldersView } from "@/components/shared/ui/live-folders-view";
 import { useDocuments } from "@/hooks/use-documents";
@@ -20,11 +24,15 @@ import { searchActions } from "@/state/search";
 const hasFiles = (e: React.DragEvent) =>
   Array.from(e.dataTransfer.types).includes("Files");
 
-export default function HomePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+export default function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const starred = use(searchParams).tab === "starred";
   const { user } = useStore($auth);
-  const [view, setView] = useViewMode();
-  const [kind, setKind] = useState<KindFilterValue>("all");
+  const [view, setView] = useViewMode(starred ? "starred" : "home");
+  const [kind, setKind] = usePref<KindFilterValue>("filter.home", "all");
   const { documents, isLoading } = useDocuments(undefined, "recent-files");
   const { importFiles } = useImportFiles();
   const [dragging, setDragging] = useState(false);
@@ -107,7 +115,6 @@ export default function HomePage({ searchParams }: { searchParams: Promise<{ tab
               headlineText="Folders"
               mode="recent-folders"
               collapsible={false}
-              creationParent={user.id}
             />
 
             <section aria-labelledby="all-files">
@@ -119,11 +126,15 @@ export default function HomePage({ searchParams }: { searchParams: Promise<{ tab
                 creationParent={user.id}
                 collapsible={false}
                 defaultSortField="modified"
-                enableCopy={false}
                 enableBulkSelection
+                prefsKey="home"
                 view={view}
                 kindFilter={kind}
-                filters={documents.length > 0 && <KindFilter value={kind} onChange={setKind} />}
+                filters={
+                  documents.length > 0 && (
+                    <KindFilter value={kind} onChange={setKind} />
+                  )
+                }
               />
             </section>
           </div>

@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { CommandPalette } from "@/components/home/navigation/command-palette";
 import { TopBar } from "@/components/home/navigation/top-bar";
+import { FilesHost } from "@/components/shared/files/files-host";
 
 /** Top bar + scrolling content. Rendered once per layout so it survives page switches. */
 export function WorkspaceShell({ children }: { children: ReactNode }) {
@@ -21,14 +21,15 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-svh flex-col overflow-hidden bg-background">
       <TopBar scrolled={scrolled} />
-      <div
-        ref={scrollRef}
-        onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 4)}
-        className="min-h-0 w-full flex-1 overflow-y-auto scrollbar-hide"
-      >
-        {children}
-      </div>
-      <CommandPalette />
+      <FilesHost scroller={scrollRef}>
+        <div
+          ref={scrollRef}
+          onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 4)}
+          className="min-h-0 w-full flex-1 overflow-y-auto scrollbar-hide outline-none"
+        >
+          {children}
+        </div>
+      </FilesHost>
     </div>
   );
 }

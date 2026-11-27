@@ -1,10 +1,11 @@
-import { primeDocument } from "@/components/editor/core/use-document-loader";
 import { useStore } from "@nanostores/react";
 import type { Document, DocumentCreateInput, IFolderItem } from "@shared-types";
 import { nanoid } from "nanoid";
 import { useCallback } from "react";
+import { primeDocument } from "@/components/editor/core/use-document-loader";
 import cloudStore from "@/lib/cloudstore";
 import { $auth } from "@/state/auth";
+import { deleteForever, insertFolder, removeFile } from "@/state/file-actions";
 
 export interface ChatConversation {
   id: string;
@@ -116,44 +117,11 @@ export function useCloudStore() {
     async (
       input: { name?: string; folderId?: string } = {},
     ): Promise<string | null> => {
-      if (!cloudStore || !user) {
-        console.error("CloudStore not available or user not authenticated");
-        return null;
-      }
-
+      if (!user) return null;
       try {
-        const docId = nanoid();
-        const parentFolder = input.folderId || user.id;
-        const newDocument: IFolderItem = {
-          id: docId,
-          name: input.name ?? "Untitiled Folder",
-          tags: [],
-          category: "general",
-          parents: [parentFolder],
-          meta: {
-            fileCount: 0,
-            color: "hsl(142.1 76.2% 36.3%)",
-            icon: "folder",
-          },
-          permissions: {
-            owner: user.id,
-            canRead: true,
-            canWrite: true,
-            canDelete: true,
-            sharedWith: [],
-          },
-          timestamp: {
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          isStarred: false,
-        };
-
-        const folders = cloudStore.collection("folders");
-        await folders.insert(newDocument);
-        return docId;
+        return await insertFolder(input.folderId || user.id, input.name);
       } catch (error) {
-        console.error("Failed to create document:", error);
+        console.error("Failed to create folder:", error);
         return null;
       }
     },
@@ -217,84 +185,22 @@ export function useCloudStore() {
     [],
   );
 
+  /** Hard delete. Home moves files to Trash instead (state/file-actions trash()). */
   const deleteDocument = useCallback(async (id: string): Promise<boolean> => {
-    if (!cloudStore) {
-      console.error("CloudStore not available");
-      return false;
-    }
-
     try {
-      console.log("Attempting to delete document with ID:", id);
-      const documentsCollection = cloudStore.collection("documents");
-
-      // CloudStore uses remove() with a query, not delete() with an ID
-      const query = cloudStore.query.where("id", "EQUAL", id);
-      const result = await documentsCollection.remove(query);
-
-      console.log("Document delete result:", result);
+      await removeFile(id);
       return true;
     } catch (error) {
       console.error("Failed to delete document:", error);
-      console.error("Error details:", error);
       return false;
     }
   }, []);
 
+  /** Hard delete of a folder and everything inside it. */
   const deleteFolder = useCallback(
-    async (id: string): Promise<boolean> => {
-      if (!cloudStore) {
-        console.error("CloudStore not available");
-        return false;
-      }
-
-      try {
-        console.log("Attempting to delete folder with ID:", id);
-
-        // First, recursively delete all subfolders
-        const foldersCollection = cloudStore.collection("folders");
-        const subfoldersQuery = cloudStore.query.where(
-          "parents",
-          "CONTAINS",
-          id,
-        );
-        const subfolders = (await foldersCollection.get(
-          subfoldersQuery,
-        )) as IFolderItem[];
-
-        // Delete each subfolder recursively
-        for (const subfolder of subfolders) {
-          await deleteFolder(subfolder.id); // Recursive call
-        }
-
-        // Next, delete all documents in this folder
-        // Documents can be in a folder via location field or parents array
-        const documentsCollection = cloudStore.collection("documents");
-        const documentsQuery = cloudStore.query.where(
-          "parents",
-          "CONTAINS",
-          id,
-        );
-        const documents = (await documentsCollection.get(
-          documentsQuery,
-        )) as Document[];
-
-        for (const document of documents) {
-          await deleteDocument(document.id);
-        }
-
-        // Finally, delete the main folder
-        const query = cloudStore.query.where("id", "EQUAL", id);
-        const result = await foldersCollection.remove(query);
-
-        console.log("Folder delete result:", result);
-        return true;
-      } catch (error) {
-        console.error("Failed to delete folder:", error);
-        console.error("Error details:", error);
-        return false;
-      }
-    },
-    [deleteDocument],
+    (id: string): Promise<boolean> =>
+      deleteForever([{ id, type: "folder" }], { quiet: true }),
+    [],
   );
 
   const updateDocument = useCallback(
@@ -349,12 +255,10 @@ export function useCloudStore() {
 
         // CloudStore uses update() with a query, not an ID - use _id for database lookup
         const query = cloudStore.query.where("id", "EQUAL", id);
+        // Dotted key so timestamp.createdAt survives ($set replaces whole objects).
         const result = await foldersCollection.update(query, {
           ...updates,
-          timestamp: {
-            ...updates.timestamp,
-            updatedAt: new Date().toISOString(),
-          },
+          "timestamp.updatedAt": new Date().toISOString(),
         });
 
         console.log("Folder update result:", result);
@@ -377,8 +281,9 @@ export function useCloudStore() {
         if (!original) return null;
 
         const newId = nanoid();
+        const { _id, ...rest } = original as Document & { _id?: unknown };
         const duplicated: Document = {
-          ...original,
+          ...rest,
           id: newId,
           title: `${original.title} (Copy)`,
           createdAt: new Date(),
@@ -408,7 +313,9 @@ export function useCloudStore() {
 
         if (results.length === 0) return null;
 
-        const original = results[0];
+        const { _id, ...original } = results[0] as IFolderItem & {
+          _id?: unknown;
+        };
         const newId = nanoid();
         const duplicated: IFolderItem = {
           ...original,

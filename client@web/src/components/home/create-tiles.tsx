@@ -152,7 +152,7 @@ export function CreateTiles({
             aria-label={`New ${k.label.toLowerCase()}`}
           >
             <span
-              className={cn(styles.stage, "block aspect-[16/10]", k.soft)}
+              className={cn(styles.stage, "block aspect-[16/10] bg-muted/70")}
               aria-hidden="true"
             >
               <Preview />

@@ -3,7 +3,9 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { $wordsToday } from "@/components/editor/core/use-writing-memory";
+import { FileContextMenu } from "@/components/shared/files/file-menu";
 import { fileHref, fileKind } from "@/lib/files";
+import { warmFile } from "@/lib/warm";
 import { loadDay, wordsWritten } from "@/lib/writing-memory";
 import { $auth } from "@/state/auth";
 import { $documents } from "@/state/cloudstore-data";
@@ -66,20 +68,23 @@ export function JumpBackIn() {
         {recent.map((doc) => {
           const kind = fileKind(doc);
           return (
-            <Link
-              key={doc.id}
-              href={fileHref(doc.id, kind)}
-              className="group rounded-[14px] outline-none"
-            >
-              <FileCard
-                large
-                kind={kind}
-                title={doc.title}
-                content={doc.pages?.[0]?.content}
-                data={doc.data}
-                detail={`Edited ${formatDistanceToNow(new Date(doc.updatedAt), { addSuffix: true })}`}
-              />
-            </Link>
+            <FileContextMenu key={doc.id} item={{ id: doc.id, type: "file" }}>
+              <Link
+                href={fileHref(doc.id, kind)}
+                className="group rounded-[14px] outline-none"
+                onPointerEnter={() => warmFile(doc.id, kind)}
+                onFocus={() => warmFile(doc.id, kind)}
+              >
+                <FileCard
+                  large
+                  kind={kind}
+                  title={doc.title}
+                  content={doc.pages?.[0]?.content}
+                  data={doc.data}
+                  detail={`Edited ${formatDistanceToNow(new Date(doc.updatedAt), { addSuffix: true })}`}
+                />
+              </Link>
+            </FileContextMenu>
           );
         })}
       </div>

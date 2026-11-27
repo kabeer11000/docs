@@ -2,54 +2,61 @@ import { Folder } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-interface FolderTabProps extends Omit<React.ComponentProps<"div">, "children"> {
-  name: string;
+interface FolderTabProps
+  extends Omit<React.ComponentProps<"div">, "children" | "title"> {
+  /** Plain name, for the accessible label. */
+  label: string;
+  /** What shows as the name (e.g. an inline-rename field); defaults to the label. */
+  title?: ReactNode;
   fileCount?: number;
-  onOpen: () => void;
   /** Trailing menu trigger, shown on hover. */
   actions?: ReactNode;
   disabled?: boolean;
 }
 
-/** Compact folder card: icon chip, name, file count. */
+/** Compact folder card: icon chip, name, file count. Behaviour (select, open, drop) comes in through props. */
 export function FolderTab({
-  name,
+  label,
+  title,
   fileCount = 0,
-  onOpen,
   actions,
   disabled,
   className,
   ...props
 }: FolderTabProps) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: contains a nested menu button
     <div
-      role="link"
+      role="option"
       tabIndex={0}
-      aria-label={`Open folder ${name}`}
+      aria-selected={false}
+      aria-label={`Folder ${label}`}
       className={cn(
-        "group lift flex h-12 min-w-0 cursor-pointer items-center gap-2.5 rounded-[12px] bg-card pr-1.5 pl-2 text-sm shadow-card outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
+        "group lift flex h-12 min-w-0 cursor-default items-center gap-2 rounded-[14px] bg-card pr-1 pl-2 text-sm shadow-card outline-none select-none focus-visible:ring-[3px] focus-visible:ring-ring",
         disabled && "pointer-events-none opacity-50",
         className,
       )}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.target !== e.currentTarget) return;
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
       {...props}
     >
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-muted text-foreground/70" aria-hidden="true">
+      <span
+        className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-muted text-foreground/70"
+        aria-hidden="true"
+      >
         <Folder className="size-4 fill-current/15" />
       </span>
-      <span className="min-w-0 flex-1 truncate font-display font-semibold tracking-[-0.01em] text-foreground">{name}</span>
-      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{fileCount}</span>
+      <span className="min-w-0 flex-1 font-display font-semibold tracking-[-0.01em] text-foreground">
+        {title ?? label}
+      </span>
+      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+        {fileCount}
+      </span>
       {actions ? (
-        // biome-ignore lint/a11y/noStaticElementInteractions: stops row navigation from menu clicks
-        <div className="shrink-0" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+        // biome-ignore lint/a11y/noStaticElementInteractions: keeps menu clicks from selecting or opening the folder
+        <div
+          className="shrink-0"
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           {actions}
         </div>
       ) : (

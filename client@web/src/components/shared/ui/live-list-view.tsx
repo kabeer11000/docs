@@ -8,11 +8,12 @@ interface LiveListViewProps {
   showHeadline?: boolean;
   defaultSortField?: SortField;
   collapsible?: boolean;
-  sortable?: boolean;
-  creationParent?: string,
+  creationParent?: string;
   parent?: string; // parent-folder.id
   mode?: "recent-files" | "folder-contents" | "shared-with-me";
   view?: "list" | "grid";
+  /** Remembers sort per section. */
+  prefsKey?: string;
 }
 
 export const LiveListView = React.memo(function LiveListView({
@@ -21,10 +22,10 @@ export const LiveListView = React.memo(function LiveListView({
   showHeadline = true,
   defaultSortField = "modified",
   collapsible = true,
-  sortable = true,
   mode = "folder-contents",
   creationParent,
   view,
+  prefsKey,
 }: LiveListViewProps) {
   const { documents, isLoading } = useDocuments(parent, mode);
 
@@ -39,16 +40,9 @@ export const LiveListView = React.memo(function LiveListView({
       isLoading={isLoading}
       mode={mode}
       parent={parent}
-      enableContextMenu={true}
-      enableDropdownMenu={true}
-      enableOpen={true}
-      enableOpenNewTab={true}
-      enableRename={true}
-      enableCopy={false}
-      enableDelete={true}
-      enableSorting={true}
-      enableBulkSelection={true}
+      enableBulkSelection
       view={view}
+      prefsKey={prefsKey}
     />
   );
 });

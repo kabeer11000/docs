@@ -12,7 +12,7 @@ import { searchActions } from "@/state/search";
 
 export default function SharedPage() {
   const { user } = useStore($auth);
-  const [view, setView] = useViewMode();
+  const [view, setView] = useViewMode("shared");
 
   useEffect(() => {
     searchActions.setCurrentPage("shared");
@@ -23,7 +23,10 @@ export default function SharedPage() {
 
   return (
     <PageBody title={<Greeting />}>
-      <HomeTabs active="shared" actions={<ViewToggle view={view} onChange={setView} />} />
+      <HomeTabs
+        active="shared"
+        actions={<ViewToggle view={view} onChange={setView} />}
+      />
       <LiveListView
         showHeadline={false}
         creationParent={user.id}
@@ -31,6 +34,7 @@ export default function SharedPage() {
         collapsible={false}
         mode="shared-with-me"
         view={view}
+        prefsKey="shared"
       />
     </PageBody>
   );

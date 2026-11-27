@@ -1,72 +1,106 @@
 import type { Document, IFolderItem } from "@shared-types";
-import { atom } from "nanostores";
+import { atom, computed } from "nanostores";
 import cloudStore from "@/lib/cloudstore";
 import { $auth } from "./auth";
+import {
+  applyPatches,
+  type Patch,
+  settledPatches,
+  visibleTree,
+} from "./file-logic";
 
 // ============================================================================
 // GLOBAL DATA ATOMS
 // ============================================================================
 
-export const $folders = atom<IFolderItem[]>([]);
-export const $documents = atom<Document[]>([]);
+/** Everything the watchers return for the user, trashed rows included. */
+export const $rawFolders = atom<IFolderItem[]>([]);
+export const $rawDocuments = atom<Document[]>([]);
 export const $foldersLoading = atom(true);
 export const $documentsLoading = atom(true);
+
+/**
+ * Optimistic edits by row id (trash, restore, move, rename, star), shown before the server echoes them.
+ * A patch is dropped once the watched rows match it, or by the action when its write fails.
+ */
+export const $patches = atom<Record<string, Patch>>({});
+
+export function patchRows(ids: string[], patch: Patch) {
+  const next = { ...$patches.get() };
+  for (const id of ids) next[id] = { ...next[id], ...patch };
+  $patches.set(next);
+}
+
+export function dropPatches(ids: string[]) {
+  const next = { ...$patches.get() };
+  for (const id of ids) delete next[id];
+  $patches.set(next);
+}
+
+const $tree = computed(
+  [$rawFolders, $rawDocuments, $patches],
+  (folders, docs, patches) =>
+    visibleTree(applyPatches(folders, patches), applyPatches(docs, patches)),
+);
+
+// ponytail: trashed rows still count toward the watchers' limit of 100; add a server-side
+// "not trashed" filter once cloudstore's in-memory matcher treats a missing field as null.
+/** Listed folders and files: not in Trash and not inside a trashed folder, optimistic edits applied. */
+export const $folders = computed($tree, (t) => t.folders);
+export const $documents = computed($tree, (t) => t.docs);
+
+const settle = (rows: { id: string }[]) => {
+  const done = settledPatches(rows, $patches.get());
+  if (done.length) dropPatches(done);
+};
 
 // ============================================================================
 // WATCHER MANAGEMENT
 // ============================================================================
 
-let foldersWatcher: any = null;
-let documentsWatcher: any = null;
+let foldersWatcher: { stop?: () => void } | null = null;
+let documentsWatcher: { stop?: () => void } | null = null;
 
 function startGlobalWatchers(userId: string) {
-  if (!cloudStore) {
-    console.warn("CloudStore not available for global watchers");
-    return;
-  }
-
-  console.log("Starting global CloudStore watchers for user:", userId);
-
-  // Stop existing watchers if any
   stopGlobalWatchers();
 
-  // Start folders watcher
   try {
-    const foldersCollection = cloudStore.collection("folders");
     const foldersQuery = cloudStore.query
       .limit(100)
       .orderBy("timestamp.createdAt", "DESCENDING")
       .where("permissions.owner", "EQUAL", userId);
 
-    foldersWatcher = foldersCollection.watch(
-      foldersQuery,
-      ({ collection: data }: { collection: IFolderItem[] }) => {
-        console.log("Global folders updated:", data?.length);
-        $folders.set(data || []);
-        $foldersLoading.set(false);
-      },
-    );
+    foldersWatcher = cloudStore
+      .collection("folders")
+      .watch(
+        foldersQuery,
+        ({ collection: data }: { collection: IFolderItem[] }) => {
+          $rawFolders.set(data || []);
+          settle(data || []);
+          $foldersLoading.set(false);
+        },
+      );
   } catch (error) {
     console.error("Failed to start folders watcher:", error);
     $foldersLoading.set(false);
   }
 
-  // Start documents watcher
   try {
-    const documentsCollection = cloudStore.collection("documents");
     const documentsQuery = cloudStore.query
       .limit(100)
       .orderBy("createdAt", "DESCENDING")
       .where("owner", "EQUAL", userId);
 
-    documentsWatcher = documentsCollection.watch(
-      documentsQuery,
-      ({ collection: data }: { collection: Document[] }) => {
-        console.log("Global documents updated:", data?.length);
-        $documents.set(data || []);
-        $documentsLoading.set(false);
-      },
-    );
+    documentsWatcher = cloudStore
+      .collection("documents")
+      .watch(
+        documentsQuery,
+        ({ collection: data }: { collection: Document[] }) => {
+          $rawDocuments.set(data || []);
+          settle(data || []);
+          $documentsLoading.set(false);
+        },
+      );
   } catch (error) {
     console.error("Failed to start documents watcher:", error);
     $documentsLoading.set(false);
@@ -74,18 +108,10 @@ function startGlobalWatchers(userId: string) {
 }
 
 function stopGlobalWatchers() {
-  console.log("Stopping global CloudStore watchers");
-
-  if (foldersWatcher && typeof foldersWatcher.stop === "function") {
-    foldersWatcher.stop();
-    foldersWatcher = null;
-  }
-
-  if (documentsWatcher && typeof documentsWatcher.stop === "function") {
-    documentsWatcher.stop();
-    documentsWatcher = null;
-  }
-
+  foldersWatcher?.stop?.();
+  foldersWatcher = null;
+  documentsWatcher?.stop?.();
+  documentsWatcher = null;
 }
 
 // ============================================================================
@@ -109,8 +135,9 @@ $auth.subscribe((authState) => {
     startGlobalWatchers(authState.user.id);
   } else {
     stopGlobalWatchers();
-    $folders.set([]);
-    $documents.set([]);
+    $rawFolders.set([]);
+    $rawDocuments.set([]);
+    $patches.set({});
     $foldersLoading.set(true);
     $documentsLoading.set(true);
   }

@@ -1,12 +1,25 @@
-import { newFolder, serializeFolder } from "@/lib/api/documents";
-import { assertOwnFolder, authenticate, folders, json, route } from "@/lib/api/server";
+import { newFolder, notTrashed, serializeFolder } from "@/lib/api/documents";
+import {
+  assertOwnFolder,
+  authenticate,
+  folders,
+  json,
+  route,
+} from "@/lib/api/server";
 import { createFolderSchema, parseBody } from "@/lib/api/validation";
 
 export const GET = route(async (request) => {
   const caller = await authenticate(request);
   const parent = new URL(request.url).searchParams.get("parent");
   const rows = await (await folders())
-    .find({ "permissions.owner": caller.id, ...(parent ? { parents: parent } : {}) }, { projection: { _id: 0 } })
+    .find(
+      {
+        "permissions.owner": caller.id,
+        ...notTrashed,
+        ...(parent ? { parents: parent } : {}),
+      },
+      { projection: { _id: 0 } },
+    )
     .sort({ name: 1 })
     .limit(1000)
     .toArray();

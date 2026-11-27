@@ -1,27 +1,34 @@
 "use client";
 
+import { useStore } from "@nanostores/react";
 import { ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoMark } from "@/components/brand/logo";
+import { useFolderDrop } from "@/components/shared/files/file-item";
 import { Button } from "@/components/ui/button";
 import { useFolderBreadcrumbs } from "@/hooks/use-folder-breadcrumbs";
 import { cn } from "@/lib/utils";
+import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
 import { NotificationsPopover } from "../notifications-popover";
 import { AccountPopover } from "./account-popover";
+import { SearchField } from "./command-palette";
 import { folderFromPath, NewMenu } from "./new-menu";
 
 interface Crumb {
   label: string;
   href?: string;
+  /** Folder files can be dropped on ("root" is the Vault). */
+  folderId?: string;
 }
 
 /** Fixed places by route; folders are resolved live. */
 const PLACES: [RegExp, Crumb][] = [
   [/^\/home/, { label: "Home", href: "/home" }],
-  [/^\/vault/, { label: "Vault", href: "/vault" }],
+  [/^\/vault/, { label: "Vault", href: "/vault", folderId: "root" }],
   [/^\/shared/, { label: "Shared with me", href: "/shared" }],
+  [/^\/trash/, { label: "Trash", href: "/trash" }],
   [/^\/document\/[^/]+\/templates/, { label: "Templates" }],
   [/^\/settings\/api/, { label: "API keys" }],
 ];
@@ -48,18 +55,7 @@ export function TopBar({ scrolled }: { scrolled: boolean }) {
         <Breadcrumb pathname={pathname} />
       </div>
 
-      <button
-        type="button"
-        data-tour="search"
-        onClick={() => searchActions.open()}
-        className="hidden h-9 w-full items-center gap-2.5 rounded-[10px] bg-muted/70 px-3 text-left text-sm text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/40 md:flex"
-      >
-        <Search className="size-4 shrink-0" />
-        <span className="flex-1 truncate">Search files and commands</span>
-        <kbd className="rounded-[6px] border border-border bg-card px-1.5 font-sans text-[11px] leading-5">
-          Ctrl K
-        </kbd>
-      </button>
+      <SearchField />
 
       <div className="flex shrink-0 items-center justify-end gap-1 sm:gap-1.5">
         <Button
@@ -98,54 +94,66 @@ function FolderTrail({ folderId }: { folderId: string }) {
       crumbs={breadcrumbs.map((b, i) => ({
         label: b.name,
         href: i === 0 ? "/vault" : `/folder/${b.id}`,
+        folderId: i === 0 ? "root" : b.id,
       }))}
     />
   );
 }
 
-/** On small screens only the current place shows. */
+/** On small screens only the current place shows. Folder crumbs take dropped files. */
 function Trail({ crumbs }: { crumbs: Crumb[] }) {
   return (
     <nav aria-label="Breadcrumb" className="min-w-0">
       <ol className="flex min-w-0 items-center gap-0.5 text-sm">
-        {crumbs.map((crumb, i) => {
-          const last = i === crumbs.length - 1;
-          return (
-            <li
-              key={`${crumb.label}-${i}`}
-              className={cn(
-                "flex min-w-0 items-center",
-                !last && "hidden sm:flex",
-              )}
-            >
-              <ChevronRight
-                className="mx-0.5 size-3.5 shrink-0 text-muted-foreground/60"
-                aria-hidden="true"
-              />
-              {last || !crumb.href ? (
-                <span
-                  aria-current={last ? "page" : undefined}
-                  className={cn(
-                    "truncate px-1",
-                    last
-                      ? "font-medium text-foreground"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  {crumb.label}
-                </span>
-              ) : (
-                <Link
-                  href={crumb.href}
-                  className="max-w-[12rem] truncate rounded-[6px] px-1 text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {crumb.label}
-                </Link>
-              )}
-            </li>
-          );
-        })}
+        {crumbs.map((crumb, i) => (
+          <CrumbItem
+            key={`${crumb.label}-${i}`}
+            crumb={crumb}
+            last={i === crumbs.length - 1}
+          />
+        ))}
       </ol>
     </nav>
+  );
+}
+
+function CrumbItem({ crumb, last }: { crumb: Crumb; last: boolean }) {
+  const { user } = useStore($auth);
+  const folderId = crumb.folderId === "root" ? user?.id : crumb.folderId;
+  const { over, dropProps } = useFolderDrop(folderId);
+  return (
+    <li
+      className={cn("flex min-w-0 items-center", !last && "hidden sm:flex")}
+      {...dropProps}
+    >
+      <ChevronRight
+        className="mx-0.5 size-3.5 shrink-0 text-muted-foreground/60"
+        aria-hidden="true"
+      />
+      {last || !crumb.href ? (
+        <span
+          aria-current={last ? "page" : undefined}
+          title={crumb.label}
+          className={cn(
+            "max-w-[16rem] truncate rounded-[6px] px-1.5 py-0.5 transition-colors",
+            last ? "font-medium text-foreground" : "text-muted-foreground",
+            over && "bg-accent ring-2 ring-foreground/40",
+          )}
+        >
+          {crumb.label}
+        </span>
+      ) : (
+        <Link
+          href={crumb.href}
+          title={crumb.label}
+          className={cn(
+            "max-w-[12rem] truncate rounded-[6px] px-1.5 py-0.5 text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
+            over && "bg-accent text-foreground ring-2 ring-foreground/40",
+          )}
+        >
+          {crumb.label}
+        </Link>
+      )}
+    </li>
   );
 }

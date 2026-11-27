@@ -155,6 +155,10 @@ export interface Document {
     message?: string;
   }>;
   isStarred?: boolean;
+  /** ISO time the file was moved to Trash; missing or null when it is not in Trash. */
+  trashedAt?: string | null;
+  /** Folder it was in when trashed (restore puts it back there, or in the root if that is gone). */
+  trashedFrom?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
   lastSaved: Date | string;

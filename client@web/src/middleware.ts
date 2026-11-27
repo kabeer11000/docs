@@ -13,6 +13,7 @@ const PROTECTED_ROUTE_PATTERNS = [
   "/slides",
   "/chat",
   "/shared",
+  "/trash",
   "/templates",
   "/settings",
 ];

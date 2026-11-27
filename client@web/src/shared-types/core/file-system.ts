@@ -31,6 +31,8 @@ export interface IFolderItem {
   permissions: IFolderPermissions;
   timestamp: ITimestamp;
   isStarred?: boolean;
+  trashedAt?: string | null;
+  trashedFrom?: string;
 }
 
 export interface IFilePreview {

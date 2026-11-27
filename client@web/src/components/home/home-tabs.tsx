@@ -2,7 +2,6 @@
 
 import { useStore } from "@nanostores/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { FoldersView } from "@/components/shared/ui/folders-view";
 import { ListView } from "@/components/shared/ui/list-view";
@@ -13,7 +12,7 @@ import { $documents } from "@/state/cloudstore-data";
 import { EmptyState } from "./empty-state";
 import type { ViewMode } from "./view-toggle";
 
-export type HomeTab = "recent" | "starred" | "shared" | "vault";
+export type HomeTab = "recent" | "starred" | "shared" | "vault" | "trash";
 
 const TABS: { id: HomeTab; label: string; href: string; tour?: string }[] = [
   { id: "recent", label: "Recent", href: "/home" },
@@ -25,6 +24,7 @@ const TABS: { id: HomeTab; label: string; href: string; tour?: string }[] = [
   },
   { id: "shared", label: "Shared with me", href: "/shared" },
   { id: "vault", label: "Vault", href: "/vault", tour: "nav-vault" },
+  { id: "trash", label: "Trash", href: "/trash" },
 ];
 
 /** Route-backed tabs under the greeting; each tab is its own URL so back/forward and links work. */
@@ -68,7 +68,6 @@ export function HomeTabs({
 
 /** Starred folders as cards, starred files as the usual list. Replaces the old sidebar section. */
 export function StarredView({ view }: { view: ViewMode }) {
-  const router = useRouter();
   const all = useStore($documents);
   const { documents, isLoading } = useDocuments(undefined, "recent-files");
   const { folders, isLoading: foldersLoading } = useSharedFolders();
@@ -106,14 +105,8 @@ export function StarredView({ view }: { view: ViewMode }) {
         <FoldersView
           headlineText="Folders"
           folders={starredFolders}
-          onFolderOpen={(folder) => router.push(`/folder/${folder.id}`)}
           showHeadline
           collapsible={false}
-          enableContextMenu
-          enableDropdownMenu
-          enableRename
-          enableCopy={false}
-          enableDelete
         />
       )}
       {(files.length > 0 || isLoading) && (
@@ -123,8 +116,9 @@ export function StarredView({ view }: { view: ViewMode }) {
           mode="recent-files"
           collapsible={false}
           defaultSortField="modified"
-          enableCopy={false}
+          enableBulkSelection
           view={view}
+          prefsKey="starred"
         />
       )}
     </div>

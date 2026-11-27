@@ -10,10 +10,14 @@ import { FolderOptions } from "@/components/shared/ui/folder-options";
 import { LiveListView } from "@/components/shared/ui/live-list-view";
 import { $auth } from "@/state/auth";
 
-export default function FolderPage({ params }: { params: Promise<{ id: string }> }) {
+export default function FolderPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
   const { user } = useStore($auth);
-  const [view, setView] = useViewMode();
+  const [view, setView] = useViewMode("folder");
   const { id } = use(params);
   // The root folder is the vault itself.
   const isRoot = !id || id === "root" || id === "home" || id === user?.id;
@@ -41,6 +45,7 @@ export default function FolderPage({ params }: { params: Promise<{ id: string }>
         collapsible={false}
         mode="folder-contents"
         view={view}
+        prefsKey="folder"
       />
     </PageBody>
   );

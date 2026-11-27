@@ -19,7 +19,7 @@ export default function EditorFrame({
 }: EditorFrameProps) {
   return (
     <div className="flex h-svh flex-col overflow-hidden bg-background">
-      <header className="flex h-12 shrink-0 items-center gap-3 px-3 md:px-4">
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-3 md:px-4">
         <div className="flex min-w-0 flex-1 items-center justify-between">
           {editorHeaderContent}
         </div>

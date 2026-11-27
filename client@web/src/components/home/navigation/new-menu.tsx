@@ -8,7 +8,7 @@ import {
   PlusIcon,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,11 +17,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useCreateFile } from "@/hooks/use-create-file";
 import { IMPORT_ACCEPT, useImportFiles } from "@/lib/import/use-import-files";
-import { showToast } from "@/lib/toast";
 import { $auth } from "@/state/auth";
+import { $newMenuOpen, newFolder } from "@/state/file-actions";
 import { templatesHref } from "../empty-state";
 import { KIND, KINDS } from "../kind";
 
@@ -34,43 +33,17 @@ export function NewMenu() {
   const pathname = usePathname() ?? "";
   const router = useRouter();
   const { user, isLoading } = useStore($auth);
-  const { createFolder, isReady } = useCloudStore();
   const { create, creating } = useCreateFile();
   const { importFiles, busy: importing } = useImportFiles();
   const importInput = useRef<HTMLInputElement>(null);
-  const [creatingFolder, setCreatingFolder] = useState(false);
+  const open = useStore($newMenuOpen);
 
   const canCreate = !!user && !isLoading;
   const parent = folderFromPath(pathname) || user?.id;
 
-  const newFolder = async () => {
-    if (!isReady || creatingFolder || !user || !parent) return;
-    setCreatingFolder(true);
-    try {
-      const id = await createFolder({
-        folderId: parent,
-        name: "Untitled Folder",
-      });
-      if (!id)
-        showToast.error(
-          "Failed to create folder",
-          "Please check your connection and try again",
-        );
-    } catch (error) {
-      console.error("Failed to create folder:", error);
-      showToast.error(
-        "Failed to create folder",
-        "An unexpected error occurred",
-      );
-    } finally {
-      // Blocks rapid repeat clicks while the list catches up.
-      setTimeout(() => setCreatingFolder(false), 300);
-    }
-  };
-
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={$newMenuOpen.set}>
         <DropdownMenuTrigger asChild>
           <Button
             data-tour="new-document"
@@ -103,7 +76,7 @@ export function NewMenu() {
             <LayoutTemplate />
             From template
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={creatingFolder} onClick={newFolder}>
+          <DropdownMenuItem onSelect={() => parent && newFolder(parent)}>
             <FolderPlus />
             Folder
           </DropdownMenuItem>

@@ -2,11 +2,10 @@ import { SheetThumbnail } from "@/components/sheet/sheet-thumbnail";
 import { SlidesThumbnail } from "@/components/slides/slides-thumbnail";
 import type { FileKind } from "@/lib/files";
 import { cn } from "@/lib/utils";
-import { KIND } from "./kind";
 import { PaperSheet } from "./paper-sheet";
 
 /**
- * Card preview for any file kind: a well tinted in the app's colour with the file inside it.
+ * Card preview for any file kind: a neutral well with the file inside it.
  * Pages peek up from the bottom; slides sit centred.
  */
 export function FileThumbnail({
@@ -26,7 +25,7 @@ export function FileThumbnail({
     <div
       className={cn(
         "relative aspect-[4/3] w-full overflow-hidden",
-        KIND[kind].soft,
+        "bg-muted/70",
         className,
       )}
     >
