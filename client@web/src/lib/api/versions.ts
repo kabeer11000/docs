@@ -8,7 +8,7 @@ export interface VersionRecord {
   at: string;
   by: string;
   title: string;
-  kind: "doc" | "sheet" | "slides";
+  kind: "doc" | "sheet" | "slides" | "pdf";
   content?: unknown;
   data?: unknown;
   size: number;

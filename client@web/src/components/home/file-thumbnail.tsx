@@ -1,3 +1,4 @@
+import { PdfThumbnail } from "@/components/pdf/pdf-thumbnail";
 import { SheetThumbnail } from "@/components/sheet/sheet-thumbnail";
 import { SlidesThumbnail } from "@/components/slides/slides-thumbnail";
 import type { FileKind } from "@/lib/files";
@@ -9,12 +10,15 @@ import { PaperSheet } from "./paper-sheet";
  * Pages peek up from the bottom; slides sit centred.
  */
 export function FileThumbnail({
+  id,
   kind,
   title,
   content,
   data,
   className,
 }: {
+  /** Needed for PDFs, whose first page is rendered from the stored file. */
+  id?: string;
   kind: FileKind;
   title: string;
   content?: unknown;
@@ -37,6 +41,8 @@ export function FileThumbnail({
         <div className="absolute inset-x-[14%] top-[12%] transition-transform duration-200 group-hover:-translate-y-1">
           {kind === "sheet" ? (
             <SheetThumbnail data={data} />
+          ) : kind === "pdf" && id ? (
+            <PdfThumbnail data={data} fileId={id} />
           ) : (
             <PaperSheet title={title} content={content} />
           )}

@@ -11,6 +11,7 @@ const PROTECTED_ROUTE_PATTERNS = [
   "/document",
   "/sheet",
   "/slides",
+  "/pdf",
   "/chat",
   "/shared",
   "/trash",

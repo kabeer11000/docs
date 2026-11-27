@@ -81,7 +81,7 @@ export interface Document {
   id: string;
   title: string;
   /** Which app opens the file. Missing means "doc" (every file created before sheets and slides). */
-  kind?: "doc" | "sheet" | "slides";
+  kind?: "doc" | "sheet" | "slides" | "pdf";
   /** Kind-specific content for sheets and slides (docs keep using pages[0].content). */
   data?: unknown;
   /** Set while the file is published to the web at /p/:id. */
@@ -166,7 +166,7 @@ export interface Document {
 
 export interface DocumentCreateInput {
   id?: string;
-  kind?: "doc" | "sheet" | "slides";
+  kind?: "doc" | "sheet" | "slides" | "pdf";
   data?: unknown;
   title?: string;
   initialContent?: any;

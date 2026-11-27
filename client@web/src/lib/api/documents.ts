@@ -3,12 +3,13 @@ import { nanoid } from "nanoid";
 import { docHtml } from "./content";
 import type { Access, ApiUser } from "./permissions";
 
-export type FileKind = "doc" | "sheet" | "slides";
+export type FileKind = "doc" | "sheet" | "slides" | "pdf";
 
 const DEFAULT_TITLE: Record<FileKind, string> = {
   doc: "Untitled document",
   sheet: "Untitled spreadsheet",
   slides: "Untitled presentation",
+  pdf: "Untitled PDF",
 };
 
 /** Same shape useCloudStore().createDocument inserts, so the app opens API-created files unchanged. */

@@ -20,6 +20,8 @@ interface FileCardProps {
   titleNode?: ReactNode;
   /** Morphs the thumbnail into the opened file. Pass for one card per file on screen only. */
   transitionId?: string;
+  /** The file id (PDF thumbnails load the stored file by id). */
+  fileId?: string;
   /** State rings (selected, new, drop target). */
   className?: string;
 }
@@ -37,9 +39,10 @@ export function FileCard({
   titleNode,
   className,
   transitionId,
+  fileId,
 }: FileCardProps) {
   const thumb = (
-    <FileThumbnail kind={kind} title={title} content={content} data={data} />
+    <FileThumbnail id={fileId ?? transitionId} kind={kind} title={title} content={content} data={data} />
   );
   return (
     <div

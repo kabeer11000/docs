@@ -1,5 +1,5 @@
-import { FileText, type LucideIcon, Presentation, Sheet } from "lucide-react";
-import type { FileKind } from "@/lib/files";
+import { FileText, FileType2, type LucideIcon, Presentation, Sheet } from "lucide-react";
+import type { CreatableKind, FileKind } from "@/lib/files";
 import { cn } from "@/lib/utils";
 
 /** Per-app identity used across Home, the sidebar and the palette. Literal classes so Tailwind sees them. */
@@ -42,9 +42,21 @@ export const KIND: Record<
     bg: "bg-slides",
     soft: "bg-slides-soft",
   },
+  pdf: {
+    icon: FileType2,
+    label: "PDF",
+    plural: "PDFs",
+    blank: "Upload a PDF",
+    text: "text-[#E5484D] dark:text-[#FF6369]",
+    bg: "bg-[#E5484D] dark:bg-[#FF6369]",
+    soft: "bg-[#E5484D]/10 dark:bg-[#FF6369]/12",
+  },
 };
 
-export const KINDS: FileKind[] = ["doc", "sheet", "slides"];
+/** Kinds that can be created blank or from templates. */
+export const KINDS: CreatableKind[] = ["doc", "sheet", "slides"];
+/** Every kind, for filters. */
+export const ALL_KINDS: FileKind[] = ["doc", "sheet", "slides", "pdf"];
 
 /** Small rounded chip with the app glyph in its colour. */
 export function KindIcon({
@@ -81,7 +93,7 @@ export function KindFilter({
 }) {
   const options: { value: KindFilterValue; label: string; dot?: string }[] = [
     { value: "all", label: "All" },
-    ...KINDS.map((k) => ({ value: k, label: KIND[k].plural, dot: KIND[k].bg })),
+    ...ALL_KINDS.map((k) => ({ value: k, label: KIND[k].plural, dot: KIND[k].bg })),
   ];
   return (
     <fieldset className="flex flex-wrap items-center gap-1.5">

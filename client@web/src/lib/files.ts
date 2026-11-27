@@ -2,14 +2,17 @@ import type { Document } from "@shared-types";
 import { $documents } from "@/state/cloudstore-data";
 
 /** Every file is a row in the documents collection; `kind` says which app opens it. */
-export type FileKind = "doc" | "sheet" | "slides";
+export type FileKind = "doc" | "sheet" | "slides" | "pdf";
+/** Kinds you can start blank or from a template (PDFs come from uploads). */
+export type CreatableKind = Exclude<FileKind, "pdf">;
 
-const ROUTE: Record<FileKind, string> = { doc: "document", sheet: "sheet", slides: "slides" };
+const ROUTE: Record<FileKind, string> = { doc: "document", sheet: "sheet", slides: "slides", pdf: "pdf" };
 
 export const KIND_LABEL: Record<FileKind, string> = {
   doc: "Document",
   sheet: "Spreadsheet",
   slides: "Presentation",
+  pdf: "PDF",
 };
 
 export const fileKind = (doc?: Pick<Document, "kind"> | null): FileKind => doc?.kind ?? "doc";

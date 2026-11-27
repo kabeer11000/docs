@@ -77,6 +77,7 @@ export function JumpBackIn() {
               >
                 <FileCard
                   large
+                  fileId={doc.id}
                   kind={kind}
                   title={doc.title}
                   content={doc.pages?.[0]?.content}

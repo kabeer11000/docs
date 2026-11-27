@@ -10,8 +10,8 @@ import type { MenuHandle } from "../extensions/slash-command";
 
 export type DocLinkItem = { type: "file"; file: Document } | { type: "create"; title: string };
 
-const KIND_ICON = { doc: FileText, sheet: Sheet, slides: Presentation } as const;
-const KIND_COLOR = { doc: "text-doc", sheet: "text-sheet", slides: "text-slides" } as const;
+const KIND_ICON = { doc: FileText, sheet: Sheet, slides: Presentation, pdf: FileText } as const;
+const KIND_COLOR = { doc: "text-doc", sheet: "text-sheet", slides: "text-slides", pdf: "text-[#E5484D]" } as const;
 
 export const DocLinkMenu = forwardRef<MenuHandle, SuggestionProps<DocLinkItem>>(function DocLinkMenu({ items, command }, ref) {
   const [active, setActive] = useState(0);

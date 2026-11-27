@@ -69,6 +69,7 @@ const APP_NAME: Record<FileKind, string> = {
   doc: "Docs",
   sheet: "Sheets",
   slides: "Slides",
+  pdf: "PDF",
 };
 
 export interface AppHeaderProps {

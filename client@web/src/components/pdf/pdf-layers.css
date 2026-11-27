@@ -1,0 +1,223 @@
+/* PDF app accent, and the parts of pdf.js's viewer CSS its text and form layers need (the full sheet is ~200 KB). */
+[data-app="pdf"] {
+  --app: #e5484d;
+  --app-soft: color-mix(in srgb, #e5484d 12%, transparent);
+  --app-foreground: #ffffff;
+}
+.dark [data-app="pdf"],
+[data-app="pdf"].dark {
+  --app: #ff6369;
+  --app-soft: color-mix(in srgb, #ff6369 16%, transparent);
+  --app-foreground: #000000;
+}
+
+.pdf-page {
+  --user-unit: 1;
+  --total-scale-factor: calc(var(--scale-factor) * var(--user-unit));
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+}
+.pdf-page [data-main-rotation="90"] {
+  transform: rotate(90deg) translateY(-100%);
+}
+.pdf-page [data-main-rotation="180"] {
+  transform: rotate(180deg) translate(-100%, -100%);
+}
+.pdf-page [data-main-rotation="270"] {
+  transform: rotate(270deg) translateX(-100%);
+}
+
+.pdf-page .textLayer {
+  position: absolute;
+  text-align: initial;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  z-index: 1;
+}
+.pdf-page .textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+.pdf-page .textLayer > :not(.markedContent),
+.pdf-page .textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+}
+.pdf-page .textLayer span.markedContent {
+  top: 0;
+  height: 0;
+}
+.pdf-page .textLayer ::selection {
+  background: color-mix(in srgb, var(--app) 28%, transparent);
+}
+.pdf-page .textLayer br::selection {
+  background: transparent;
+}
+.pdf-page .textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  user-select: none;
+}
+.pdf-page .textLayer.selecting .endOfContent {
+  top: 0;
+}
+
+.pdf-page .annotationLayer {
+  color-scheme: only light;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+  z-index: 2;
+}
+.pdf-page .annotationLayer section {
+  position: absolute;
+  text-align: initial;
+  pointer-events: auto;
+  box-sizing: border-box;
+  transform-origin: 0 0;
+  user-select: none;
+}
+.pdf-page .annotationLayer.disabled section {
+  pointer-events: none;
+}
+.pdf-page
+  .annotationLayer
+  :is(section):has(div.annotationContent)
+  canvas.annotationContent {
+  display: none;
+}
+.pdf-page .annotationLayer .annotationContent {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.pdf-page .textLayer.selecting ~ .annotationLayer section {
+  pointer-events: none;
+}
+.pdf-page
+  .annotationLayer
+  :is(.linkAnnotation, .buttonWidgetAnnotation.pushButton)
+  > a {
+  position: absolute;
+  font-size: 1em;
+  inset: 0;
+}
+.pdf-page .annotationLayer .linkAnnotation > a:hover {
+  background: color-mix(in srgb, var(--app) 14%, transparent);
+}
+.pdf-page .annotationLayer .popupAnnotation,
+.pdf-page .annotationLayer .popup {
+  display: none;
+}
+.pdf-page .annotationLayer .textWidgetAnnotation :is(input, textarea),
+.pdf-page .annotationLayer .choiceWidgetAnnotation select,
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation:is(.checkBox, .radioButton)
+  input {
+  background: rgb(0 54 255 / 0.1);
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: #000;
+  font: calc(9px * var(--total-scale-factor)) sans-serif;
+  height: 100%;
+  margin: 0;
+  vertical-align: top;
+  width: 100%;
+}
+.pdf-page .annotationLayer .textWidgetAnnotation textarea {
+  resize: none;
+}
+.pdf-page .annotationLayer :is(input, textarea, select):hover {
+  border-color: rgb(0 0 0 / 0.5);
+}
+.pdf-page .annotationLayer :is(input, textarea, select):focus {
+  background: none;
+  border-color: var(--app);
+  border-radius: 2px;
+  outline: none;
+}
+.pdf-page .annotationLayer [disabled]:is(input, textarea, select) {
+  background: none;
+  cursor: not-allowed;
+}
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation:is(.checkBox, .radioButton)
+  input {
+  appearance: none;
+  position: relative;
+}
+.pdf-page .annotationLayer .buttonWidgetAnnotation.radioButton input {
+  border-radius: 50%;
+}
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.checkBox
+  input:checked::before,
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.checkBox
+  input:checked::after,
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.radioButton
+  input:checked::before {
+  background-color: #000;
+  content: "";
+  display: block;
+  position: absolute;
+}
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.checkBox
+  input:checked::before,
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.checkBox
+  input:checked::after {
+  height: 80%;
+  left: 45%;
+  top: 10%;
+  width: 1px;
+}
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.checkBox
+  input:checked::before {
+  transform: rotate(45deg);
+}
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.checkBox
+  input:checked::after {
+  transform: rotate(-45deg);
+}
+.pdf-page
+  .annotationLayer
+  .buttonWidgetAnnotation.radioButton
+  input:checked::before {
+  border-radius: 50%;
+  height: 50%;
+  left: 25%;
+  top: 25%;
+  width: 50%;
+}
+.pdf-page .annotationLayer .textWidgetAnnotation input.comb {
+  font-family: monospace;
+  padding-left: 2px;
+  padding-right: 0;
+}

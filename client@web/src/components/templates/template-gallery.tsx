@@ -42,7 +42,7 @@ import {
 } from "@/data/templates";
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useCreateFile } from "@/hooks/use-create-file";
-import { type FileKind, fileHref } from "@/lib/files";
+import { type CreatableKind as FileKind, fileHref } from "@/lib/files";
 import { type CellValue, displayValue } from "@/lib/sheet/grid";
 import {
   getSheetTemplate,

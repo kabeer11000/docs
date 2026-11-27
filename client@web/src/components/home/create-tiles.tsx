@@ -2,7 +2,7 @@ import { useStore } from "@nanostores/react";
 import { ArrowUp, Loader2, Plus } from "lucide-react";
 import { useRef } from "react";
 import { useCreateFile } from "@/hooks/use-create-file";
-import type { FileKind } from "@/lib/files";
+import type { CreatableKind, FileKind } from "@/lib/files";
 import { IMPORT_ACCEPT, useImportFiles } from "@/lib/import/use-import-files";
 import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
@@ -80,7 +80,7 @@ function SlidesPreview() {
   );
 }
 
-const PREVIEW: Record<FileKind, () => React.JSX.Element> = {
+const PREVIEW: Record<CreatableKind, () => React.JSX.Element> = {
   doc: DocPreview,
   sheet: SheetPreview,
   slides: SlidesPreview,

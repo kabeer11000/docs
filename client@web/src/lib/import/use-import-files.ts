@@ -46,7 +46,7 @@ async function readFile(file: File): Promise<CreateInput> {
 }
 
 // CONTRACT (owned by the import agent): import any supported file as a new file and open it.
-// docx/pdf/md/html/txt -> doc, xlsx/csv -> sheet, pptx -> slides.
+// pdf -> PDF editor, docx/md/html/txt -> doc, xlsx/csv -> sheet, pptx -> slides.
 export function useImportFiles(): { importFiles: (files: FileList | File[], folderId?: string) => Promise<void>; busy: boolean } {
   const router = useRouter();
   const { createDocument } = useCloudStore();
@@ -70,6 +70,12 @@ export function useImportFiles(): { importFiles: (files: FileList | File[], fold
       try {
         for (const file of files) {
           try {
+            // PDFs open in the PDF editor (bytes go to the blob store); "Convert to document" lives there.
+            if (importKind(file.name) === "pdf") {
+              const { createPdfFile } = await import("@/lib/pdf/create");
+              created.push({ id: await createPdfFile(file, folderId || user.id), kind: "pdf" });
+              continue;
+            }
             const { kind, title, initialContent, data } = await readFile(file);
             const id = await createDocument({ kind, title, folderId: folderId || user.id, initialContent, data });
             if (!id) throw new Error("The file could not be created. Check your connection and try again.");
