@@ -14,12 +14,17 @@ export type CollabState = "pending" | "connecting" | "live" | "solo";
 
 async function collabToken() {
   const { tokens } = authManager.currentState;
-  if (tokens && authManager.isTokenExpired(tokens.accessToken)) await authManager.refreshToken();
+  if (tokens && authManager.isTokenExpired(tokens.accessToken))
+    await authManager.refreshToken();
   return authManager.currentState.tokens?.accessToken ?? "";
 }
 
 /** `canEdit` is null until permissions are known. */
-export function useSlidesCollab(documentId: string, doc: Y.Doc, canEdit: boolean | null) {
+export function useSlidesCollab(
+  documentId: string,
+  doc: Y.Doc,
+  canEdit: boolean | null,
+) {
   const [state, setState] = useState<CollabState>("pending");
 
   useEffect(() => {
@@ -38,7 +43,10 @@ export function useSlidesCollab(documentId: string, doc: Y.Doc, canEdit: boolean
       hp = null;
       setState("solo");
     };
-    const connectTimer = setTimeout(() => alive && !synced && goSolo(), CONNECT_TIMEOUT);
+    const connectTimer = setTimeout(
+      () => alive && !synced && goSolo(),
+      CONNECT_TIMEOUT,
+    );
     try {
       hp = new HocuspocusProvider({
         url: COLLAB_URL,
@@ -60,7 +68,10 @@ export function useSlidesCollab(documentId: string, doc: Y.Doc, canEdit: boolean
           dropTimer = setTimeout(() => {
             if (!alive || !hp) return;
             goSolo();
-            showToast.error("Live editing disconnected", "Your changes still save. Reload to see others' edits.");
+            showToast.error(
+              "Live editing disconnected",
+              "Your changes still save. Reload to see others' edits.",
+            );
           }, REJOIN_WINDOW);
         },
       });

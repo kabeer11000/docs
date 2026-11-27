@@ -9,15 +9,19 @@ import {
   ChevronDown,
   ImagePlus,
   Italic,
+  LayoutTemplate,
   List,
   ListOrdered,
-  Play,
   Plus,
+  Shapes,
+  Type,
   Underline,
 } from "lucide-react";
 import { useRef } from "react";
-import { insertImages } from "@/components/editor/extensions/image-drop";
-import { ToolbarButton, ToolbarSeparator } from "@/components/editor/toolbar-button";
+import {
+  PillButton,
+  ToolbarSeparator,
+} from "@/components/editor/toolbar-button";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,52 +29,79 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { type Layout, LAYOUTS, type Theme, THEMES } from "@/lib/slides/model";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  LAYOUTS,
+  type Layout,
+  type Slide,
+  THEMES,
+  type Theme,
+  TRANSITIONS,
+  type Transition,
+} from "@/lib/slides/model";
+import { GEOMETRY, SLIDE_H, SLIDE_W } from "@/lib/slides/styles";
 import { cn } from "@/lib/utils";
+import { PALETTE } from "./element-toolbar";
+import { StaticSlide } from "./slide-view";
 
-// Rough region boxes per layout on a 32x18 grid, for the layout menu glyphs.
-const GLYPH: Record<Layout, [number, number, number, number][]> = {
-  title: [
-    [6, 6, 20, 3],
-    [6, 11, 14, 1.5],
-  ],
-  "title-body": [
-    [3, 3, 18, 2.5],
-    [3, 8, 26, 1.2],
-    [3, 10.5, 24, 1.2],
-    [3, 13, 20, 1.2],
-  ],
-  "two-column": [
-    [3, 3, 18, 2.5],
-    [3, 8, 12, 7],
-    [17, 8, 12, 7],
-  ],
-  section: [
-    [3, 7, 4, 0.8],
-    [3, 9, 20, 3],
-  ],
-  image: [
-    [3, 3, 18, 2.5],
-    [8, 7.5, 16, 8],
-  ],
-  blank: [],
-};
-
-function LayoutGlyph({ layout }: { layout: Layout }) {
+/** A tiny drawing of a layout's regions, straight from the shared geometry. */
+export function LayoutGlyph({
+  layout,
+  className,
+}: {
+  layout: Layout;
+  className?: string;
+}) {
   return (
-    <svg viewBox="0 0 32 18" className="h-[18px] w-8 shrink-0 rounded-[2px] border border-border bg-paper" aria-hidden="true">
-      {GLYPH[layout].map(([x, y, w, h]) => (
-        <rect key={`${x}-${y}`} x={x} y={y} width={w} height={h} rx={0.4} className="fill-muted-foreground/50" />
+    <svg
+      viewBox="0 0 32 18"
+      className={cn(
+        "h-[18px] w-8 shrink-0 rounded-[3px] border border-border bg-background",
+        className,
+      )}
+      aria-hidden="true"
+    >
+      {Object.entries(GEOMETRY[layout]).map(([region, b]) => (
+        <rect
+          key={region}
+          x={(b.x / SLIDE_W) * 32}
+          y={(b.y / SLIDE_H) * 18}
+          width={(b.w / SLIDE_W) * 32}
+          height={Math.max(
+            0.8,
+            (b.h / SLIDE_H) * 18 * (b.font === "title" ? 0.5 : 0.85),
+          )}
+          rx={0.5}
+          className={
+            b.font === "title" || b.color
+              ? "fill-app/70"
+              : "fill-muted-foreground/35"
+          }
+        />
       ))}
     </svg>
   );
 }
 
-const COLORS = [
+const sample = (theme: Theme): Slide => ({
+  id: `sample-${theme}`,
+  layout: "title",
+  notes: "",
+  html: { title: "<p>Aa</p>", subtitle: `<p>${THEMES[theme].label}</p>` },
+  elements: [],
+});
+const SAMPLES = Object.fromEntries(
+  (Object.keys(THEMES) as Theme[]).map((t) => [t, sample(t)]),
+) as Record<Theme, Slide>;
+
+const TEXT_COLORS = [
   { label: "Default", value: null },
   { label: "Accent", value: "var(--sl-accent)" },
-  { label: "Muted", value: "color-mix(in srgb, currentColor 60%, transparent)" },
-  { label: "Red", value: "#C8372D" },
+  ...PALETTE.map((c) => ({ label: c, value: c })),
 ];
 
 export interface ToolbarProps {
@@ -78,15 +109,19 @@ export interface ToolbarProps {
   canEdit: boolean;
   layout: Layout;
   theme: Theme;
+  transition: Transition;
+  libraryOpen: boolean;
   onAddSlide: (layout: Layout) => void;
   onLayout: (layout: Layout) => void;
   onTheme: (theme: Theme) => void;
-  onPrint: () => void;
-  onDownloadHtml: () => void;
-  onPresent: () => void;
+  onTransition: (t: Transition) => void;
+  onAddText: () => void;
+  onInsertImages: (files: File[]) => void;
+  onToggleLibrary: () => void;
+  onTemplates: () => void;
 }
 
-const menuTrigger = "h-8 gap-1 px-2 text-[13px] font-normal text-muted-foreground";
+const menuTrigger = "h-8 gap-1 rounded-full px-3 text-[13px] font-medium";
 
 export function SlidesToolbar(p: ToolbarProps) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -101,180 +136,273 @@ export function SlidesToolbar(p: ToolbarProps) {
             underline: editor.isActive("underline"),
             bullet: editor.isActive("bulletList"),
             ordered: editor.isActive("orderedList"),
-            align: (["center", "right"] as const).find((a) => editor.isActive({ textAlign: a })) ?? "left",
+            align:
+              (["center", "right"] as const).find((a) =>
+                editor.isActive({ textAlign: a }),
+              ) ?? "left",
           }
         : null,
   });
   const fmt = !!live && p.canEdit;
   const run = (fn: (e: Editor) => void) => () => live && fn(live);
 
+  if (!p.canEdit) return null;
+
   return (
-    <div className="flex h-11 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-border px-2">
-      {p.canEdit && (
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className={menuTrigger}>
-                <Plus />
-                New slide
-                <ChevronDown className="size-3.5 opacity-60" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              {(Object.keys(LAYOUTS) as Layout[]).map((l) => (
-                <DropdownMenuItem key={l} onSelect={() => p.onAddSlide(l)} className="gap-2.5">
-                  <LayoutGlyph layout={l} />
-                  {LAYOUTS[l].label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className={menuTrigger}>
-                Layout
-                <ChevronDown className="size-3.5 opacity-60" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              {(Object.keys(LAYOUTS) as Layout[]).map((l) => (
-                <DropdownMenuItem key={l} onSelect={() => p.onLayout(l)} className={cn("gap-2.5", l === p.layout && "bg-accent")}>
-                  <LayoutGlyph layout={l} />
-                  {LAYOUTS[l].label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className={menuTrigger}>
-                Theme
-                <ChevronDown className="size-3.5 opacity-60" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              {(Object.keys(THEMES) as Theme[]).map((t) => (
-                <DropdownMenuItem key={t} onSelect={() => p.onTheme(t)} className={cn("gap-2.5", t === p.theme && "bg-accent")}>
-                  <span
-                    className="flex h-[18px] w-8 items-center justify-center rounded-[2px] border border-border font-serif text-[10px] font-semibold"
-                    style={{ background: THEMES[t].bg, color: THEMES[t].fg }}
-                  >
-                    Aa
-                  </span>
-                  {THEMES[t].label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <ToolbarSeparator />
-          <ToolbarButton label="Bold" active={state?.bold} disabled={!fmt} onClick={run((e) => e.chain().focus().toggleBold().run())}>
-            <Bold />
-          </ToolbarButton>
-          <ToolbarButton label="Italic" active={state?.italic} disabled={!fmt} onClick={run((e) => e.chain().focus().toggleItalic().run())}>
-            <Italic />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Underline"
-            active={state?.underline}
-            disabled={!fmt}
-            onClick={run((e) => e.chain().focus().toggleUnderline().run())}
+    <div
+      role="toolbar"
+      aria-label="Slide tools"
+      className="flex h-12 max-w-full items-center gap-0.5 overflow-x-auto rounded-full border border-border bg-popover px-2 text-popover-foreground shadow-float [scrollbar-width:none]"
+    >
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="app"
+            size="sm"
+            className="h-8 gap-1 rounded-full pr-2 pl-2.5"
           >
-            <Underline />
-          </ToolbarButton>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild disabled={!fmt}>
-              <Button variant="ghost" size="icon" aria-label="Text color" className="text-muted-foreground">
-                <span className="text-[15px] font-semibold leading-none underline decoration-2 underline-offset-2">A</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              {COLORS.map((c) => (
-                <DropdownMenuItem
-                  key={c.label}
-                  onSelect={run((e) => (c.value ? e.chain().focus().setColor(c.value).run() : e.chain().focus().unsetColor().run()))}
-                >
-                  {c.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <ToolbarSeparator />
-          <ToolbarButton
-            label="Bulleted list"
-            active={state?.bullet}
-            disabled={!fmt}
-            onClick={run((e) => e.chain().focus().toggleBulletList().run())}
-          >
-            <List />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Numbered list"
-            active={state?.ordered}
-            disabled={!fmt}
-            onClick={run((e) => e.chain().focus().toggleOrderedList().run())}
-          >
-            <ListOrdered />
-          </ToolbarButton>
-          {(
-            [
-              ["left", "Align left", AlignLeft],
-              ["center", "Align center", AlignCenter],
-              ["right", "Align right", AlignRight],
-            ] as const
-          ).map(([a, label, Icon]) => (
-            <ToolbarButton
-              key={a}
-              label={label}
-              active={fmt && state?.align === a}
-              disabled={!fmt}
-              onClick={run((e) => e.chain().focus().setTextAlign(a).run())}
+            <Plus />
+            Slide
+            <ChevronDown className="size-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="start"
+          className="grid w-[420px] grid-cols-2 gap-1 rounded-[14px] p-2"
+        >
+          {(Object.keys(LAYOUTS) as Layout[]).map((l) => (
+            <DropdownMenuItem
+              key={l}
+              onSelect={() => p.onAddSlide(l)}
+              className="gap-2.5 rounded-[10px] py-2"
             >
-              <Icon />
-            </ToolbarButton>
+              <LayoutGlyph layout={l} className="h-[27px] w-12" />
+              {LAYOUTS[l].label}
+            </DropdownMenuItem>
           ))}
-          <ToolbarSeparator />
-          <ToolbarButton label="Insert image" disabled={!fmt} onClick={() => fileRef.current?.click()}>
-            <ImagePlus />
-          </ToolbarButton>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => {
-              const files = Array.from(e.target.files ?? []);
-              e.target.value = "";
-              if (live && files.length) void insertImages(live, files);
-            }}
-          />
-        </>
-      )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <div className="ml-auto flex shrink-0 items-center gap-1 pl-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className={menuTrigger}>
-              Export
-              <ChevronDown className="size-3.5 opacity-60" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onSelect={p.onPrint}>
-              PDF
-              <span className="ml-auto pl-4 text-xs text-muted-foreground">Print</span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className={menuTrigger}>
+            <LayoutGlyph layout={p.layout} className="h-3.5 w-6" />
+            Layout
+            <ChevronDown className="size-3.5 opacity-60" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="start"
+          className="grid w-[420px] grid-cols-2 gap-1 rounded-[14px] p-2"
+        >
+          {(Object.keys(LAYOUTS) as Layout[]).map((l) => (
+            <DropdownMenuItem
+              key={l}
+              onSelect={() => p.onLayout(l)}
+              className={cn(
+                "gap-2.5 rounded-[10px] py-2",
+                l === p.layout && "bg-app-soft text-app",
+              )}
+            >
+              <LayoutGlyph layout={l} className="h-[27px] w-12" />
+              {LAYOUTS[l].label}
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={p.onDownloadHtml}>
-              Web page
-              <span className="ml-auto pl-4 text-xs text-muted-foreground">.html</span>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" className={menuTrigger}>
+            <span
+              className="size-3.5 rounded-full border border-border"
+              style={{
+                background: THEMES[p.theme].bg,
+                boxShadow: `inset -5px 0 0 ${THEMES[p.theme].accent}`,
+              }}
+            />
+            Theme
+            <ChevronDown className="size-3.5 opacity-60" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-[340px] rounded-[14px] p-3">
+          <p className="mb-2 font-display text-[15px] font-semibold tracking-tight">
+            Theme
+          </p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {(Object.keys(THEMES) as Theme[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => p.onTheme(t)}
+                aria-pressed={t === p.theme}
+                aria-label={`${THEMES[t].label} theme`}
+                className={cn(
+                  "press group overflow-hidden rounded-[10px] text-left ring-offset-2 ring-offset-popover transition-shadow",
+                  t === p.theme
+                    ? "ring-2 ring-app"
+                    : "shadow-card hover:shadow-card-hover",
+                )}
+              >
+                <StaticSlide
+                  slide={SAMPLES[t]}
+                  theme={t}
+                  scale={150 / SLIDE_W}
+                  className="pointer-events-none"
+                />
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className={menuTrigger}>
+            {p.transition === "none" ? "Transition" : TRANSITIONS[p.transition]}
+            <ChevronDown className="size-3.5 opacity-60" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-44">
+          {(Object.keys(TRANSITIONS) as Transition[]).map((t) => (
+            <DropdownMenuItem
+              key={t}
+              onSelect={() => p.onTransition(t)}
+              className={cn(t === p.transition && "bg-app-soft text-app")}
+            >
+              {TRANSITIONS[t]}
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button variant="outline" onClick={p.onPresent} className="h-8 px-3" title="Present (F5)">
-          <Play />
-          Present
-        </Button>
-      </div>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ToolbarSeparator />
+      <PillButton
+        label="Bold"
+        active={state?.bold}
+        disabled={!fmt}
+        onClick={run((e) => e.chain().focus().toggleBold().run())}
+      >
+        <Bold />
+      </PillButton>
+      <PillButton
+        label="Italic"
+        active={state?.italic}
+        disabled={!fmt}
+        onClick={run((e) => e.chain().focus().toggleItalic().run())}
+      >
+        <Italic />
+      </PillButton>
+      <PillButton
+        label="Underline"
+        active={state?.underline}
+        disabled={!fmt}
+        onClick={run((e) => e.chain().focus().toggleUnderline().run())}
+      >
+        <Underline />
+      </PillButton>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={!fmt}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Text colour"
+            className="rounded-full text-muted-foreground"
+          >
+            <span className="text-[15px] font-semibold leading-none underline decoration-app decoration-2 underline-offset-2">
+              A
+            </span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-44">
+          {TEXT_COLORS.map((c) => (
+            <DropdownMenuItem
+              key={c.label}
+              className="gap-2"
+              onSelect={run((e) =>
+                c.value
+                  ? e.chain().focus().setColor(c.value).run()
+                  : e.chain().focus().unsetColor().run(),
+              )}
+            >
+              <span
+                className="size-4 rounded-full border border-border"
+                style={{
+                  background:
+                    c.value === "var(--sl-accent)"
+                      ? THEMES[p.theme].accent
+                      : (c.value ?? THEMES[p.theme].fg),
+                }}
+              />
+              {c.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <PillButton
+        label="Bulleted list"
+        active={state?.bullet}
+        disabled={!fmt}
+        onClick={run((e) => e.chain().focus().toggleBulletList().run())}
+      >
+        <List />
+      </PillButton>
+      <PillButton
+        label="Numbered list"
+        active={state?.ordered}
+        disabled={!fmt}
+        onClick={run((e) => e.chain().focus().toggleOrderedList().run())}
+      >
+        <ListOrdered />
+      </PillButton>
+      {(
+        [
+          ["left", "Align left", AlignLeft],
+          ["center", "Align center", AlignCenter],
+          ["right", "Align right", AlignRight],
+        ] as const
+      ).map(([a, label, Icon]) => (
+        <PillButton
+          key={a}
+          label={label}
+          active={fmt && state?.align === a}
+          disabled={!fmt}
+          onClick={run((e) => e.chain().focus().setTextAlign(a).run())}
+        >
+          <Icon />
+        </PillButton>
+      ))}
+
+      <ToolbarSeparator />
+      <PillButton label="Text box" onClick={p.onAddText}>
+        <Type />
+      </PillButton>
+      <PillButton label="Image" onClick={() => fileRef.current?.click()}>
+        <ImagePlus />
+      </PillButton>
+      <PillButton
+        label="Elements"
+        active={p.libraryOpen}
+        onClick={p.onToggleLibrary}
+      >
+        <Shapes />
+      </PillButton>
+      <Button variant="ghost" className={menuTrigger} onClick={p.onTemplates}>
+        <LayoutTemplate />
+        Templates
+      </Button>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          e.target.value = "";
+          if (files.length) p.onInsertImages(files);
+        }}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ export function RegionEditor({
   editable,
   placeholder,
   className,
+  autoFocus,
   onFocus,
   ...rest
 }: {
@@ -23,6 +24,8 @@ export function RegionEditor({
   editable: boolean;
   placeholder: string;
   className?: string;
+  /** Focus (caret at the end) whenever the editor becomes editable. */
+  autoFocus?: boolean;
   onFocus?: (editor: Editor) => void;
   "data-region"?: string;
 }) {
@@ -37,15 +40,19 @@ export function RegionEditor({
         Placeholder.configure({ placeholder }),
         Collaboration.configure({ document: doc, field: name }),
       ],
-      editorProps: { attributes: { "aria-label": placeholder, spellcheck: "true" } },
+      editorProps: {
+        attributes: { "aria-label": placeholder, spellcheck: "true" },
+      },
       onFocus: ({ editor }) => onFocus?.(editor),
     },
     [doc, name],
   );
 
   useEffect(() => {
-    if (editor && !editor.isDestroyed) editor.setEditable(editable);
-  }, [editor, editable]);
+    if (!editor || editor.isDestroyed) return;
+    editor.setEditable(editable);
+    if (editable && autoFocus) editor.commands.focus("end");
+  }, [editor, editable, autoFocus]);
 
   return (
     <EditorContent

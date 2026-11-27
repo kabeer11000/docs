@@ -9,17 +9,28 @@ import { SlidesHeader } from "@/components/slides/slides-header";
 import { $auth } from "@/state/auth";
 import { searchActions } from "@/state/search";
 
-const ReactHome = dynamic(() => import("@/components/home"), { ssr: true, loading: () => null });
+const ReactHome = dynamic(() => import("@/components/home"), {
+  ssr: true,
+  loading: () => null,
+});
 
-export default function SlidesPage({ params }: { params: Promise<{ id: string }> }) {
+export default function SlidesPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
   const authState = useStore($auth);
   const ready = !!authState.user;
-  const signedOut = authState.isInitialized && !authState.isLoading && !authState.user;
+  const signedOut =
+    authState.isInitialized && !authState.isLoading && !authState.user;
 
   useEffect(() => {
-    if (signedOut) router.replace(`/auth/login?redirect=${encodeURIComponent(`/slides/${id}`)}`);
+    if (signedOut)
+      router.replace(
+        `/auth/login?redirect=${encodeURIComponent(`/slides/${id}`)}`,
+      );
   }, [signedOut, router, id]);
 
   useEffect(() => {
@@ -31,9 +42,17 @@ export default function SlidesPage({ params }: { params: Promise<{ id: string }>
       pathname={`/slides/${id}`}
       isEditorPage={true}
       hideSearch={true}
-      editorHeaderContent={ready ? <SlidesHeader documentId={id} /> : <div className="h-5 w-48 animate-pulse rounded-sm bg-muted" />}
+      editorHeaderContent={
+        ready ? (
+          <SlidesHeader documentId={id} />
+        ) : (
+          <div className="h-5 w-48 animate-pulse rounded-sm bg-muted" />
+        )
+      }
     >
-      <div className="relative flex h-full flex-col overflow-hidden bg-background">{ready && <SlidesApp key={id} documentId={id} />}</div>
+      <div className="relative flex h-full flex-col overflow-hidden bg-background">
+        {ready && <SlidesApp key={id} documentId={id} />}
+      </div>
     </ReactHome>
   );
 }
