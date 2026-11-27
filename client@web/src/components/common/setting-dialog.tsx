@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useStore } from "@nanostores/react";
 import { Monitor, Moon, Palette, Settings, Shield, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -233,6 +234,17 @@ function SecuritySettings() {
 
   return (
     <div>
+      <SettingRow
+        label="API keys"
+        description="Create keys to read and write your files from scripts and other apps."
+        action={
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/settings/api" onClick={closeSettingsDialog}>
+              Manage keys
+            </Link>
+          </Button>
+        }
+      />
       <SettingRow
         label="Log out of this device"
         description="End your session in this browser."
