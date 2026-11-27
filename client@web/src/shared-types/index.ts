@@ -84,6 +84,8 @@ export interface Document {
   kind?: "doc" | "sheet" | "slides";
   /** Kind-specific content for sheets and slides (docs keep using pages[0].content). */
   data?: unknown;
+  /** Set while the file is published to the web at /p/:id. */
+  published?: { at: string };
   pages: Array<{
     id: string;
     content: any;
