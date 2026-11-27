@@ -32,6 +32,7 @@ export const monthlyBudget: SheetTemplate = {
   description: "Planned against actual, with what is left over",
   category: "Finance",
   tags: ["money", "household", "personal finance"],
+  accent: "#1F8A4C",
   sheets: [
     {
       name: "Budget",
@@ -83,7 +84,7 @@ export const monthlyBudget: SheetTemplate = {
         ["H2:I4", MONEY],
         ["H5:I5", PCT],
       ],
-      bold: ["G4:I4"],
+      totals: ["G4:I4"],
     },
   ],
 };
@@ -115,6 +116,7 @@ export const expenseTracker: SheetTemplate = {
   description: "Log spending and see totals by category",
   category: "Finance",
   tags: ["spending", "receipts"],
+  accent: "#D9480F",
   sheets: [
     {
       name: "Expenses",
@@ -158,8 +160,8 @@ export const expenseTracker: SheetTemplate = {
         [`H2:H${EXPENSE_CATEGORIES.length + 2}`, MONEY],
         [`I2:I${EXPENSE_CATEGORIES.length + 1}`, PCT],
       ],
-      bold: [
-        `G${EXPENSE_CATEGORIES.length + 2}:H${EXPENSE_CATEGORIES.length + 2}`,
+      totals: [
+        `G${EXPENSE_CATEGORIES.length + 2}:I${EXPENSE_CATEGORIES.length + 2}`,
       ],
     },
   ],
@@ -171,6 +173,7 @@ export const invoice: SheetTemplate = {
   description: "Line totals, tax and amount due calculated for you",
   category: "Finance",
   tags: ["billing", "client", "freelance"],
+  accent: "#3B5BFD",
   sheets: [
     {
       name: "Invoice",
@@ -209,7 +212,8 @@ export const invoice: SheetTemplate = {
         ["D17", PCT],
         ["D18:D19", MONEY],
       ],
-      bold: ["A3:A6", "D3", "C16:C19", "D19", "A21"],
+      bold: ["A3:A6", "D3", "C16:C18", "A21"],
+      totals: ["C19:D19"],
       title: ["A1"],
     },
   ],
@@ -238,6 +242,7 @@ export const loanCalculator: SheetTemplate = {
   description: "Payment, total interest and a full amortisation schedule",
   category: "Finance",
   tags: ["mortgage", "PMT", "amortization", "interest"],
+  accent: "#1E40AF",
   sheets: [
     {
       name: "Loan",
@@ -267,7 +272,7 @@ export const loanCalculator: SheetTemplate = {
         ["B10:B11", MONEY],
         [`B${SCHEDULE_START}:E${SCHEDULE_START + SCHEDULE_ROWS - 1}`, MONEY],
       ],
-      bold: ["A8:B8"],
+      totals: ["A8:B8"],
       title: ["A1"],
     },
   ],
@@ -288,6 +293,7 @@ export const savingsGoal: SheetTemplate = {
   description: "Track deposits and see when you will reach each goal",
   category: "Finance",
   tags: ["saving", "money"],
+  accent: "#0E9F6E",
   sheets: [
     {
       name: "Goals",
@@ -331,7 +337,7 @@ export const savingsGoal: SheetTemplate = {
         [`F2:F${G_LAST + 1}`, MONEY],
         [`H2:H${G_LAST}`, DATE],
       ],
-      bold: [`A${G_LAST + 1}:F${G_LAST + 1}`],
+      totals: [`A${G_LAST + 1}:H${G_LAST + 1}`],
     },
     {
       name: "Deposits",
@@ -372,6 +378,7 @@ export const eventBudget: SheetTemplate = {
   description: "Estimated against actual, with cost per guest",
   category: "Finance",
   tags: ["wedding", "party", "conference"],
+  accent: "#C2255C",
   sheets: [
     {
       name: "Event budget",
@@ -415,7 +422,7 @@ export const eventBudget: SheetTemplate = {
         ["I6", WHOLE],
         ["I7", MONEY],
       ],
-      bold: [`A${EV_LAST + 1}:D${EV_LAST + 1}`, "H5:I5"],
+      totals: [`A${EV_LAST + 1}:F${EV_LAST + 1}`, "H5:I5"],
     },
   ],
 };

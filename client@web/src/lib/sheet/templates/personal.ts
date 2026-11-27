@@ -19,6 +19,7 @@ export const habitTracker: SheetTemplate = {
   description: "Mark each day with an x and watch progress fill",
   category: "Personal",
   tags: ["routine", "monthly", "goals"],
+  accent: "#8E4EC6",
   sheets: [
     {
       name: "This month",
@@ -80,6 +81,7 @@ export const workoutLog: SheetTemplate = {
   description: "Sets, reps and weight, with personal bests",
   category: "Personal",
   tags: ["fitness", "gym", "training"],
+  accent: "#E5484D",
   sheets: [
     {
       name: "Log",
@@ -149,6 +151,7 @@ export const gradeBook: SheetTemplate = {
   description: "Weighted averages and letter grades for a class",
   category: "School",
   tags: ["teacher", "class", "marks"],
+  accent: "#B45309",
   sheets: [
     {
       name: "Grades",
@@ -200,7 +203,8 @@ export const gradeBook: SheetTemplate = {
         [`G${FIRST}:G${LAST}`, "0.0"],
         [`B${LAST + 2}:G${LAST + 4}`, "0.0"],
       ],
-      bold: ["A2:F2", `A${LAST + 2}:A${LAST + 4}`],
+      bold: ["A2:F2", `A${LAST + 3}:A${LAST + 4}`],
+      totals: [`A${LAST + 2}:H${LAST + 2}`],
     },
   ],
 };

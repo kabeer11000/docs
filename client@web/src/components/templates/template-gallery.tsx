@@ -1,10 +1,24 @@
 "use client";
 
 import { useStore } from "@nanostores/react";
-import { ArrowLeft, Plus, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Plus,
+  Search,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { PiSpinner } from "react-icons/pi";
 import {
   PAGE_HEIGHT,
@@ -14,6 +28,13 @@ import {
 import { KIND, KINDS } from "@/components/home/kind";
 import { fitScale, StaticSlide, useSize } from "@/components/slides/slide-view";
 import { createDeckFromTemplate } from "@/components/slides/template-gallery";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   TEMPLATE_CATEGORIES as DOC_CATEGORIES,
@@ -22,13 +43,13 @@ import {
 import { useCloudStore } from "@/hooks/use-cloudstore";
 import { useCreateFile } from "@/hooks/use-create-file";
 import { type FileKind, fileHref } from "@/lib/files";
-import { displayValue } from "@/lib/sheet/grid";
+import { type CellValue, displayValue } from "@/lib/sheet/grid";
 import {
+  getSheetTemplate,
   SHEET_TEMPLATE_CATEGORIES,
   SHEET_TEMPLATES,
   sheetTemplateData,
 } from "@/lib/sheet/templates";
-import { parseCell, type SheetSpec } from "@/lib/sheet/templates/build";
 import {
   TEMPLATE_CATEGORIES as SLIDE_CATEGORIES,
   TEMPLATES as SLIDE_TEMPLATES,
@@ -38,7 +59,7 @@ import { showToast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { $auth } from "@/state/auth";
 
-/** One gallery entry, whatever its kind. `preview` renders the live thumbnail. */
+/** One gallery entry, whatever its kind. */
 interface Item {
   id: string;
   kind: FileKind;
@@ -46,7 +67,6 @@ interface Item {
   description: string;
   category: string;
   search: string;
-  preview: (hover: boolean) => ReactNode;
 }
 
 const searchText = (...parts: Array<string | string[] | undefined>) =>
@@ -60,7 +80,6 @@ const ITEMS: Record<FileKind, Item[]> = {
     description: t.description,
     category: t.category,
     search: searchText(t.name, t.description, t.category, t.tags),
-    preview: (hover) => <DocPreview content={t.content} hover={hover} />,
   })),
   sheet: SHEET_TEMPLATES.map((t) => ({
     id: t.id,
@@ -69,7 +88,6 @@ const ITEMS: Record<FileKind, Item[]> = {
     description: t.description,
     category: t.category,
     search: searchText(t.name, t.description, t.category, t.tags),
-    preview: () => <SheetPreview spec={t.sheets[0]} />,
   })),
   slides: SLIDE_TEMPLATES.map((t) => ({
     id: t.id,
@@ -78,9 +96,11 @@ const ITEMS: Record<FileKind, Item[]> = {
     description: t.description,
     category: t.category,
     search: searchText(t.name, t.description, t.category),
-    preview: (hover) => <SlidesPreview template={t} hover={hover} />,
   })),
 };
+
+/** Each list is in gallery order; its first entries are the featured row. */
+const FEATURED = 6;
 
 const CATEGORIES: Record<FileKind, readonly string[]> = {
   doc: DOC_CATEGORIES,
@@ -118,27 +138,50 @@ const reducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/** Lays out `children` at a fixed design width and zooms them to the container's width. */
+function FitWidth({
+  width,
+  children,
+  className,
+}: {
+  width: number;
+  children: ReactNode;
+  className?: string;
+}) {
+  const [ref, { w }] = useSize<HTMLDivElement>();
+  return (
+    <div ref={ref} className={className}>
+      {w > 0 && <div style={{ width, zoom: w / width }}>{children}</div>}
+    </div>
+  );
+}
+
+const docContent = (id: string) =>
+  DOC_TEMPLATES.find((t) => t.id === id)?.content ?? "";
+
 /** The real document page, scaled to the card. Hovering scrolls down the page to show what is below the fold. */
-function DocPreview({ content, hover }: { content: string; hover: boolean }) {
+function DocPreview({ id, hover }: { id: string; hover: boolean }) {
   const [ref, { w }] = useSize<HTMLDivElement>();
   const [viewRef, inView] = useInView<HTMLDivElement>();
   const scale = w / PAGE_WIDTH;
   return (
-    <div ref={viewRef} className="absolute inset-x-[12%] top-[10%] bottom-0">
+    <div ref={viewRef} className="absolute inset-x-[10%] top-[8%] bottom-0">
       <div
         ref={ref}
-        className="h-full overflow-hidden rounded-t-[5px] bg-paper text-paper-foreground shadow-paper"
+        className="h-full overflow-hidden rounded-t-[5px] bg-paper shadow-paper"
         aria-hidden="true"
       >
         {inView && scale > 0 && (
           <div
             className="pointer-events-none origin-top-left select-none transition-transform duration-[1600ms] ease-in-out motion-reduce:transition-none"
             style={{
-              transform: `translateY(${hover ? -PAGE_HEIGHT * scale * 0.4 : 0}px) scale(${scale})`,
-              height: PAGE_HEIGHT,
+              transform: `translateY(${hover ? -PAGE_HEIGHT * scale * 0.35 : 0}px) scale(${scale})`,
             }}
           >
-            <TemplateDocument content={content} className="h-full" />
+            <TemplateDocument
+              content={docContent(id)}
+              className="min-h-[1056px]"
+            />
           </div>
         )}
       </div>
@@ -146,96 +189,154 @@ function DocPreview({ content, hover }: { content: string; hover: boolean }) {
   );
 }
 
-const PREVIEW_ROWS = 14;
-const PREVIEW_COLS = 7;
+// ---------------------------------------------------------------------------------------------
+// Sheet previews: the built workbook (styles and cached formula values), drawn as a static grid.
+// ---------------------------------------------------------------------------------------------
 
-/** Number format of a cell from the template's [range, pattern] list (last match wins). */
-function formatOf(spec: SheetSpec, r: number, c: number): string | undefined {
-  let pattern: string | undefined;
-  for (const [range, p] of spec.formats ?? []) {
-    const [a, b = a] = range.split(":");
-    const [r1, c1] = parseCell(a);
-    const [r2, c2] = parseCell(b);
-    if (r >= r1 && r <= r2 && c >= c1 && c <= c2) pattern = p;
+type Workbook = NonNullable<ReturnType<typeof sheetTemplateData>>;
+const workbooks = new Map<string, Workbook>();
+const workbookOf = (id: string) => {
+  let wb = workbooks.get(id);
+  if (!wb) {
+    wb = sheetTemplateData(id) as Workbook;
+    workbooks.set(id, wb);
   }
-  return pattern;
+  return wb;
+};
+
+interface CellStyle {
+  bl?: number;
+  fs?: number;
+  bg?: { rgb: string };
+  cl?: { rgb: string };
+  n?: { pattern: string };
+  bd?: { t?: { s: number; cl: { rgb: string } } };
 }
 
-/** Enough of the sheet number formats for a thumbnail. */
-function formatValue(v: unknown, pattern?: string): string {
-  if (typeof v !== "number" || !pattern)
-    return displayValue((v ?? null) as string | number | boolean | null);
-  const decimals = (pattern.split(".")[1] ?? "").replace("%", "").length;
-  if (pattern.endsWith("%")) return `${(v * 100).toFixed(decimals)}%`;
+/** Enough of the sheet number formats for a preview. */
+function formatValue(v: CellValue, pattern?: string): string {
+  if (typeof v !== "number" || !pattern) return displayValue(v);
+  const prefix = /^[$€£]/.exec(pattern)?.[0] ?? "";
+  const body = pattern.slice(prefix.length);
+  const decimals = (body.split(".")[1] ?? "").replace("%", "").length;
+  if (body.endsWith("%")) return `${(v * 100).toFixed(decimals)}%`;
   const day = new Date(Date.UTC(1899, 11, 30) + Math.round(v * 86_400_000));
-  if (pattern === "yyyy-mm-dd") return day.toISOString().slice(0, 10);
-  if (pattern === "mmm d")
+  if (body === "yyyy-mm-dd") return day.toISOString().slice(0, 10);
+  if (body === "mmm d")
     return day.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       timeZone: "UTC",
     });
-  if (pattern === "hh:mm") return day.toISOString().slice(11, 16);
-  if (pattern.startsWith("#,##0"))
-    return v.toLocaleString("en-US", {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    });
-  return v.toFixed(decimals);
+  if (body === "hh:mm") return day.toISOString().slice(11, 16);
+  const text = Math.abs(v).toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+    useGrouping: body.startsWith("#,##0"),
+  });
+  return `${v < 0 ? "-" : ""}${prefix}${text}`;
 }
 
-/** The top-left of the first sheet as a tiny real grid, with the template's column widths and header row. */
-function SheetPreview({ spec }: { spec: SheetSpec }) {
+const ROW_H = 24;
+
+/** The top-left of a template's sheet at real size: column widths, fills, bold, rules and values. */
+function SheetGrid({
+  id,
+  sheet = 0,
+  rows,
+  cols,
+}: {
+  id: string;
+  sheet?: number;
+  rows: number;
+  cols: number;
+}) {
+  const wb = workbookOf(id);
+  const spec = getSheetTemplate(id)?.sheets[sheet];
+  const data = wb.sheets[wb.sheetOrder[sheet]];
+  const styles = (wb.styles ?? {}) as Record<string, CellStyle>;
+  const rowData = (data.rowData ?? {}) as Record<number, { h?: number }>;
   const widths = Array.from(
-    { length: PREVIEW_COLS },
-    (_, c) => spec.widths?.[c] ?? 100,
+    { length: cols },
+    (_, c) => spec?.widths?.[c] ?? 100,
   );
-  const header = new Set(spec.header ?? [0]);
-  const bold = new Set<string>();
-  for (const range of [...(spec.bold ?? []), ...(spec.title ?? [])]) {
-    const [a, b = a] = range.split(":");
-    const [r1, c1] = parseCell(a);
-    const [r2, c2] = parseCell(b);
-    for (let r = r1; r <= Math.min(r2, PREVIEW_ROWS); r++)
-      for (let c = c1; c <= Math.min(c2, PREVIEW_COLS); c++)
-        bold.add(`${r},${c}`);
-  }
+  const value = (r: number, c: number) =>
+    (data.cellData?.[r]?.[c]?.v ?? null) as CellValue;
   return (
-    <div className="absolute inset-x-[7%] [container-type:size] top-[9%] bottom-0 overflow-hidden rounded-t-[5px] bg-paper text-paper-foreground shadow-paper">
-      <div
-        className="pointer-events-none grid select-none text-[2.4cqw] leading-none tabular-nums"
-        style={{
-          gridTemplateColumns: widths.map((w) => `${w}fr`).join(" "),
-          gridAutoRows: `${100 / PREVIEW_ROWS}cqh`,
-        }}
-        aria-hidden="true"
-      >
-        {Array.from({ length: PREVIEW_ROWS * PREVIEW_COLS }, (_, i) => {
-          const r = Math.floor(i / PREVIEW_COLS);
-          const c = i % PREVIEW_COLS;
-          const raw = spec.rows[r]?.[c] ?? null;
-          const formula = typeof raw === "string" && raw.startsWith("=");
-          const isHeader = header.has(r) && raw !== null && raw !== "";
-          return (
-            <div
-              // biome-ignore lint/suspicious/noArrayIndexKey: static grid
-              key={i}
-              className={cn(
-                "flex items-center overflow-hidden whitespace-nowrap border-r border-b border-paper-foreground/[0.08] px-[0.9cqw]",
-                typeof raw === "number" && "justify-end",
-                isHeader && "bg-paper-foreground/[0.06] font-semibold",
-                bold.has(`${r},${c}`) && "font-semibold",
-              )}
-            >
-              {formula ? (
-                <span className="h-[0.9cqw] w-3/5 rounded-full bg-paper-foreground/[0.12]" />
-              ) : (
-                formatValue(raw, formatOf(spec, r, c))
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <div
+      className="grid bg-white text-[12px] leading-none text-[#1D1D1F] tabular-nums"
+      style={{
+        gridTemplateColumns: widths.map((w) => `${w}px`).join(" "),
+        gridTemplateRows: Array.from(
+          { length: rows },
+          (_, r) => `${rowData[r]?.h ?? ROW_H}px`,
+        ).join(" "),
+      }}
+    >
+      {Array.from({ length: rows * cols }, (_, i) => {
+        const r = Math.floor(i / cols);
+        const c = i % cols;
+        const cell = data.cellData?.[r]?.[c];
+        const s = cell?.s ? styles[cell.s as string] : undefined;
+        const v = value(r, c);
+        const spill =
+          typeof v === "string" && c + 1 < cols && value(r, c + 1) === null;
+        const top = s?.bd?.t;
+        const css: CSSProperties = {
+          background: s?.bg?.rgb,
+          color: s?.cl?.rgb,
+          fontWeight: s?.bl ? 650 : undefined,
+          fontSize: s?.fs ? `${s.fs}px` : undefined,
+          borderTop: top
+            ? `${top.s >= 8 ? 2 : 1}px solid ${top.cl.rgb}`
+            : undefined,
+        };
+        return (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: static grid
+            key={i}
+            style={css}
+            className={cn(
+              "flex items-center whitespace-nowrap border-r border-b border-black/[0.07] px-1.5",
+              typeof v === "number" && "justify-end",
+              spill ? "relative z-[1] overflow-visible" : "overflow-hidden",
+            )}
+          >
+            {formatValue(v, s?.n?.pattern)}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Columns that fit in about `budget` px of the sheet's width. */
+const colsFor = (id: string, budget: number) => {
+  const widths = getSheetTemplate(id)?.sheets[0].widths ?? [];
+  let total = 0;
+  let n = 0;
+  while (total < budget && n < 26) total += widths[n++] ?? 100;
+  return n;
+};
+
+const SHEET_CARD_W = 720;
+
+function SheetPreview({ id }: { id: string }) {
+  const [viewRef, inView] = useInView<HTMLDivElement>();
+  return (
+    <div
+      ref={viewRef}
+      className="absolute inset-x-[6%] top-[8%] bottom-0 overflow-hidden rounded-t-[5px] bg-white shadow-paper"
+      aria-hidden="true"
+    >
+      {inView && (
+        <FitWidth
+          width={SHEET_CARD_W}
+          className="pointer-events-none select-none"
+        >
+          <SheetGrid id={id} rows={20} cols={colsFor(id, SHEET_CARD_W)} />
+        </FitWidth>
+      )}
     </div>
   );
 }
@@ -287,13 +388,28 @@ function SlidesPreview({
   );
 }
 
+const slideTemplate = (id: string) => SLIDE_TEMPLATES.find((t) => t.id === id);
+
+function Thumbnail({ item, hover }: { item: Item; hover: boolean }) {
+  if (item.kind === "doc") return <DocPreview id={item.id} hover={hover} />;
+  if (item.kind === "sheet") return <SheetPreview id={item.id} />;
+  const t = slideTemplate(item.id);
+  return t ? <SlidesPreview template={t} hover={hover} /> : null;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Cards and quick look
+// ---------------------------------------------------------------------------------------------
+
 function Card({
   title,
   description,
   kind,
   busy,
   disabled,
+  large,
   onClick,
+  onPreview,
   children,
 }: {
   title: string;
@@ -301,46 +417,243 @@ function Card({
   kind: FileKind;
   busy: boolean;
   disabled: boolean;
+  large?: boolean;
   onClick: () => void;
+  onPreview?: () => void;
   children: (hover: boolean) => ReactNode;
 }) {
   const [hover, setHover] = useState(false);
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
+    // biome-ignore lint/a11y/noStaticElementInteractions: hover only drives the thumbnail animation
+    <div
+      className="group relative min-w-0 rounded-[14px] transition-transform duration-200 ease-[cubic-bezier(.2,.9,.3,1.2)] hover:-translate-y-0.5 motion-reduce:transition-none"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      onFocus={() => setHover(true)}
-      onBlur={() => setHover(false)}
-      aria-label={`${title}: ${description}`}
-      className="group min-w-0 rounded-[14px] text-left outline-none disabled:cursor-default"
     >
-      <div className="lift overflow-hidden rounded-[14px] bg-card shadow-card group-focus-visible:ring-[3px] group-focus-visible:ring-ring group-disabled:opacity-70">
-        <div
-          className={cn(
-            "relative overflow-hidden border-b border-border bg-background",
-            WELL[kind],
-          )}
+      <button
+        type="button"
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === " " && onPreview) {
+            e.preventDefault();
+            onPreview();
+          }
+        }}
+        disabled={disabled}
+        onFocus={() => setHover(true)}
+        onBlur={() => setHover(false)}
+        aria-label={`${title}: ${description}`}
+        aria-keyshortcuts={onPreview ? "Space" : undefined}
+        className="block w-full rounded-[14px] text-left outline-none disabled:cursor-default"
+      >
+        <div className="overflow-hidden rounded-[14px] bg-card shadow-card transition-shadow duration-200 group-hover:shadow-card-hover group-focus-visible:ring-[3px] group-focus-visible:ring-ring group-has-[:disabled]:opacity-70">
+          <div
+            className={cn(
+              "relative overflow-hidden border-b border-border bg-background",
+              WELL[kind],
+            )}
+          >
+            {children(hover)}
+            {busy && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                <PiSpinner className="size-5 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          <div className={cn("px-3.5 py-3", large && "px-4 py-3.5")}>
+            <h3
+              className={cn(
+                "truncate font-display font-semibold tracking-[-0.01em] text-foreground",
+                large ? "text-[17px]" : "text-[15px]",
+              )}
+            >
+              {title}
+            </h3>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {description}
+            </p>
+          </div>
+        </div>
+      </button>
+      {onPreview && (
+        <button
+          type="button"
+          tabIndex={-1}
+          onClick={onPreview}
+          className="press absolute top-2.5 right-2.5 flex h-7 items-center gap-1.5 rounded-full bg-card/95 px-2.5 text-xs font-medium text-foreground opacity-0 shadow-float transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-card focus-visible:opacity-100"
         >
-          {children(hover)}
-          {busy && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-              <PiSpinner className="size-5 animate-spin text-muted-foreground" />
-            </div>
-          )}
-        </div>
-        <div className="px-3.5 py-3">
-          <h3 className="truncate font-display text-[15px] font-semibold tracking-[-0.01em] text-foreground">
-            {title}
-          </h3>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            {description}
-          </p>
-        </div>
+          <Eye className="size-3.5" />
+          Preview
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SlideThumb({
+  template,
+  index,
+}: {
+  template: SlideTemplate;
+  index: number;
+}) {
+  const [ref, { w }] = useSize<HTMLDivElement>();
+  const slide = template.deck.slides[index];
+  return (
+    <div
+      ref={ref}
+      className="relative aspect-video overflow-hidden rounded-[8px] shadow-paper"
+    >
+      {w > 0 && slide && (
+        <StaticSlide
+          slide={slide}
+          theme={template.deck.theme}
+          scale={fitScale(w, (w * 9) / 16)}
+          className="pointer-events-none"
+        />
+      )}
+    </div>
+  );
+}
+
+/** The large preview inside quick look. */
+function LargePreview({ item }: { item: Item }) {
+  if (item.kind === "doc")
+    return (
+      <FitWidth
+        width={PAGE_WIDTH}
+        className="mx-auto w-full max-w-[720px] overflow-hidden rounded-[4px] shadow-paper"
+      >
+        <TemplateDocument
+          content={docContent(item.id)}
+          className="min-h-[1056px]"
+        />
+      </FitWidth>
+    );
+  if (item.kind === "sheet") {
+    const sheets = getSheetTemplate(item.id)?.sheets ?? [];
+    return (
+      <div className="flex flex-col gap-6">
+        {sheets.map((s, i) => (
+          <figure key={s.name} className="m-0">
+            {sheets.length > 1 && (
+              <figcaption className="mb-2 text-xs font-medium text-muted-foreground">
+                {s.name}
+              </figcaption>
+            )}
+            <FitWidth
+              width={980}
+              className="overflow-hidden rounded-[4px] bg-white shadow-paper"
+            >
+              <SheetGrid
+                id={item.id}
+                sheet={i}
+                rows={Math.min(30, s.rows.length + 4)}
+                cols={Math.max(colsFor(item.id, 980), s.rows[0]?.length ?? 0)}
+              />
+            </FitWidth>
+          </figure>
+        ))}
       </div>
-    </button>
+    );
+  }
+  const t = slideTemplate(item.id);
+  if (!t) return null;
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {t.deck.slides.map((s, i) => (
+        <SlideThumb key={s.id ?? i} template={t} index={i} />
+      ))}
+    </div>
+  );
+}
+
+function QuickLook({
+  items,
+  index,
+  onIndex,
+  onClose,
+  onUse,
+  busy,
+}: {
+  items: Item[];
+  index: number | null;
+  onIndex: (i: number) => void;
+  onClose: () => void;
+  onUse: (item: Item) => void;
+  busy: boolean;
+}) {
+  const item = index === null ? null : items[index];
+  const scroller = useRef<HTMLDivElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll to top whenever the template changes
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 0 });
+  }, [item?.id]);
+  if (!item || index === null) return null;
+  const move = (d: number) =>
+    onIndex((index + d + items.length) % items.length);
+  const Icon = KIND[item.kind].icon;
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            move(e.key === "ArrowRight" ? 1 : -1);
+          }
+        }}
+        className="flex h-[min(90dvh,960px)] w-[min(1080px,calc(100%-2rem))] max-w-none flex-col gap-0 overflow-hidden rounded-[18px] border border-border bg-card p-0 shadow-float sm:max-w-none"
+      >
+        <div className="flex items-start gap-3 border-b border-border px-5 py-4 pr-14">
+          <Icon className={cn("mt-1 size-4 shrink-0", KIND[item.kind].text)} />
+          <div className="min-w-0">
+            <DialogTitle className="font-display text-lg font-semibold tracking-[-0.015em]">
+              {item.name}
+            </DialogTitle>
+            <DialogDescription className="mt-0.5 text-[13px]">
+              {item.description}
+            </DialogDescription>
+          </div>
+        </div>
+        <div
+          ref={scroller}
+          className="min-h-0 flex-1 overflow-y-auto bg-background px-5 py-6 md:px-10"
+        >
+          <LargePreview item={item} />
+        </div>
+        <div className="flex items-center gap-2 border-t border-border px-5 py-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Previous template"
+            title="Previous template"
+            onClick={() => move(-1)}
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Next template"
+            title="Next template"
+            onClick={() => move(1)}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {index + 1} of {items.length}
+          </span>
+          <Button
+            className="ml-auto"
+            disabled={busy}
+            onClick={() => onUse(item)}
+          >
+            {busy && <PiSpinner className="size-4 animate-spin" />}
+            Use template
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -349,7 +662,7 @@ function templatePayload(
   item: Item,
 ): { initialContent?: string; data?: unknown } | null {
   if (item.kind === "doc") {
-    const content = DOC_TEMPLATES.find((t) => t.id === item.id)?.content;
+    const content = docContent(item.id);
     return content ? { initialContent: content } : null;
   }
   const data =
@@ -360,8 +673,9 @@ function templatePayload(
 }
 
 /**
- * Every template in one place: Documents / Spreadsheets / Presentations, category chips, search and live
- * thumbnails. Picking one creates the file (in `folderId`, default the user's root) and opens it.
+ * Every template in one place: Documents / Spreadsheets / Presentations, a featured row, category
+ * chips, search, live thumbnails and quick look (Preview or Space; arrows move, Esc closes).
+ * Picking one creates the file (in `folderId`, default the user's root) and opens it.
  */
 export function TemplateGallery({
   initialKind = "doc",
@@ -380,6 +694,7 @@ export function TemplateGallery({
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
   const [pending, setPending] = useState<string | null>(null);
+  const [preview, setPreview] = useState<number | null>(null);
   const parent = folderId || user?.id;
 
   const q = query.trim().toLowerCase();
@@ -397,10 +712,14 @@ export function TemplateGallery({
     category === "All"
       ? matches[kind]
       : matches[kind].filter((i) => i.category === category);
+  const showFeatured = category === "All" && !q;
+  const featured = showFeatured ? shown.slice(0, FEATURED) : [];
+  const rest = showFeatured ? shown.slice(FEATURED) : shown;
 
   const switchKind = (next: FileKind) => {
     setKind(next);
     setCategory("All");
+    setPreview(null);
     const params = new URLSearchParams(window.location.search);
     params.set("kind", next);
     window.history.replaceState(null, "", `?${params}`);
@@ -430,6 +749,22 @@ export function TemplateGallery({
   };
 
   const busy = !!pending || creating || !user;
+
+  const card = (item: Item, large?: boolean) => (
+    <Card
+      key={`${item.kind}:${item.id}`}
+      kind={item.kind}
+      title={item.name}
+      description={item.description}
+      busy={pending === item.id}
+      disabled={busy}
+      large={large}
+      onClick={() => pick(item)}
+      onPreview={() => setPreview(shown.indexOf(item))}
+    >
+      {(hover) => <Thumbnail item={item} hover={hover} />}
+    </Card>
+  );
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -523,46 +858,55 @@ export function TemplateGallery({
           ))}
         </fieldset>
 
-        <div
-          role="tabpanel"
-          className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-5"
-        >
-          {category === "All" && !q && (
-            <Card
-              kind={kind}
-              title={`Blank ${KIND[kind].label.toLowerCase()}`}
-              description={KIND[kind].blank}
-              busy={creating}
-              disabled={busy}
-              onClick={() => create(kind, parent ?? undefined)}
-            >
-              {() => (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span
-                    className={cn(
-                      "flex size-12 items-center justify-center rounded-full text-app-foreground shadow-card transition-transform duration-200 group-hover:scale-110",
-                      KIND[kind].bg,
-                    )}
-                  >
-                    <Plus className="size-5" strokeWidth={2.5} />
-                  </span>
-                </div>
-              )}
-            </Card>
+        <div role="tabpanel">
+          {featured.length > 0 && (
+            <section aria-labelledby="featured-heading" className="mt-7">
+              <h2
+                id="featured-heading"
+                className="font-display text-[17px] font-semibold tracking-[-0.015em]"
+              >
+                Featured
+              </h2>
+              <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-6">
+                {featured.map((item) => card(item, true))}
+              </div>
+              <h2 className="mt-10 font-display text-[17px] font-semibold tracking-[-0.015em]">
+                All {KIND[kind].plural.toLowerCase()}
+              </h2>
+            </section>
           )}
-          {shown.map((item) => (
-            <Card
-              key={`${item.kind}:${item.id}`}
-              kind={item.kind}
-              title={item.name}
-              description={item.description}
-              busy={pending === item.id}
-              disabled={busy}
-              onClick={() => pick(item)}
-            >
-              {item.preview}
-            </Card>
-          ))}
+
+          <div
+            className={cn(
+              "grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-5",
+              featured.length ? "mt-3" : "mt-6",
+            )}
+          >
+            {showFeatured && (
+              <Card
+                kind={kind}
+                title={`Blank ${KIND[kind].label.toLowerCase()}`}
+                description={KIND[kind].blank}
+                busy={creating}
+                disabled={busy}
+                onClick={() => create(kind, parent ?? undefined)}
+              >
+                {() => (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span
+                      className={cn(
+                        "flex size-12 items-center justify-center rounded-full text-app-foreground shadow-card transition-transform duration-200 group-hover:scale-110",
+                        KIND[kind].bg,
+                      )}
+                    >
+                      <Plus className="size-5" strokeWidth={2.5} />
+                    </span>
+                  </div>
+                )}
+              </Card>
+            )}
+            {rest.map((item) => card(item))}
+          </div>
         </div>
 
         {shown.length === 0 && (
@@ -578,6 +922,15 @@ export function TemplateGallery({
           </div>
         )}
       </main>
+
+      <QuickLook
+        items={shown}
+        index={preview !== null && preview < shown.length ? preview : null}
+        onIndex={setPreview}
+        onClose={() => setPreview(null)}
+        onUse={pick}
+        busy={busy}
+      />
     </div>
   );
 }

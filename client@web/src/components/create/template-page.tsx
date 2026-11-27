@@ -1,69 +1,51 @@
-import Color from "@tiptap/extension-color";
-import ListItem from "@tiptap/extension-list-item";
-import TextAlign from "@tiptap/extension-text-align";
-import { FontSize, TextStyle } from "@tiptap/extension-text-style";
-import Underline from "@tiptap/extension-underline";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import {
-  TableCellPlus,
-  TableHeaderPlus,
-  TablePlus,
-  TableRowPlus,
-} from "tiptap-pagination-plus";
-import { cn } from "@/lib/utils";
+"use client";
 
-type TemplateContent = string | { type: string; content: any[] };
+import { useMemo } from "react";
+import { templateMarkup } from "@/components/templates/schema";
+import { cn } from "@/lib/utils";
+import "@/components/editor/editor-paper.css";
 
 export const PAGE_WIDTH = 816;
 export const PAGE_HEIGHT = 1056;
+const MARGIN = 72;
+
+const markupCache = new Map<string, string>();
+const markupOf = (content: string) => {
+  let html = markupCache.get(content);
+  if (html === undefined) {
+    html = templateMarkup(content, document);
+    markupCache.set(content, html);
+  }
+  return html;
+};
 
 /**
- * Read-only render of template content laid out like a document page
- * (fixed width, page margins, paper colors).
+ * Static render of template content on a document page: the editor's own markup and typography
+ * (editor-paper.css), no editor instance. Client only (callers mount it after the card is in view).
  */
 export function TemplateDocument({
   content,
   className,
 }: {
-  content: TemplateContent;
+  content: string;
   className?: string;
 }) {
-  const editor = useEditor(
-    {
-      immediatelyRender: false,
-      extensions: [
-        StarterKit,
-        Underline,
-        TextStyle,
-        FontSize,
-        Color,
-        ListItem,
-        TextAlign.configure({
-          types: ["heading", "paragraph"],
-          alignments: ["left", "center", "right", "justify"],
-          defaultAlignment: "left",
-        }),
-        TablePlus,
-        TableRowPlus,
-        TableCellPlus,
-        TableHeaderPlus,
-      ],
-      content: content || "",
-      editable: false,
-    },
+  const html = useMemo(
+    () => (typeof document === "undefined" ? "" : markupOf(content)),
     [content],
   );
-
   return (
     <div
-      className={cn(
-        "bg-paper text-paper-foreground px-[72px] py-[72px] text-[15px] [&_h1]:text-paper-foreground [&_h2]:text-paper-foreground [&_h3]:text-paper-foreground",
-        className,
-      )}
+      data-app="doc"
+      className={cn("bg-paper text-paper-foreground", className)}
       style={{ width: PAGE_WIDTH }}
     >
-      <EditorContent editor={editor} />
+      <div
+        className="tiptap ProseMirror paged"
+        style={{ padding: MARGIN, color: "var(--paper-foreground)" }}
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: our own template HTML, re-serialized through the editor schema
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   );
 }

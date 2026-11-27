@@ -75,6 +75,7 @@ export const salesPipeline: SheetTemplate = {
   description: "Deals by stage with weighted forecast",
   category: "Work",
   tags: ["CRM", "forecast", "deals"],
+  accent: "#0E7C86",
   sheets: [
     {
       name: "Pipeline",
@@ -161,7 +162,7 @@ export const salesPipeline: SheetTemplate = {
         [`M2:M${STAGES.length + 1}`, PCT],
         [`O2:O${STAGES.length + 3}`, MONEY],
       ],
-      bold: [`L${STAGES.length + 2}:O${STAGES.length + 3}`],
+      totals: [`L${STAGES.length + 2}:O${STAGES.length + 3}`],
     },
   ],
 };
@@ -185,6 +186,7 @@ export const projectTracker: SheetTemplate = {
   description: "Tasks, owners, dates and a week-by-week timeline",
   category: "Work",
   tags: ["gantt", "timeline", "plan"],
+  accent: "#5B5BD6",
   sheets: [
     {
       name: "Timeline",
@@ -266,6 +268,7 @@ export const okrTracker: SheetTemplate = {
   description: "Key results with progress from start to target",
   category: "Work",
   tags: ["goals", "objectives", "quarter"],
+  accent: "#D6409F",
   sheets: [
     {
       name: "OKRs",
@@ -306,7 +309,8 @@ export const okrTracker: SheetTemplate = {
       ],
       widths: [240, 220, 90, 80, 80, 80, 90, 100],
       formats: [[`G2:G${K_LAST + 2}`, PCT]],
-      bold: [`A2:A${K_LAST}`, `A${K_LAST + 2}:G${K_LAST + 2}`],
+      bold: [`A2:A${K_LAST}`],
+      totals: [`A${K_LAST + 2}:H${K_LAST + 2}`],
     },
   ],
 };
@@ -322,6 +326,7 @@ export const timesheet: SheetTemplate = {
   description: "Daily hours, breaks, overtime and pay",
   category: "Work",
   tags: ["hours", "payroll", "overtime"],
+  accent: "#0071E3",
   sheets: [
     {
       name: "Timesheet",
@@ -383,7 +388,7 @@ export const timesheet: SheetTemplate = {
         [`B${T_TOTAL + 2}`, MONEY],
         [`B${T_TOTAL + 6}:B${T_TOTAL + 8}`, MONEY],
       ],
-      bold: [`A${T_TOTAL}:G${T_TOTAL}`, `A${T_TOTAL + 8}:B${T_TOTAL + 8}`],
+      totals: [`A${T_TOTAL}:H${T_TOTAL}`, `A${T_TOTAL + 8}:B${T_TOTAL + 8}`],
     },
   ],
 };
@@ -404,6 +409,7 @@ export const inventory: SheetTemplate = {
   description: "Stock levels, value and what to reorder",
   category: "Work",
   tags: ["stock", "warehouse", "small business"],
+  accent: "#475569",
   sheets: [
     {
       name: "Inventory",
@@ -452,7 +458,7 @@ export const inventory: SheetTemplate = {
         ["L3", WHOLE],
         ["L4", MONEY],
       ],
-      bold: ["K5:L5"],
+      totals: ["K5:L5"],
     },
   ],
 };
@@ -463,6 +469,7 @@ export const contentCalendar: SheetTemplate = {
   description: "Plan posts by date, channel, owner and status",
   category: "Work",
   tags: ["marketing", "social media", "editorial"],
+  accent: "#7C3AED",
   sheets: [
     {
       name: "Calendar",
@@ -608,6 +615,7 @@ export const simpleCrm: SheetTemplate = {
   description: "Contacts, stages and who to follow up with",
   category: "Work",
   tags: ["contacts", "customers", "sales"],
+  accent: "#0894B3",
   sheets: [
     {
       name: "Contacts",

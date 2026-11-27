@@ -15,14 +15,9 @@ import {
   cellName,
   parseCell,
   type SheetTemplate,
+  tint,
 } from "./build";
-
-// Functions the templates may use (all implemented by the sheet engine).
-const FUNCTIONS = new Set(
-  "SUM SUMIF COUNTIF COUNTA AVERAGE MIN MAX MAXIFS IF IFERROR AND VLOOKUP PMT ROUNDUP EDATE TODAY TEXT SUMPRODUCT".split(
-    " ",
-  ),
-);
+import { CellError, SUPPORTED_FUNCTIONS as FUNCTIONS } from "./evaluate";
 
 const formulas = (t: SheetTemplate) =>
   t.sheets.flatMap((s) =>
@@ -59,6 +54,12 @@ describe("sheet templates", () => {
     expect(sheetTemplateData("nope")).toBeNull();
   });
 
+  it("tints toward white", () => {
+    expect(tint("#000000", 0.5)).toBe("#808080");
+    expect(tint("#3B5BFD", 0)).toBe("#3B5BFD");
+    expect(tint("#3B5BFD", 1)).toBe("#FFFFFF");
+  });
+
   it("cell names round-trip", () => {
     for (const ref of ["A1", "Z9", "AA10", "AI2"])
       expect(cellName(...parseCell(ref))).toBe(ref);
@@ -89,6 +90,41 @@ describe("sheet templates", () => {
         }
         const grid = snapshotToGrid(snapshot);
         expect(grid[0][0].v ?? grid[0][0].f).toBe(t.sheets[0].rows[0][0]);
+      });
+
+      it("caches an error-free value for every formula cell", () => {
+        t.sheets.forEach((spec, si) => {
+          const cells = snapshot.sheets[snapshot.sheetOrder[si]].cellData ?? {};
+          spec.rows.forEach((row, r) => {
+            row.forEach((raw, c) => {
+              if (!(typeof raw === "string" && raw.startsWith("="))) return;
+              const cell = cells[r]?.[c];
+              expect(cell?.f, `${spec.name}!${cellName(r, c)}`).toBe(raw);
+              expect(
+                cell?.v,
+                `${spec.name}!${cellName(r, c)} ${raw}`,
+              ).not.toBeUndefined();
+              expect(
+                cell?.v,
+                `${spec.name}!${cellName(r, c)} ${raw}`,
+              ).not.toBeNull();
+              expect(cell?.v).not.toBeInstanceOf(CellError);
+            });
+          });
+        });
+      });
+
+      it("styles the header with the accent", () => {
+        const spec = t.sheets[0];
+        const r = (spec.header ?? [0])[0];
+        const c = spec.rows[r].findIndex((v) => v !== null && v !== "");
+        const s = snapshot.sheets[snapshot.sheetOrder[0]].cellData?.[r]?.[c]
+          ?.s as string;
+        expect(snapshot.styles[s]).toMatchObject({
+          bl: 1,
+          bg: { rgb: t.accent },
+          cl: { rgb: "#FFFFFF" },
+        });
       });
 
       it("uses well-formed formulas with known functions and in-bounds references", () => {
@@ -123,6 +159,40 @@ describe("sheet templates", () => {
       });
     },
   );
+
+  /** The cached value of a cell in the built workbook. */
+  const cached = (id: string, ref: string, sheet = 0) => {
+    const snap = buildWorkbook(tpl(id));
+    const [r, c] = parseCell(ref);
+    return snap.sheets[snap.sheetOrder[sheet]].cellData?.[r]?.[c]?.v;
+  };
+
+  it("caches the values the formulas mean", () => {
+    // Invoice: 20 x 75 + 1 x 240 + 6 x 60 = 2,100, 20% tax.
+    expect(cached("invoice", "D9")).toBe(1500);
+    expect(cached("invoice", "D12")).toBe("");
+    expect(cached("invoice", "D16")).toBe(2100);
+    expect(cached("invoice", "D18")).toBeCloseTo(420);
+    expect(cached("invoice", "D19")).toBeCloseTo(2520);
+    expect(cached("invoice", "B5")).toBe(Number(at(tpl("invoice"), "B4")) + 30);
+    // Loan: 250,000 at 6.5% over 30 years is 1,580.17 a month and pays off to zero.
+    expect(cached("loan-calculator", "B8")).toBeCloseTo(1580.17, 2);
+    expect(cached("loan-calculator", "B9")).toBe(360);
+    expect(cached("loan-calculator", `E${13 + 360}`)).toBeCloseTo(0, 4);
+    // Budget: income 4,800 planned; expenses add up the expense rows.
+    const items = tpl("monthly-budget").sheets[0].rows.slice(1, 14);
+    const planned = (type: string) =>
+      items.filter((r) => r[1] === type).reduce((s, r) => s + Number(r[2]), 0);
+    expect(cached("monthly-budget", "H2")).toBe(planned("Income"));
+    expect(cached("monthly-budget", "H3")).toBe(planned("Expense"));
+    expect(cached("monthly-budget", "H4")).toBe(
+      planned("Income") - planned("Expense"),
+    );
+    // Grade book: Grace Lee's weighted average is an A.
+    expect(cached("grade-book", "H9")).toBe("A");
+    // Savings goals read the other sheet: 1,500 + 400 into the emergency fund.
+    expect(cached("savings-goal", "C2")).toBe(1900);
+  });
 
   it("invoice: line totals, subtotal, tax and total chain correctly", () => {
     const t = tpl("invoice");
