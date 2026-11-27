@@ -23,6 +23,92 @@ export interface ChatConversation {
   lastMessageAt: string;
 }
 
+/** Builds and inserts a new file owned by `user`. Usable outside React (converters, importers). */
+export async function createFile(
+  user: { id: string; email?: string | null; displayName?: string | null },
+  input: Partial<DocumentCreateInput> & { _id?: string } = {},
+): Promise<string> {
+  const docId = input.id || nanoid();
+  const defaultPageSettings = {
+    pageSize: "Letter" as const,
+    orientation: "portrait" as const,
+    marginTop: 72,
+    marginBottom: 72,
+    marginLeft: 72,
+    marginRight: 72,
+  };
+
+  // Default to user.id as parent (same pattern as folders)
+  const parentLocation = input.folderId || user.id;
+
+  const kind = input.kind ?? "doc";
+  const newDocument: Document = {
+    id: docId,
+    ...(kind === "doc" ? {} : { kind, data: input.data ?? null }),
+    title:
+      input.title ||
+      (kind === "sheet"
+        ? "Untitled spreadsheet"
+        : kind === "slides"
+          ? "Untitled presentation"
+          : "Untitled document"),
+    pages: [
+      {
+        id: nanoid(),
+        content: input.initialContent || { type: "doc", content: [] },
+        format: input.format || "Letter",
+        pageNumber: 1,
+      },
+    ],
+    currentPage: 1,
+    wordCount: 0,
+    owner: user.id,
+    sharing: {
+      isShared: false,
+      sharedWith: [
+        {
+          userId: user.id,
+          email: user.email || "",
+          displayName: user.displayName || user.email || null,
+          access: "owner",
+          status: "active",
+          invitedAt: new Date().toISOString(),
+        },
+      ],
+      settings: {
+        allowEditorsShare: true,
+        editorsCanDownload: true,
+        viewersCanDownload: true,
+      },
+    },
+    permissions: {
+      canRead: true,
+      canWrite: true,
+      canDelete: true,
+      canShare: true,
+    },
+    location: parentLocation,
+    parents: [parentLocation],
+    tags: [],
+    meta: {
+      type: {
+        mime: "application/json",
+        extension: "json",
+      },
+      size: 0,
+    },
+    pageSettings: { ...defaultPageSettings, ...input.pageSettings },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastSaved: new Date(),
+  };
+
+  const documentsCollection = cloudStore.collection("documents");
+  primeDocument(newDocument);
+  await documentsCollection.insert(newDocument);
+  return docId;
+}
+
 export function useCloudStore() {
   const { user } = useStore($auth);
 
@@ -82,81 +168,8 @@ export function useCloudStore() {
         console.error("CloudStore not available or user not authenticated");
         return null;
       }
-
       try {
-        const docId = input.id || nanoid();
-        const defaultPageSettings = {
-          pageSize: "Letter" as const,
-          orientation: "portrait" as const,
-          marginTop: 72,
-          marginBottom: 72,
-          marginLeft: 72,
-          marginRight: 72,
-        };
-
-        // Default to user.id as parent (same pattern as folders)
-        const parentLocation = input.folderId || user.id;
-
-        const kind = input.kind ?? "doc";
-        const newDocument: Document = {
-          id: docId,
-          ...(kind === "doc" ? {} : { kind, data: input.data ?? null }),
-          title: input.title || (kind === "sheet" ? "Untitled spreadsheet" : kind === "slides" ? "Untitled presentation" : "Untitled document"),
-          pages: [
-            {
-              id: nanoid(),
-              content: input.initialContent || { type: "doc", content: [] },
-              format: input.format || "Letter",
-              pageNumber: 1,
-            },
-          ],
-          currentPage: 1,
-          wordCount: 0,
-          owner: user.id,
-          sharing: {
-            isShared: false,
-            sharedWith: [
-              {
-                userId: user.id,
-                email: user.email || "",
-                displayName: user.displayName || user.email || null,
-                access: "owner",
-                status: "active",
-                invitedAt: new Date().toISOString(),
-              },
-            ],
-            settings: {
-              allowEditorsShare: true,
-              editorsCanDownload: true,
-              viewersCanDownload: true,
-            },
-          },
-          permissions: {
-            canRead: true,
-            canWrite: true,
-            canDelete: true,
-            canShare: true,
-          },
-          location: parentLocation,
-          parents: [parentLocation],
-          tags: [],
-          meta: {
-            type: {
-              mime: "application/json",
-              extension: "json",
-            },
-            size: 0,
-          },
-          pageSettings: { ...defaultPageSettings, ...input.pageSettings },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          lastSaved: new Date(),
-        };
-
-        const documentsCollection = cloudStore.collection("documents");
-        primeDocument(newDocument);
-        await documentsCollection.insert(newDocument);
-        return docId;
+        return await createFile(user, input);
       } catch (error) {
         console.error("Failed to create document:", error);
         return null;
@@ -227,47 +240,62 @@ export function useCloudStore() {
     }
   }, []);
 
-  const deleteFolder = useCallback(async (id: string): Promise<boolean> => {
-    if (!cloudStore) {
-      console.error("CloudStore not available");
-      return false;
-    }
-
-    try {
-      console.log("Attempting to delete folder with ID:", id);
-      
-      // First, recursively delete all subfolders
-      const foldersCollection = cloudStore.collection("folders");
-      const subfoldersQuery = cloudStore.query.where("parents", "CONTAINS", id);
-      const subfolders = (await foldersCollection.get(subfoldersQuery)) as IFolderItem[];
-      
-      // Delete each subfolder recursively
-      for (const subfolder of subfolders) {
-        await deleteFolder(subfolder.id); // Recursive call
+  const deleteFolder = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (!cloudStore) {
+        console.error("CloudStore not available");
+        return false;
       }
-      
-      // Next, delete all documents in this folder
-      // Documents can be in a folder via location field or parents array
-      const documentsCollection = cloudStore.collection("documents");
-      const documentsQuery = cloudStore.query.where("parents", "CONTAINS", id);
-      const documents = (await documentsCollection.get(documentsQuery)) as Document[];
-      
-      for (const document of documents) {
-        await deleteDocument(document.id);
-      }
-      
-      // Finally, delete the main folder
-      const query = cloudStore.query.where("id", "EQUAL", id);
-      const result = await foldersCollection.remove(query);
 
-      console.log("Folder delete result:", result);
-      return true;
-    } catch (error) {
-      console.error("Failed to delete folder:", error);
-      console.error("Error details:", error);
-      return false;
-    }
-  }, [deleteDocument]);
+      try {
+        console.log("Attempting to delete folder with ID:", id);
+
+        // First, recursively delete all subfolders
+        const foldersCollection = cloudStore.collection("folders");
+        const subfoldersQuery = cloudStore.query.where(
+          "parents",
+          "CONTAINS",
+          id,
+        );
+        const subfolders = (await foldersCollection.get(
+          subfoldersQuery,
+        )) as IFolderItem[];
+
+        // Delete each subfolder recursively
+        for (const subfolder of subfolders) {
+          await deleteFolder(subfolder.id); // Recursive call
+        }
+
+        // Next, delete all documents in this folder
+        // Documents can be in a folder via location field or parents array
+        const documentsCollection = cloudStore.collection("documents");
+        const documentsQuery = cloudStore.query.where(
+          "parents",
+          "CONTAINS",
+          id,
+        );
+        const documents = (await documentsCollection.get(
+          documentsQuery,
+        )) as Document[];
+
+        for (const document of documents) {
+          await deleteDocument(document.id);
+        }
+
+        // Finally, delete the main folder
+        const query = cloudStore.query.where("id", "EQUAL", id);
+        const result = await foldersCollection.remove(query);
+
+        console.log("Folder delete result:", result);
+        return true;
+      } catch (error) {
+        console.error("Failed to delete folder:", error);
+        console.error("Error details:", error);
+        return false;
+      }
+    },
+    [deleteDocument],
+  );
 
   const updateDocument = useCallback(
     async (id: string, updates: Partial<Document>): Promise<boolean> => {

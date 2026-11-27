@@ -2,6 +2,7 @@ import { debounce } from "@repo/shadcn-ui/lib/utils";
 import type { Document } from "@shared-types";
 import type { Editor } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getAuthHeader } from "@/lib/auth/manager";
 import { isPlaceholderTitle, titleFromHtml } from "@/lib/titles";
 import { useCloudStore } from "./use-cloudstore";
 
@@ -18,6 +19,13 @@ interface CloudStoreSaverReturn {
   lastSaved: Date | null;
   forceSave: () => Promise<void>;
   errorMessage: string | null;
+}
+
+/** Asks the server for a version snapshot; it keeps at most one per 10 minutes, so this is cheap to call. */
+function requestSnapshot(documentId: string) {
+  const auth = getAuthHeader();
+  if (!auth) return;
+  fetch(`/api/v1/files/${documentId}/versions`, { method: "POST", headers: { Authorization: auth } }).catch(() => {});
 }
 
 export function useCloudStoreSaver(
@@ -84,6 +92,7 @@ export function useCloudStoreSaver(
         const success = await updateDocument(documentId, updates);
 
         if (success) {
+          requestSnapshot(documentId);
           setSaveStatus("saved");
           setLastSaved(now);
           retryCount.current = 0;
