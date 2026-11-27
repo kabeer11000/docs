@@ -2,6 +2,7 @@
 import { AuthInitializer } from "@/components/common/auth-init";
 import { SettingsDialog } from "@/components/common/setting-dialog";
 import { StaleBuildReload } from "@/components/common/stale-build-reload";
+import { EditorFileDrop } from "@/components/common/file-drop";
 import { Toaster } from "@/components/ui/sonner";
 import { PWASupport } from "@/components/PWASupport";
 import { ThemeProvider } from "next-themes";
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
       <StaleBuildReload />
+      <EditorFileDrop />
       <PWASupport />
       <AuthInitializer />
       <SettingsDialog />

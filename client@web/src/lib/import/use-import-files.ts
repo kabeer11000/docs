@@ -47,7 +47,12 @@ async function readFile(file: File): Promise<CreateInput> {
 
 // CONTRACT (owned by the import agent): import any supported file as a new file and open it.
 // pdf -> PDF editor, docx/md/html/txt -> doc, xlsx/csv -> sheet, pptx -> slides.
-export function useImportFiles(): { importFiles: (files: FileList | File[], folderId?: string) => Promise<void>; busy: boolean } {
+export type ImportedFile = { id: string; kind: FileKind };
+
+export function useImportFiles(): {
+  importFiles: (files: FileList | File[], folderId?: string, options?: { navigate?: boolean }) => Promise<ImportedFile[]>;
+  busy: boolean;
+} {
   const router = useRouter();
   const { createDocument } = useCloudStore();
   const { user } = useStore($auth);
@@ -55,12 +60,12 @@ export function useImportFiles(): { importFiles: (files: FileList | File[], fold
   const running = useRef(false);
 
   const importFiles = useCallback(
-    async (input: FileList | File[], folderId?: string) => {
+    async (input: FileList | File[], folderId?: string, { navigate = true }: { navigate?: boolean } = {}): Promise<ImportedFile[]> => {
       const files = Array.from(input);
-      if (!files.length || running.current) return;
+      if (!files.length || running.current) return [];
       if (!user) {
         showToast.error("Sign in to import files");
-        return;
+        return [];
       }
       running.current = true;
       setBusy(true);
@@ -90,9 +95,9 @@ export function useImportFiles(): { importFiles: (files: FileList | File[], fold
         running.current = false;
         setBusy(false);
       }
-      if (files.length === 1 && created.length === 1) {
+      if (navigate && files.length === 1 && created.length === 1) {
         router.push(fileHref(created[0].id, created[0].kind));
-        return;
+        return created;
       }
       if (created.length) {
         showToast.success(
@@ -100,6 +105,7 @@ export function useImportFiles(): { importFiles: (files: FileList | File[], fold
           failed.length ? `${failed.length} could not be imported` : undefined,
         );
       }
+      return created;
     },
     [user, createDocument, router],
   );

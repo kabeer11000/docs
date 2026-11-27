@@ -519,6 +519,7 @@ export function SlidesApp({ documentId }: { documentId: string }) {
         {/* biome-ignore lint/a11y/noStaticElementInteractions: clicking empty canvas clears the selection */}
         <div
           ref={stageRef}
+          data-slide-canvas
           className="flex min-h-0 flex-1 items-center justify-center overflow-hidden px-12 pt-20 pb-12"
           onPointerDown={(e) => {
             if (
